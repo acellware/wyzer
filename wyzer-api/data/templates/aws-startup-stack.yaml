@@ -1,0 +1,51 @@
+slug: aws-startup-stack
+name: "AWS Startup Stack"
+description: "Modern AWS stack for Series A startups: RDS, ElastiCache, EC2, Terraform"
+use_case: "Series A / B funded startups on AWS looking for SOC 2 readiness"
+data_scopes: [pii, financial]
+preview_tech_slugs: [postgresql, redis, aws-ec2, terraform, docker]
+items:
+  - technology_slug: postgresql
+    deployment_mode: managed
+    config_answers:
+      tls_enforced: "yes"
+      publicly_accessible: "no"
+      backup_enabled: "yes"
+      backup_retention: "30_90d"
+      rbac_enabled: "yes"
+      audit_logging: "not_sure"
+  - technology_slug: redis
+    deployment_mode: managed
+    config_answers:
+      auth_enabled: "yes"
+      tls_enabled: "yes"
+      network_isolated: "yes"
+      stores_pii: "not_sure"
+      acl_enabled: "not_sure"
+  - technology_slug: aws-ec2
+    deployment_mode: managed
+    config_answers:
+      imds_v2_enforced: "not_sure"
+      security_groups_restrict_ssh: "not_sure"
+      ebs_encrypted: "not_sure"
+      vpc_isolated: "yes"
+      iam_role_attached: "not_sure"
+      cloudtrail_enabled: "not_sure"
+      patch_management: "not_sure"
+  - technology_slug: terraform
+    deployment_mode: self-hosted
+    config_answers:
+      state_encrypted: "not_sure"
+      state_backend: "s3"
+      secrets_in_code: "not_sure"
+      modules_pinned: "not_sure"
+      plan_reviewed: "not_sure"
+  - technology_slug: docker
+    deployment_mode: self-hosted
+    config_answers:
+      base_image_pinned: "not_sure"
+      runs_as_root: "not_sure"
+      image_scanning_enabled: "not_sure"
+      secrets_in_image: "not_sure"
+      registry_private: "yes"
+      read_only_filesystem: "not_sure"

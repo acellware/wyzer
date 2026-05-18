@@ -1,0 +1,56 @@
+# fly.toml — wyzer-api
+# Managed by Fly.io CLI. Do not edit the [build] or [[services]] sections
+# without also updating the GitHub Actions deploy workflow.
+#
+# Apps:
+#   Staging:    wyzer-api-staging
+#   Production: wyzer-api-prod
+#
+# Deploy:
+#   fly deploy --config fly.toml --app wyzer-api-prod
+#   fly deploy --config fly.staging.toml --app wyzer-api-staging
+
+app = "wyzer-api-prod"
+primary_region = "lhr"            # London — adjust to your closest region
+kill_signal = "SIGINT"
+kill_timeout = 10
+
+[build]
+  dockerfile = "Dockerfile"
+  target = "production"
+
+[env]
+  NODE_ENV = "production"
+  PORT = "3001"
+
+# Secrets (set via: fly secrets set KEY=value --app wyzer-api-prod)
+# DATABASE_URL, REDIS_URL, JWT_PRIVATE_KEY, JWT_PUBLIC_KEY,
+# RESEND_API_KEY, STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET,
+# R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY
+
+[http_service]
+  internal_port = 3001
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 0         # scale to zero when idle to cut cost
+
+  [http_service.concurrency]
+    type = "requests"
+    hard_limit = 250
+    soft_limit = 200
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"
+
+[checks]
+  [checks.health]
+    grace_period = "10s"
+    interval = "30s"
+    method = "GET"
+    path = "/api/v1/health"
+    port = 3001
+    timeout = "5s"
+    type = "http"
+    tls_skip_verify = false

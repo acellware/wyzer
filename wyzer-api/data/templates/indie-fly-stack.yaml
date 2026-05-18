@@ -1,0 +1,32 @@
+slug: indie-fly-stack
+name: "Indie / Fly.io Stack"
+description: "Solo founders and small teams on Fly.io with Neon Postgres + Upstash Redis"
+use_case: "Startups, indie hackers, early-stage products"
+data_scopes: [pii]
+preview_tech_slugs: [neon-postgresql, upstash-redis, docker, github-actions]
+items:
+  - technology_slug: postgresql
+    deployment_mode: managed
+    config_answers:
+      tls_enforced: "yes"
+      publicly_accessible: "no"
+      backup_enabled: "yes"
+      backup_retention: "7_30d"
+      rbac_enabled: "not_sure"
+      audit_logging: "not_sure"
+  - technology_slug: redis
+    deployment_mode: managed
+    config_answers:
+      auth_enabled: "yes"
+      tls_enabled: "yes"
+      network_isolated: "yes"
+      stores_pii: "not_sure"
+  - technology_slug: docker
+    deployment_mode: self-hosted
+    config_answers:
+      base_image_pinned: "not_sure"
+      runs_as_root: "not_sure"
+      image_scanning_enabled: "no"
+      secrets_in_image: "not_sure"
+      registry_private: "no"
+      read_only_filesystem: "no"

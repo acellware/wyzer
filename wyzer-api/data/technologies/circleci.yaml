@@ -1,0 +1,164 @@
+slug: circleci
+name: "CircleCI"
+category: ci-cd
+vendor: "CircleCI"
+is_managed_available: true
+logo_url: /logos/circleci.svg
+
+config_questions:
+  - signal_key: secrets_in_context
+    question: "Are all CI/CD secrets stored in CircleCI Contexts rather than plaintext environment variables in config.yml?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 1
+  - signal_key: oidc_auth
+    question: "Does the pipeline use OIDC tokens to authenticate with cloud providers instead of long-lived credentials?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 2
+  - signal_key: restricted_contexts
+    question: "Are CircleCI Contexts restricted to specific project groups or security groups?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 3
+  - signal_key: sast_scanning
+    question: "Does the pipeline include SAST (static analysis) scanning as a required step?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 4
+  - signal_key: dependency_scanning
+    question: "Does the pipeline include dependency vulnerability scanning (e.g., Snyk, Trivy, npm audit)?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 5
+  - signal_key: pr_required
+    question: "Are deployments gated behind approved pull requests (no direct-to-main deploys)?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 6
+  - signal_key: audit_log_forwarding
+    question: "Are CircleCI audit logs forwarded to a SIEM or centralised logging platform?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 7
+
+control_mappings:
+  - framework:
+      slug: soc2
+      name: "SOC 2 Type II"
+    control:
+      ref: "CC8.1"
+      title: "Changes to Infrastructure, Data, and Software"
+      severity: HIGH
+      description: "The entity authorizes, designs, develops or acquires, configures, documents, tests, approves, and implements changes."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: pr_required, op: eq, value: "yes" }
+        - { signal: sast_scanning, op: eq, value: "yes" }
+    evidence: "PR-gated CI pipelines with SAST scanning ensure all changes are reviewed and validated before deployment."
+    remediation: "Require at least one approval on all PRs; add SAST as a required check; block merges on failing scans."
+
+  - framework:
+      slug: soc2
+      name: "SOC 2 Type II"
+    control:
+      ref: "CC6.1"
+      title: "Logical Access Controls"
+      severity: HIGH
+      description: "The entity implements logical access security measures to protect information assets."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: secrets_in_context, op: eq, value: "yes" }
+        - { signal: restricted_contexts, op: eq, value: "yes" }
+    evidence: "CircleCI Context restrictions prevent secrets from being accessible to unauthorised projects or team members."
+    remediation: "Move all secrets to restricted Contexts; set Context security groups; remove secrets from inline env vars."
+
+  - framework:
+      slug: iso27001
+      name: "ISO/IEC 27001:2022"
+    control:
+      ref: "A.8.25"
+      title: "Secure Development Lifecycle"
+      severity: HIGH
+      description: "Rules for the secure development of software and systems shall be established and applied."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: sast_scanning, op: eq, value: "yes" }
+        - { signal: dependency_scanning, op: eq, value: "yes" }
+    evidence: "SAST and dependency scanning as pipeline gates enforce secure development practices on every code change."
+    remediation: "Integrate a SAST tool (Semgrep/CodeQL) and SCA scanner (Trivy/Snyk); block merges on critical findings."
+
+  - framework:
+      slug: pci-dss
+      name: "PCI-DSS v4.0"
+    control:
+      ref: "6.3.2"
+      title: "Inventory of Bespoke/Custom Software"
+      severity: HIGH
+      description: "An inventory of bespoke and custom software is maintained including secure software development practices."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: sast_scanning, op: eq, value: "yes" }
+        - { signal: dependency_scanning, op: eq, value: "yes" }
+        - { signal: pr_required, op: eq, value: "yes" }
+    evidence: "Pipeline-enforced SAST + SCA scanning and PR gating satisfy PCI DSS secure software development requirements."
+    remediation: "Add SAST and dependency scans as required steps; block pipelines on HIGH/CRITICAL vulnerabilities; document tooling."
+
+  - framework:
+      slug: gdpr
+      name: "GDPR"
+    control:
+      ref: "Art.25"
+      title: "Data Protection by Design and Default"
+      severity: MEDIUM
+      description: "Data protection shall be integrated into processing activities from the design stage."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: sast_scanning, op: eq, value: "yes" }
+        - { signal: secrets_in_context, op: eq, value: "yes" }
+    evidence: "Security checks in CI enforce data protection at the design phase; secrets in Contexts prevent credential leakage."
+    remediation: "Enable SAST scanning in all pipelines that deploy applications processing personal data; restrict Context access."
+
+  - framework:
+      slug: hipaa
+      name: "HIPAA"
+    control:
+      ref: "164.308(a)(1)(ii)(B)"
+      title: "Risk Management"
+      severity: HIGH
+      description: "Implement security measures sufficient to reduce risks and vulnerabilities to a reasonable and appropriate level."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: sast_scanning, op: eq, value: "yes" }
+        - { signal: dependency_scanning, op: eq, value: "yes" }
+    evidence: "Automated SAST and dependency scanning in CI reduces risk of vulnerabilities being introduced into ePHI-handling systems."
+    remediation: "Enable Snyk or Trivy in all ePHI application pipelines; gate deploys on critical vulnerability resolution."
+
+  - framework:
+      slug: ndpr
+      name: "NDPR"
+    control:
+      ref: "Art.2.6"
+      title: "Data Security"
+      severity: MEDIUM
+      description: "Adequate technical measures shall be employed to safeguard personal data."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: secrets_in_context, op: eq, value: "yes" }
+        - { signal: sast_scanning, op: eq, value: "yes" }
+    evidence: "Secure secrets management and SAST scanning protect the pipeline integrity of applications processing Nigerian personal data."
+    remediation: "Store all credentials in restricted Contexts; add SAST scanning to all pipelines targeting production workloads."

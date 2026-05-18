@@ -1,0 +1,209 @@
+slug: mysql
+name: "MySQL"
+category: database
+vendor: "Oracle Corporation"
+is_managed_available: true
+logo_url: /logos/mysql.svg
+
+config_questions:
+  - signal_key: encryption_at_rest
+    question: "Is InnoDB tablespace encryption (TDE) or cloud-managed encryption enabled?"
+    input_type: toggle
+    applies_to_modes: [managed, self-hosted, on-prem]
+    order_index: 1
+  - signal_key: tls_enforced
+    question: "Is TLS enforced for all client connections (require_secure_transport=ON)?"
+    input_type: toggle
+    applies_to_modes: [managed, self-hosted, on-prem]
+    order_index: 2
+  - signal_key: publicly_accessible
+    question: "Is the database reachable from the public internet?"
+    input_type: toggle
+    applies_to_modes: [managed, self-hosted, on-prem]
+    order_index: 3
+  - signal_key: rbac_enabled
+    question: "Are role-based access controls configured with least-privilege user grants?"
+    input_type: toggle
+    applies_to_modes: [managed, self-hosted, on-prem]
+    order_index: 4
+  - signal_key: audit_logging
+    question: "Is the MySQL audit plugin or cloud audit logging enabled?"
+    input_type: toggle
+    applies_to_modes: [managed, self-hosted, on-prem]
+    order_index: 5
+  - signal_key: backup_enabled
+    question: "Are automated backups enabled?"
+    input_type: toggle
+    applies_to_modes: [managed, self-hosted, on-prem]
+    order_index: 6
+  - signal_key: backup_retention
+    question: "What is your backup retention period?"
+    input_type: radio
+    applies_to_modes: [managed, self-hosted, on-prem]
+    options:
+      - { value: lt_7d, label: "Less than 7 days" }
+      - { value: 7_30d, label: "7 to 30 days" }
+      - { value: 30_90d, label: "30 to 90 days" }
+      - { value: gt_90d, label: "90+ days" }
+    order_index: 7
+  - signal_key: password_policy
+    question: "Is a strong password policy enforced for all database users?"
+    input_type: toggle
+    applies_to_modes: [managed, self-hosted, on-prem]
+    order_index: 8
+
+control_mappings:
+  - framework:
+      slug: soc2
+      name: "SOC 2 Type II"
+    control:
+      ref: "CC6.1"
+      title: "Logical and Physical Access Controls"
+      severity: HIGH
+      description: "The entity implements logical access security software and architectures over protected information assets."
+    conditions:
+      logic: AND
+      managed_auto_pass: false
+      rules:
+        - { signal: rbac_enabled, op: eq, value: "yes" }
+    evidence: "MySQL GRANT/REVOKE and role system enforce least-privilege access to databases and tables."
+    remediation: "Create dedicated application users with minimal grants; revoke ALL from 'root'@'%'; disable anonymous users."
+
+  - framework:
+      slug: soc2
+      name: "SOC 2 Type II"
+    control:
+      ref: "CC6.6"
+      title: "Logical Access - External Threats"
+      severity: HIGH
+      description: "Logical access security measures restrict access from outside the system boundary."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: publicly_accessible, op: eq, value: "no" }
+        - { signal: tls_enforced, op: eq, value: "yes" }
+    evidence: "Private network placement and required TLS prevent external access and man-in-the-middle attacks."
+    remediation: "Bind mysqld to private interface; set require_secure_transport=ON in my.cnf."
+
+  - framework:
+      slug: soc2
+      name: "SOC 2 Type II"
+    control:
+      ref: "CC7.2"
+      title: "Evaluates Security Events"
+      severity: MEDIUM
+      description: "The entity monitors system components and the operation of those controls on an ongoing basis."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: audit_logging, op: eq, value: "yes" }
+    evidence: "MySQL audit plugin records connection and query activity for compliance monitoring."
+    remediation: "Install mysql_audit plugin or enable CloudWatch/Cloud Logging for RDS; filter for sensitive table access."
+
+  - framework:
+      slug: iso27001
+      name: "ISO/IEC 27001:2022"
+    control:
+      ref: "A.8.24"
+      title: "Use of Cryptography"
+      severity: HIGH
+      description: "Rules for the effective use of cryptography shall be defined and implemented."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: encryption_at_rest, op: eq, value: "yes" }
+        - { signal: tls_enforced, op: eq, value: "yes" }
+    evidence: "InnoDB TDE and required TLS satisfy data-at-rest and data-in-transit cryptography requirements."
+    remediation: "Enable InnoDB tablespace encryption; set require_secure_transport=ON; use TLS 1.2+ ceritficates."
+
+  - framework:
+      slug: iso27001
+      name: "ISO/IEC 27001:2022"
+    control:
+      ref: "A.8.14"
+      title: "Redundancy of Information Processing"
+      severity: MEDIUM
+      description: "Information processing facilities shall be implemented with sufficient redundancy."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: backup_enabled, op: eq, value: "yes" }
+        - { signal: backup_retention, op: "in", value: ["7_30d", "30_90d", "gt_90d"] }
+    evidence: "Automated backups with sufficient retention provide recovery capability."
+    remediation: "Enable automated backups with at least 7-day retention; test restore procedures quarterly."
+
+  - framework:
+      slug: gdpr
+      name: "GDPR"
+    control:
+      ref: "Art.32"
+      title: "Security of Processing"
+      severity: HIGH
+      description: "Implement appropriate technical measures to ensure security appropriate to the risk."
+    conditions:
+      logic: AND
+      managed_auto_pass: false
+      rules:
+        - { signal: encryption_at_rest, op: eq, value: "yes" }
+        - { signal: tls_enforced, op: eq, value: "yes" }
+        - { signal: rbac_enabled, op: eq, value: "yes" }
+        - { signal: audit_logging, op: eq, value: "yes" }
+    evidence: "Encryption, TLS, RBAC, and audit logging implement GDPR Article 32 technical measures for personal data."
+    remediation: "Enable InnoDB encryption; enforce TLS; restrict grants; enable audit logging for personal data tables."
+
+  - framework:
+      slug: pci-dss
+      name: "PCI-DSS v4.0"
+    control:
+      ref: "Req.3.5"
+      title: "Primary Account Number Protection"
+      severity: CRITICAL
+      description: "Primary account number must be secured wherever stored."
+    conditions:
+      logic: AND
+      managed_auto_pass: false
+      rules:
+        - { signal: encryption_at_rest, op: eq, value: "yes" }
+        - { signal: rbac_enabled, op: eq, value: "yes" }
+        - { signal: audit_logging, op: eq, value: "yes" }
+    evidence: "TDE, least-privilege grants, and audit logging protect PAN stored in MySQL CDE databases."
+    remediation: "Enable TDE; restrict SELECT on PAN tables to application user only; audit all PAN table access."
+
+  - framework:
+      slug: hipaa
+      name: "HIPAA"
+    control:
+      ref: "164.312(a)(2)(iv)"
+      title: "Encryption and Decryption"
+      severity: HIGH
+      description: "Implement a mechanism to encrypt and decrypt electronic protected health information."
+    conditions:
+      logic: AND
+      managed_auto_pass: false
+      rules:
+        - { signal: encryption_at_rest, op: eq, value: "yes" }
+        - { signal: tls_enforced, op: eq, value: "yes" }
+    evidence: "InnoDB TDE and required TLS protect ePHI stored and transmitted through MySQL."
+    remediation: "Enable tablespace encryption for all schemas storing ePHI; enforce TLS 1.2+ client connections."
+
+  - framework:
+      slug: ndpr
+      name: "NDPR"
+    control:
+      ref: "Art.2.6"
+      title: "Data Security"
+      severity: HIGH
+      description: "Adequate technical measures shall be employed to safeguard personal data."
+    conditions:
+      logic: AND
+      managed_auto_pass: false
+      rules:
+        - { signal: encryption_at_rest, op: eq, value: "yes" }
+        - { signal: publicly_accessible, op: eq, value: "no" }
+        - { signal: rbac_enabled, op: eq, value: "yes" }
+    evidence: "Encryption, private access, and RBAC protect personal data of Nigerian residents stored in MySQL."
+    remediation: "Enable InnoDB encryption; bind to private network; restrict database grants per the principle of least privilege."

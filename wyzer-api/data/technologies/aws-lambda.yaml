@@ -1,0 +1,163 @@
+slug: aws-lambda
+name: "AWS Lambda"
+category: compute
+vendor: "Amazon Web Services"
+is_managed_available: true
+logo_url: /logos/aws-lambda.svg
+
+config_questions:
+  - signal_key: execution_role_least_privilege
+    question: "Does each Lambda function have a dedicated IAM execution role with least-privilege permissions?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 1
+  - signal_key: secrets_from_secrets_manager
+    question: "Are environment variable secrets fetched from Secrets Manager or SSM Parameter Store (not hardcoded)?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 2
+  - signal_key: env_vars_encrypted
+    question: "Are Lambda environment variables encrypted at rest using a KMS customer-managed key?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 3
+  - signal_key: vpc_deployment
+    question: "Are Lambda functions that access private resources deployed inside a VPC with private subnets?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 4
+  - signal_key: cloudwatch_logging
+    question: "Are Lambda execution logs forwarded to CloudWatch Logs with configured retention policies?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 5
+  - signal_key: code_signing
+    question: "Is Lambda code signing enabled to ensure only trusted deployment packages are executed?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 6
+  - signal_key: no_public_invocation
+    question: "Are Lambda function URLs or API Gateway endpoints protected by authentication (no anonymous invocation)?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 7
+
+control_mappings:
+  - framework:
+      slug: soc2
+      name: "SOC 2 Type II"
+    control:
+      ref: "CC6.1"
+      title: "Logical Access Controls"
+      severity: HIGH
+      description: "The entity implements logical access security measures to protect information assets."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: execution_role_least_privilege, op: eq, value: "yes" }
+        - { signal: no_public_invocation, op: eq, value: "yes" }
+    evidence: "Least-privilege execution roles and authenticated invocation endpoints enforce access controls on serverless functions."
+    remediation: "Create dedicated execution roles; remove wildcard Actions; add API Gateway authorisers or Lambda resource policies."
+
+  - framework:
+      slug: soc2
+      name: "SOC 2 Type II"
+    control:
+      ref: "CC7.2"
+      title: "Evaluates Security Events"
+      severity: MEDIUM
+      description: "The entity monitors system components on an ongoing basis."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: cloudwatch_logging, op: eq, value: "yes" }
+    evidence: "CloudWatch Logs provide an audit trail of all Lambda invocations, errors, and security-relevant events."
+    remediation: "Set CloudWatch log group retention to 90 days minimum; create metric filters for error rate and cold-start anomalies."
+
+  - framework:
+      slug: iso27001
+      name: "ISO/IEC 27001:2022"
+    control:
+      ref: "A.8.24"
+      title: "Use of Cryptography"
+      severity: HIGH
+      description: "Rules for the effective use of cryptography, including key management, shall be defined and implemented."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: env_vars_encrypted, op: eq, value: "yes" }
+    evidence: "Customer-managed KMS encryption for environment variables protects secrets in Lambda configurations."
+    remediation: "Enable KMS encryption for all Lambda environment variables; use a dedicated KMS key per function or application."
+
+  - framework:
+      slug: pci-dss
+      name: "PCI-DSS v4.0"
+    control:
+      ref: "7.2.1"
+      title: "Access Control - Least Privilege"
+      severity: CRITICAL
+      description: "Access to system components and cardholder data is restricted to only those whose job requires it."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: execution_role_least_privilege, op: eq, value: "yes" }
+        - { signal: secrets_from_secrets_manager, op: eq, value: "yes" }
+        - { signal: vpc_deployment, op: eq, value: "yes" }
+    evidence: "Least-privilege execution roles, Secrets Manager for credentials, and VPC deployment isolate CDE Lambda functions."
+    remediation: "Audit execution role policies; route Lambda through VPC NAT for CDE data access; remove hardcoded credentials."
+
+  - framework:
+      slug: gdpr
+      name: "GDPR"
+    control:
+      ref: "Art.32"
+      title: "Security of Processing"
+      severity: HIGH
+      description: "Technical measures shall protect personal data from unauthorised processing."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: env_vars_encrypted, op: eq, value: "yes" }
+        - { signal: secrets_from_secrets_manager, op: eq, value: "yes" }
+    evidence: "Encrypted env vars and Secrets Manager integration protect credentials for accessing personal data from Lambda."
+    remediation: "Encrypt all env vars with KMS; store database and API credentials in Secrets Manager; document Lambda data flows."
+
+  - framework:
+      slug: hipaa
+      name: "HIPAA"
+    control:
+      ref: "164.312(a)(1)"
+      title: "Access Control"
+      severity: HIGH
+      description: "Implement technical policies that allow access only to authorised persons or software programs."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: execution_role_least_privilege, op: eq, value: "yes" }
+        - { signal: cloudwatch_logging, op: eq, value: "yes" }
+        - { signal: vpc_deployment, op: eq, value: "yes" }
+    evidence: "Execution role restrictions, VPC isolation, and audit logs satisfy HIPAA access control in Lambda-based ePHI workflows."
+    remediation: "Ensure ePHI-handling Lambdas run in VPC; log to CloudWatch; restrict execution roles to only required ePHI services."
+
+  - framework:
+      slug: ndpr
+      name: "NDPR"
+    control:
+      ref: "Art.2.6"
+      title: "Data Security"
+      severity: MEDIUM
+      description: "Adequate technical measures shall be employed to safeguard personal data."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: env_vars_encrypted, op: eq, value: "yes" }
+        - { signal: execution_role_least_privilege, op: eq, value: "yes" }
+    evidence: "Encrypted environment variables and least-privilege execution roles protect Lambda functions processing Nigerian personal data."
+    remediation: "Enable KMS env var encryption; audit execution roles; deploy functions processing Nigerian data in isolated VPCs."

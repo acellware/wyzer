@@ -1,0 +1,164 @@
+slug: planetscale
+name: "PlanetScale"
+category: database
+vendor: "PlanetScale, Inc."
+is_managed_available: true
+logo_url: /logos/planetscale.svg
+
+config_questions:
+  - signal_key: tls_enforced
+    question: "Is TLS enforced for all PlanetScale database connections (sslmode=required)?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 1
+  - signal_key: read_write_separated
+    question: "Are read-only passwords used for services that only need SELECT access?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 2
+  - signal_key: credentials_in_secrets_manager
+    question: "Are PlanetScale connection strings stored in a secrets manager rather than application config files?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 3
+  - signal_key: branching_workflow
+    question: "Are database schema changes made via PlanetScale branches and deploy requests rather than direct production DDL?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 4
+  - signal_key: backup_point_in_time
+    question: "Is PlanetScale point-in-time backup / restore capability documented and tested?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 5
+  - signal_key: audit_log_enabled
+    question: "Is PlanetScale audit logging enabled to track login, schema change, and administrative events?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 6
+  - signal_key: sso_enforced
+    question: "Is SSO (SAML) enforced for all PlanetScale organisation member logins?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 7
+
+control_mappings:
+  - framework:
+      slug: soc2
+      name: "SOC 2 Type II"
+    control:
+      ref: "CC6.1"
+      title: "Logical Access Controls"
+      severity: HIGH
+      description: "The entity implements logical access security measures to protect information assets."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: read_write_separated, op: eq, value: "yes" }
+        - { signal: sso_enforced, op: eq, value: "yes" }
+    evidence: "Read-only passwords and SSO enforce least-privilege access for both applications and team members on PlanetScale."
+    remediation: "Create read-only passwords for reporting services; enable SAML SSO for org login; audit password usage."
+
+  - framework:
+      slug: soc2
+      name: "SOC 2 Type II"
+    control:
+      ref: "CC8.1"
+      title: "Changes to Infrastructure, Data, and Software"
+      severity: MEDIUM
+      description: "The entity authorises, designs, develops, tests, approves, and implements changes."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: branching_workflow, op: eq, value: "yes" }
+        - { signal: audit_log_enabled, op: eq, value: "yes" }
+    evidence: "PlanetScale branch-based deploy requests ensure schema changes are reviewed; audit logs record all changes."
+    remediation: "Require deploy request approval for production schema changes; review audit logs regularly."
+
+  - framework:
+      slug: iso27001
+      name: "ISO/IEC 27001:2022"
+    control:
+      ref: "A.8.3"
+      title: "Information Access Restriction"
+      severity: HIGH
+      description: "Access to information and application system functions shall be restricted in accordance with the access control policy."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: read_write_separated, op: eq, value: "yes" }
+        - { signal: credentials_in_secrets_manager, op: eq, value: "yes" }
+    evidence: "Read/write separation and secrets manager storage restrict and protect PlanetScale database credentials."
+    remediation: "Create service-specific passwords per microservice; store in Secrets Manager; rotate every 90 days."
+
+  - framework:
+      slug: pci-dss
+      name: "PCI-DSS v4.0"
+    control:
+      ref: "3.5.1"
+      title: "Encryption of Stored Cardholder Data"
+      severity: CRITICAL
+      description: "Stored sensitive data is encrypted with strong cryptography."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: tls_enforced, op: eq, value: "yes" }
+        - { signal: read_write_separated, op: eq, value: "yes" }
+    evidence: "PlanetScale managed encryption at rest and TLS transit protection, combined with access controls, satisfy CDE data protection."
+    remediation: "Set sslmode=required; create CDE-specific service passwords; follow PlanetScale PCI-DSS guidance."
+
+  - framework:
+      slug: gdpr
+      name: "GDPR"
+    control:
+      ref: "Art.32"
+      title: "Security of Processing"
+      severity: HIGH
+      description: "Technical measures shall protect personal data from unauthorised access."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: tls_enforced, op: eq, value: "yes" }
+        - { signal: credentials_in_secrets_manager, op: eq, value: "yes" }
+        - { signal: audit_log_enabled, op: eq, value: "yes" }
+    evidence: "TLS, secrets management, and audit logs protect personal data stored in PlanetScale and ensure accountability."
+    remediation: "Enforce TLS; store credentials in Secrets Manager; enable audit logs; document PlanetScale as a GDPR sub-processor."
+
+  - framework:
+      slug: hipaa
+      name: "HIPAA"
+    control:
+      ref: "164.312(a)(2)(iv)"
+      title: "Encryption and Decryption"
+      severity: HIGH
+      description: "Implement a mechanism to encrypt and decrypt electronic protected health information."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: tls_enforced, op: eq, value: "yes" }
+        - { signal: audit_log_enabled, op: eq, value: "yes" }
+    evidence: "TLS transit encryption and audit logs provide technical safeguards for ePHI stored in PlanetScale managed MySQL."
+    remediation: "Set sslmode=required; enable audit logs; confirm PlanetScale HIPAA BAA before using for ePHI workloads."
+
+  - framework:
+      slug: ndpr
+      name: "NDPR"
+    control:
+      ref: "Art.2.6"
+      title: "Data Security"
+      severity: MEDIUM
+      description: "Adequate technical measures shall be employed to safeguard personal data."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: tls_enforced, op: eq, value: "yes" }
+        - { signal: read_write_separated, op: eq, value: "yes" }
+    evidence: "TLS and access-separated passwords protect personal data of Nigerian residents stored in PlanetScale databases."
+    remediation: "Enforce TLS; use separate read-only passwords for analytics; document PlanetScale in NDPR data processing records."

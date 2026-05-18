@@ -1,0 +1,162 @@
+slug: digitalocean
+name: "DigitalOcean"
+category: cloud-provider
+vendor: "DigitalOcean, LLC"
+is_managed_available: true
+logo_url: /logos/digitalocean.svg
+
+config_questions:
+  - signal_key: private_networking
+    question: "Are Droplets and managed services configured to use VPC private networking (not public IPs for internal traffic)?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 1
+  - signal_key: mfa_enforced
+    question: "Is MFA enforced for all team members with DigitalOcean account access?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 2
+  - signal_key: firewall_rules
+    question: "Are Cloud Firewalls configured to restrict inbound access (no 0.0.0.0/0 on SSH or admin ports)?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 3
+  - signal_key: encrypted_volumes
+    question: "Are DigitalOcean managed databases and volumes using encryption at rest?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 4
+  - signal_key: backup_enabled
+    question: "Are Droplet backups and managed database backups enabled and stored in a separate region?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 5
+  - signal_key: api_tokens_scoped
+    question: "Are DigitalOcean API tokens scoped to read-only or specific resource access where possible?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 6
+  - signal_key: audit_logging
+    question: "Are audit logs (via DigitalOcean API activity or third-party SIEM integration) captured and retained?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 7
+
+control_mappings:
+  - framework:
+      slug: soc2
+      name: "SOC 2 Type II"
+    control:
+      ref: "CC6.1"
+      title: "Logical Access Controls"
+      severity: HIGH
+      description: "The entity implements logical access security measures to protect information assets."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: mfa_enforced, op: eq, value: "yes" }
+        - { signal: api_tokens_scoped, op: eq, value: "yes" }
+    evidence: "MFA-protected accounts and scoped API tokens ensure DigitalOcean infrastructure is protected from unauthorised access."
+    remediation: "Enable MFA for all team accounts; rotate and scope API tokens; use read-only tokens for monitoring tools."
+
+  - framework:
+      slug: soc2
+      name: "SOC 2 Type II"
+    control:
+      ref: "CC6.6"
+      title: "Logical Access Security - External Threats"
+      severity: HIGH
+      description: "The entity implements controls to prevent external threats from accessing information assets."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: firewall_rules, op: eq, value: "yes" }
+        - { signal: private_networking, op: eq, value: "yes" }
+    evidence: "Cloud Firewalls restricting public access and VPC private networking reduce the external attack surface."
+    remediation: "Remove all 0.0.0.0/0 inbound rules except 80/443; use VPC for all internal service communication."
+
+  - framework:
+      slug: iso27001
+      name: "ISO/IEC 27001:2022"
+    control:
+      ref: "A.8.14"
+      title: "Redundancy of Information Processing Facilities"
+      severity: MEDIUM
+      description: "Information processing facilities shall be implemented with sufficient redundancy to meet availability requirements."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: backup_enabled, op: eq, value: "yes" }
+    evidence: "DigitalOcean Droplet and managed database backups provide recovery capability for information processing continuity."
+    remediation: "Enable weekly Droplet backups; enable daily managed database backups; test restore procedures quarterly."
+
+  - framework:
+      slug: pci-dss
+      name: "PCI-DSS v4.0"
+    control:
+      ref: "1.3.1"
+      title: "Inbound Traffic Restriction to CDE"
+      severity: CRITICAL
+      description: "Inbound traffic to the CDE is restricted to that which is necessary."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: firewall_rules, op: eq, value: "yes" }
+        - { signal: private_networking, op: eq, value: "yes" }
+    evidence: "Restrictive Cloud Firewalls and VPC private networking enforce network segmentation for CDE workloads."
+    remediation: "Scope Cloud Firewalls to specific source IPs for SSH; place CDE Droplets in a dedicated VPC with no public interface."
+
+  - framework:
+      slug: gdpr
+      name: "GDPR"
+    control:
+      ref: "Art.32"
+      title: "Security of Processing"
+      severity: HIGH
+      description: "Technical and organisational measures shall provide an appropriate level of security."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: encrypted_volumes, op: eq, value: "yes" }
+        - { signal: firewall_rules, op: eq, value: "yes" }
+    evidence: "Encrypted storage and firewall restrictions protect personal data stored and processed on DigitalOcean."
+    remediation: "Use DigitalOcean managed databases (encrypted at rest); restrict network access; document DO as a data sub-processor."
+
+  - framework:
+      slug: hipaa
+      name: "HIPAA"
+    control:
+      ref: "164.312(a)(1)"
+      title: "Access Control"
+      severity: HIGH
+      description: "Implement technical policies that allow access to ePHI only for authorised persons."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: mfa_enforced, op: eq, value: "yes" }
+        - { signal: encrypted_volumes, op: eq, value: "yes" }
+    evidence: "MFA account protection and encrypted volumes are technical safeguards for ePHI workloads on DigitalOcean."
+    remediation: "Confirm DO HIPAA BAA availability; enforce MFA; use managed databases with encryption for ePHI storage."
+
+  - framework:
+      slug: ndpr
+      name: "NDPR"
+    control:
+      ref: "Art.2.6"
+      title: "Data Security"
+      severity: MEDIUM
+      description: "Adequate technical measures shall be employed to safeguard personal data."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: encrypted_volumes, op: eq, value: "yes" }
+        - { signal: firewall_rules, op: eq, value: "yes" }
+    evidence: "Encrypted storage and firewall protections safeguard personal data of Nigerian residents hosted on DigitalOcean."
+    remediation: "Use DigitalOcean managed databases; restrict firewall access; document DigitalOcean in data processing agreements."

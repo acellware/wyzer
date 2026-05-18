@@ -1,0 +1,51 @@
+slug: aws-enterprise
+name: "AWS Enterprise Stack"
+description: "Full AWS enterprise stack with EC2, RDS, ElastiCache, Terraform IaC, and Docker containers"
+use_case: "Enterprise teams or late-stage startups pursuing ISO 27001 or SOC 2 Type II"
+data_scopes: [pii, financial, phi]
+preview_tech_slugs: [postgresql, redis, aws-ec2, terraform, docker]
+items:
+  - technology_slug: postgresql
+    deployment_mode: managed
+    config_answers:
+      tls_enforced: "yes"
+      publicly_accessible: "no"
+      backup_enabled: "yes"
+      backup_retention: "gt_90d"
+      rbac_enabled: "yes"
+      audit_logging: "yes"
+  - technology_slug: redis
+    deployment_mode: managed
+    config_answers:
+      auth_enabled: "yes"
+      tls_enabled: "yes"
+      network_isolated: "yes"
+      stores_pii: "not_sure"
+      acl_enabled: "yes"
+  - technology_slug: aws-ec2
+    deployment_mode: managed
+    config_answers:
+      imds_v2_enforced: "yes"
+      security_groups_restrict_ssh: "yes"
+      ebs_encrypted: "yes"
+      vpc_isolated: "yes"
+      iam_role_attached: "yes"
+      cloudtrail_enabled: "yes"
+      patch_management: "not_sure"
+  - technology_slug: terraform
+    deployment_mode: self-hosted
+    config_answers:
+      state_encrypted: "yes"
+      state_backend: "s3"
+      secrets_in_code: "no"
+      modules_pinned: "yes"
+      plan_reviewed: "yes"
+  - technology_slug: docker
+    deployment_mode: self-hosted
+    config_answers:
+      base_image_pinned: "yes"
+      runs_as_root: "no"
+      image_scanning_enabled: "yes"
+      secrets_in_image: "no"
+      registry_private: "yes"
+      read_only_filesystem: "not_sure"

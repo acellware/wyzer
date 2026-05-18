@@ -1,0 +1,167 @@
+slug: rabbitmq
+name: "RabbitMQ"
+category: message-queue
+vendor: "Broadcom (VMware)"
+is_managed_available: true
+logo_url: /logos/rabbitmq.svg
+
+config_questions:
+  - signal_key: tls_enforced
+    question: "Is TLS enabled for all AMQP, AMQPS, and Management UI connections to RabbitMQ?"
+    input_type: toggle
+    applies_to_modes: [self_managed, managed]
+    order_index: 1
+  - signal_key: auth_backend
+    question: "Is authentication backed by an external identity provider (LDAP, OAuth 2.0) rather than local users only?"
+    input_type: toggle
+    applies_to_modes: [self_managed, managed]
+    order_index: 2
+  - signal_key: vhost_isolation
+    question: "Are virtual hosts (vhosts) used to isolate queues and exchanges per application or team?"
+    input_type: toggle
+    applies_to_modes: [self_managed, managed]
+    order_index: 3
+  - signal_key: permissions_scoped
+    question: "Are RabbitMQ user permissions scoped to specific vhosts, exchanges, and queues (no administrator access for apps)?"
+    input_type: toggle
+    applies_to_modes: [self_managed, managed]
+    order_index: 4
+  - signal_key: publicly_accessible
+    question: "Is RabbitMQ accessible from the public internet?"
+    input_type: radio
+    applies_to_modes: [self_managed, managed]
+    options:
+      - { label: "No — private network only", value: "no" }
+      - { label: "Yes — with TLS and authentication", value: "yes_auth" }
+      - { label: "Yes — unrestricted", value: "yes_open" }
+    order_index: 5
+  - signal_key: audit_logging
+    question: "Are RabbitMQ connection, channel, and permission audit events captured and forwarded to a log platform?"
+    input_type: toggle
+    applies_to_modes: [self_managed, managed]
+    order_index: 6
+  - signal_key: message_ttl
+    question: "Are message TTLs and queue length limits configured to prevent unbounded data accumulation?"
+    input_type: toggle
+    applies_to_modes: [self_managed, managed]
+    order_index: 7
+
+control_mappings:
+  - framework:
+      slug: soc2
+      name: "SOC 2 Type II"
+    control:
+      ref: "CC6.1"
+      title: "Logical Access Controls"
+      severity: HIGH
+      description: "The entity implements logical access security measures to protect information assets."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: vhost_isolation, op: eq, value: "yes" }
+        - { signal: permissions_scoped, op: eq, value: "yes" }
+        - { signal: publicly_accessible, op: in, value: ["no", "yes_auth"] }
+    evidence: "Vhost isolation and scoped permissions ensure applications only access their own queues and cannot read others' messages."
+    remediation: "Create dedicated vhosts per application; grant read/write only on required exchanges and queues; disable management UI from public internet."
+
+  - framework:
+      slug: soc2
+      name: "SOC 2 Type II"
+    control:
+      ref: "CC6.7"
+      title: "Restricts Transmission of Confidential Information"
+      severity: HIGH
+      description: "The entity restricts the transmission of confidential information to authorised parties."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: tls_enforced, op: eq, value: "yes" }
+    evidence: "TLS on AMQP connections encrypts messages including any sensitive payloads in transit."
+    remediation: "Enable SSL listeners on RabbitMQ; disable plain AMQP (port 5672); use AMQPS (5671) for all connections."
+
+  - framework:
+      slug: iso27001
+      name: "ISO/IEC 27001:2022"
+    control:
+      ref: "A.8.20"
+      title: "Networks Security"
+      severity: MEDIUM
+      description: "Networks and network devices shall be secured, managed and controlled."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: publicly_accessible, op: in, value: ["no", "yes_auth"] }
+        - { signal: tls_enforced, op: eq, value: "yes" }
+    evidence: "Network isolation and TLS protect RabbitMQ from external threats and transit-based data exposure."
+    remediation: "Deploy RabbitMQ in a private subnet or VPC; Restrict security group / firewall rules to specific source ranges."
+
+  - framework:
+      slug: pci-dss
+      name: "PCI-DSS v4.0"
+    control:
+      ref: "4.2.1"
+      title: "Strong Cryptography in Transit"
+      severity: HIGH
+      description: "Strong cryptography is used to safeguard PAN and authentication data during transmission over open public networks."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: tls_enforced, op: eq, value: "yes" }
+        - { signal: publicly_accessible, op: eq, value: "no" }
+    evidence: "AMQPS with TLS and private network placement protect any cardholder data passing through RabbitMQ queues."
+    remediation: "Enforce AMQPS; disable plain AMQP; place RabbitMQ outside the public internet; document queue data flows."
+
+  - framework:
+      slug: gdpr
+      name: "GDPR"
+    control:
+      ref: "Art.32"
+      title: "Security of Processing"
+      severity: MEDIUM
+      description: "Technical measures shall protect personal data from unauthorised access."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: tls_enforced, op: eq, value: "yes" }
+        - { signal: permissions_scoped, op: eq, value: "yes" }
+    evidence: "TLS and scoped queue permissions ensure personal data in message payloads is protected during transit and access."
+    remediation: "Enable TLS; scope permissions per consumer; review queue payloads for personal data and document in GDPR data map."
+
+  - framework:
+      slug: hipaa
+      name: "HIPAA"
+    control:
+      ref: "164.312(e)(1)"
+      title: "Transmission Security"
+      severity: HIGH
+      description: "Implement technical security measures to guard against unauthorised access to ePHI being transmitted."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: tls_enforced, op: eq, value: "yes" }
+        - { signal: publicly_accessible, op: eq, value: "no" }
+    evidence: "TLS and private network placement protect ePHI payloads transmitted through RabbitMQ queues."
+    remediation: "Enable AMQPS; place broker in private subnet; restrict consumer access to ePHI queues via scoped permissions."
+
+  - framework:
+      slug: ndpr
+      name: "NDPR"
+    control:
+      ref: "Art.2.6"
+      title: "Data Security"
+      severity: MEDIUM
+      description: "Adequate technical measures shall be employed to safeguard personal data."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: tls_enforced, op: eq, value: "yes" }
+        - { signal: permissions_scoped, op: eq, value: "yes" }
+    evidence: "TLS and permission scoping protect personal data of Nigerian residents passing through RabbitMQ message queues."
+    remediation: "Enable AMQPS; scope consumer permissions; add TTL to queues carrying personal data to enforce data minimisation."

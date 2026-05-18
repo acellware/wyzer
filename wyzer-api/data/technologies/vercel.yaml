@@ -1,0 +1,164 @@
+slug: vercel
+name: "Vercel"
+category: cloud-provider
+vendor: "Vercel, Inc."
+is_managed_available: true
+logo_url: /logos/vercel.svg
+
+config_questions:
+  - signal_key: env_vars_encrypted
+    question: "Are all environment variables stored as Vercel Encrypted Secrets (not plaintext project env vars)?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 1
+  - signal_key: access_control_by_team
+    question: "Is Vercel project access restricted by team membership with appropriate roles (no personal account deploy)?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 2
+  - signal_key: preview_protection
+    question: "Are preview deployment URLs protected by Vercel Authentication (access requires org SSO login)?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 3
+  - signal_key: vercel_firewall_enabled
+    question: "Is the Vercel Web Application Firewall (WAF) or Vercel Edge Middleware used for input validation?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 4
+  - signal_key: custom_headers
+    question: "Are security headers (HSTS, CSP, X-Frame-Options, X-Content-Type-Options) configured in vercel.json?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 5
+  - signal_key: audit_log_integration
+    question: "Are Vercel audit logs forwarded to a SIEM or log platform via Vercel Log Drains?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 6
+  - signal_key: mfa_enforced
+    question: "Is MFA enforced for all Vercel team member accounts?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 7
+
+control_mappings:
+  - framework:
+      slug: soc2
+      name: "SOC 2 Type II"
+    control:
+      ref: "CC6.1"
+      title: "Logical Access Controls"
+      severity: HIGH
+      description: "The entity implements logical access security measures to protect information assets."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: mfa_enforced, op: eq, value: "yes" }
+        - { signal: access_control_by_team, op: eq, value: "yes" }
+        - { signal: preview_protection, op: eq, value: "yes" }
+    evidence: "MFA, team-based access control, and protected preview URLs restrict access to Vercel projects and deployments."
+    remediation: "Enable MFA for all team accounts; configure SSO protection for preview deployments; restrict project access by team role."
+
+  - framework:
+      slug: soc2
+      name: "SOC 2 Type II"
+    control:
+      ref: "CC6.6"
+      title: "Logical Access Security - External Threats"
+      severity: MEDIUM
+      description: "The entity implements controls to prevent introduction of unauthorised software."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: custom_headers, op: eq, value: "yes" }
+        - { signal: vercel_firewall_enabled, op: eq, value: "yes" }
+    evidence: "Security headers and WAF/Edge Middleware protect Vercel-hosted frontends from web-based attack vectors."
+    remediation: "Set HSTS, CSP, and XFO headers in vercel.json; configure Edge Middleware for rate limiting and auth validation."
+
+  - framework:
+      slug: iso27001
+      name: "ISO/IEC 27001:2022"
+    control:
+      ref: "A.8.9"
+      title: "Configuration Management"
+      severity: MEDIUM
+      description: "Configurations of software and services shall be established, documented, monitored, and reviewed."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: env_vars_encrypted, op: eq, value: "yes" }
+        - { signal: audit_log_integration, op: eq, value: "yes" }
+    evidence: "Encrypted env vars and audit log forwarding ensure Vercel deployment configuration is secure and observable."
+    remediation: "Mark all sensitive env vars as Encrypted in Vercel; configure Log Drains to forward to your SIEM."
+
+  - framework:
+      slug: pci-dss
+      name: "PCI-DSS v4.0"
+    control:
+      ref: "6.4.1"
+      title: "Web-Facing Applications Protected"
+      severity: HIGH
+      description: "All public-facing web applications are protected against known attacks."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: vercel_firewall_enabled, op: eq, value: "yes" }
+        - { signal: custom_headers, op: eq, value: "yes" }
+    evidence: "Vercel WAF/Edge Middleware and security headers meet PCI DSS technical solution requirement for web application protection."
+    remediation: "Enable Vercel WAF on Pro/Enterprise; configure HSTS, CSP; document in PCI DSS control evidence package."
+
+  - framework:
+      slug: gdpr
+      name: "GDPR"
+    control:
+      ref: "Art.25"
+      title: "Data Protection by Design and Default"
+      severity: MEDIUM
+      description: "Data protection shall be integrated into processing activities from the design stage."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: env_vars_encrypted, op: eq, value: "yes" }
+        - { signal: preview_protection, op: eq, value: "yes" }
+    evidence: "Encrypted secrets and protected preview deployments prevent data leakage during development and testing."
+    remediation: "Encrypt all env vars; protect previews with SSO; never include personal data in preview environment logs."
+
+  - framework:
+      slug: hipaa
+      name: "HIPAA"
+    control:
+      ref: "164.312(e)(1)"
+      title: "Transmission Security"
+      severity: MEDIUM
+      description: "Guard against unauthorised access to ePHI being transmitted."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: custom_headers, op: eq, value: "yes" }
+        - { signal: env_vars_encrypted, op: eq, value: "yes" }
+    evidence: "HSTS headers enforce HTTPS for all ePHI transmission; encrypted env vars protect backend credentials."
+    remediation: "Set Strict-Transport-Security header; encrypt all env vars; confirm Vercel HIPAA BAA for covered entity use."
+
+  - framework:
+      slug: ndpr
+      name: "NDPR"
+    control:
+      ref: "Art.2.6"
+      title: "Data Security"
+      severity: MEDIUM
+      description: "Adequate technical measures shall be employed to safeguard personal data."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: env_vars_encrypted, op: eq, value: "yes" }
+        - { signal: mfa_enforced, op: eq, value: "yes" }
+    evidence: "Encrypted env vars and MFA protect the Vercel deployment pipeline for applications handling Nigerian personal data."
+    remediation: "Encrypt all env vars; enforce MFA; protect preview URLs; document Vercel in data processing agreements."

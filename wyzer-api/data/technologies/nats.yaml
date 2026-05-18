@@ -1,0 +1,167 @@
+slug: nats
+name: "NATS"
+category: message-queue
+vendor: "Synadia Communications"
+is_managed_available: true
+logo_url: /logos/nats.svg
+
+config_questions:
+  - signal_key: tls_enforced
+    question: "Is TLS enforced for all client-to-server and cluster route connections in NATS?"
+    input_type: toggle
+    applies_to_modes: [self_managed, managed]
+    order_index: 1
+  - signal_key: auth_enabled
+    question: "Is NATS authentication configured (operator JWT/NKey credentials, token, or username/password)?"
+    input_type: toggle
+    applies_to_modes: [self_managed, managed]
+    order_index: 2
+  - signal_key: accounts_isolated
+    question: "Are NATS Accounts used to isolate subjects between different applications or teams?"
+    input_type: toggle
+    applies_to_modes: [self_managed, managed]
+    order_index: 3
+  - signal_key: jetstream_encryption
+    question: "Is JetStream persistence storage encrypted at rest?"
+    input_type: toggle
+    applies_to_modes: [self_managed, managed]
+    order_index: 4
+  - signal_key: nkey_auth
+    question: "Are NKey/JWT credentials used rather than static tokens or passwords for service authentication?"
+    input_type: toggle
+    applies_to_modes: [self_managed, managed]
+    order_index: 5
+  - signal_key: publicly_accessible
+    question: "Is the NATS server accessible from the public internet?"
+    input_type: radio
+    applies_to_modes: [self_managed, managed]
+    options:
+      - { label: "No — private network only", value: "no" }
+      - { label: "Yes — with TLS and auth", value: "yes_auth" }
+      - { label: "Yes — open access", value: "yes_open" }
+    order_index: 6
+  - signal_key: msg_ttl_configured
+    question: "Are JetStream stream max-age (TTL) limits configured to enforce data retention policies?"
+    input_type: toggle
+    applies_to_modes: [self_managed, managed]
+    order_index: 7
+
+control_mappings:
+  - framework:
+      slug: soc2
+      name: "SOC 2 Type II"
+    control:
+      ref: "CC6.1"
+      title: "Logical Access Controls"
+      severity: HIGH
+      description: "The entity implements logical access security measures to protect information assets."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: auth_enabled, op: eq, value: "yes" }
+        - { signal: accounts_isolated, op: eq, value: "yes" }
+        - { signal: publicly_accessible, op: in, value: ["no", "yes_auth"] }
+    evidence: "NATS auth and Account isolation prevent unauthorised services from subscribing to or publishing on restricted subjects."
+    remediation: "Use operator JWT credentials; configure NATS Accounts per service domain; restrict server binding to private IPs."
+
+  - framework:
+      slug: soc2
+      name: "SOC 2 Type II"
+    control:
+      ref: "CC6.7"
+      title: "Restricts Transmission of Confidential Information"
+      severity: HIGH
+      description: "The entity restricts the transmission of confidential information using encryption."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: tls_enforced, op: eq, value: "yes" }
+    evidence: "TLS on all client and cluster connections ensures message payloads are encrypted in transit."
+    remediation: "Set tls_required = true in NATS server config; use valid CA-signed certificates for all cluster routes."
+
+  - framework:
+      slug: iso27001
+      name: "ISO/IEC 27001:2022"
+    control:
+      ref: "A.8.3"
+      title: "Information Access Restriction"
+      severity: MEDIUM
+      description: "Access to information and application system functions shall be restricted in accordance with access control policy."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: accounts_isolated, op: eq, value: "yes" }
+        - { signal: nkey_auth, op: eq, value: "yes" }
+    evidence: "NATS Account boundaries and NKey credentials enforce access restriction to message subjects per service."
+    remediation: "Define accounts and user credentials via NATS operator JWTs; export/import subjects only as needed."
+
+  - framework:
+      slug: pci-dss
+      name: "PCI-DSS v4.0"
+    control:
+      ref: "4.2.1"
+      title: "Strong Cryptography in Transit"
+      severity: HIGH
+      description: "Strong cryptography is used to safeguard sensitive authentication data during transmission."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: tls_enforced, op: eq, value: "yes" }
+        - { signal: publicly_accessible, op: eq, value: "no" }
+    evidence: "TLS-enforced NATS connections and private placement protect any cardholder data in message streams."
+    remediation: "Enable tls_required; bind NATS to private interface; document message flows through the payment pipeline."
+
+  - framework:
+      slug: gdpr
+      name: "GDPR"
+    control:
+      ref: "Art.32"
+      title: "Security of Processing"
+      severity: MEDIUM
+      description: "Technical measures shall protect personal data from unauthorised access."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: tls_enforced, op: eq, value: "yes" }
+        - { signal: jetstream_encryption, op: eq, value: "yes" }
+    evidence: "TLS for transit and JetStream encryption at rest protect personal data stored in NATS JetStream streams."
+    remediation: "Enable TLS; enable JetStream encryption with an AES key; set stream max_age to enforce retention limits."
+
+  - framework:
+      slug: hipaa
+      name: "HIPAA"
+    control:
+      ref: "164.312(e)(1)"
+      title: "Transmission Security"
+      severity: HIGH
+      description: "Implement technical security measures to guard against unauthorised access to ePHI in transit."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: tls_enforced, op: eq, value: "yes" }
+        - { signal: auth_enabled, op: eq, value: "yes" }
+    evidence: "TLS and authenticated connections protect ePHI transmitted through NATS message channels."
+    remediation: "Enable TLS; configure NKey credentials; limit subscriptions to ePHI subjects to authorised service accounts."
+
+  - framework:
+      slug: ndpr
+      name: "NDPR"
+    control:
+      ref: "Art.2.6"
+      title: "Data Security"
+      severity: MEDIUM
+      description: "Adequate technical measures shall be employed to safeguard personal data."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: tls_enforced, op: eq, value: "yes" }
+        - { signal: accounts_isolated, op: eq, value: "yes" }
+    evidence: "TLS and account isolation protect personal data of Nigerian residents in NATS message subjects."
+    remediation: "Enable TLS; define NATS Accounts per business domain; configure TTL on streams carrying personal data."

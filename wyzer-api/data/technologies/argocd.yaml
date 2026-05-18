@@ -1,0 +1,164 @@
+slug: argocd
+name: "Argo CD"
+category: ci-cd
+vendor: "Argo Project (CNCF)"
+is_managed_available: false
+logo_url: /logos/argocd.svg
+
+config_questions:
+  - signal_key: rbac_configured
+    question: "Are Argo CD RBAC policies configured to restrict which users can sync, deploy, and delete applications?"
+    input_type: toggle
+    applies_to_modes: [self_managed]
+    order_index: 1
+  - signal_key: sso_integrated
+    question: "Is Argo CD integrated with an SSO provider (Dex, Okta, GitHub) rather than local accounts?"
+    input_type: toggle
+    applies_to_modes: [self_managed]
+    order_index: 2
+  - signal_key: tls_enforced
+    question: "Is TLS enforced for all Argo CD API and UI traffic?"
+    input_type: toggle
+    applies_to_modes: [self_managed]
+    order_index: 3
+  - signal_key: secrets_not_in_git
+    question: "Are application secrets managed externally (Vault, Sealed Secrets, ESO) and NOT committed to Git?"
+    input_type: toggle
+    applies_to_modes: [self_managed]
+    order_index: 4
+  - signal_key: sync_policies_automated
+    question: "Are sync policies configured with automated pruning and self-healing to prevent drift?"
+    input_type: toggle
+    applies_to_modes: [self_managed]
+    order_index: 5
+  - signal_key: audit_logging
+    question: "Are Argo CD audit logs (resource changes, sync events, user actions) forwarded to a SIEM?"
+    input_type: toggle
+    applies_to_modes: [self_managed]
+    order_index: 6
+  - signal_key: network_policies
+    question: "Are Kubernetes NetworkPolicies in place to restrict traffic to the Argo CD namespace?"
+    input_type: toggle
+    applies_to_modes: [self_managed]
+    order_index: 7
+
+control_mappings:
+  - framework:
+      slug: soc2
+      name: "SOC 2 Type II"
+    control:
+      ref: "CC8.1"
+      title: "Changes to Infrastructure, Data, and Software"
+      severity: HIGH
+      description: "The entity authorizes, designs, develops, tests, approves, and implements changes to infrastructure and software."
+    conditions:
+      logic: AND
+      managed_auto_pass: false
+      rules:
+        - { signal: rbac_configured, op: eq, value: "yes" }
+        - { signal: audit_logging, op: eq, value: "yes" }
+    evidence: "Argo CD RBAC restricts deployment actions to authorised users; audit logs provide evidence of every deployment event."
+    remediation: "Define RBAC policies per namespace; require sync approval for production apps; forward audit logs to SIEM."
+
+  - framework:
+      slug: soc2
+      name: "SOC 2 Type II"
+    control:
+      ref: "CC6.1"
+      title: "Logical Access Controls"
+      severity: HIGH
+      description: "The entity implements logical access security measures to protect information assets."
+    conditions:
+      logic: AND
+      managed_auto_pass: false
+      rules:
+        - { signal: sso_integrated, op: eq, value: "yes" }
+        - { signal: tls_enforced, op: eq, value: "yes" }
+    evidence: "SSO integration and TLS ensure only authenticated users access Argo CD and credentials are protected in transit."
+    remediation: "Configure Dex with OIDC; disable local admin user after SSO is working; enable TLS on argocd-server."
+
+  - framework:
+      slug: iso27001
+      name: "ISO/IEC 27001:2022"
+    control:
+      ref: "A.8.4"
+      title: "Access to Source Code"
+      severity: HIGH
+      description: "Read and write access to source code and associated items shall be managed appropriately."
+    conditions:
+      logic: AND
+      managed_auto_pass: false
+      rules:
+        - { signal: secrets_not_in_git, op: eq, value: "yes" }
+        - { signal: rbac_configured, op: eq, value: "yes" }
+    evidence: "Secrets excluded from Git repositories and RBAC-controlled sync access protect the integrity of the GitOps source of truth."
+    remediation: "Use External Secrets Operator or Sealed Secrets; scan repositories with trufflehog to verify no credentials are committed."
+
+  - framework:
+      slug: pci-dss
+      name: "PCI-DSS v4.0"
+    control:
+      ref: "6.4.3"
+      title: "Change Control Process"
+      severity: HIGH
+      description: "All changes to system components are managed through a formal change control process."
+    conditions:
+      logic: AND
+      managed_auto_pass: false
+      rules:
+        - { signal: rbac_configured, op: eq, value: "yes" }
+        - { signal: audit_logging, op: eq, value: "yes" }
+        - { signal: sync_policies_automated, op: eq, value: "yes" }
+    evidence: "RBAC-gated syncs, audit logs, and drift detection satisfy PCI DSS change management traceability requirements."
+    remediation: "Enable sync approval for production environments; forward Argo CD events to SIEM; set automated drift alerting."
+
+  - framework:
+      slug: gdpr
+      name: "GDPR"
+    control:
+      ref: "Art.25"
+      title: "Data Protection by Design and Default"
+      severity: MEDIUM
+      description: "Data protection shall be integrated into processing activities from the design stage."
+    conditions:
+      logic: AND
+      managed_auto_pass: false
+      rules:
+        - { signal: secrets_not_in_git, op: eq, value: "yes" }
+        - { signal: tls_enforced, op: eq, value: "yes" }
+    evidence: "Keeping secrets out of Git and enforcing TLS ensures Argo CD deployments do not expose personal data credentials."
+    remediation: "Adopt External Secrets Operator for all app secrets; ensure Argo CD routes are TLS-terminated with valid certificates."
+
+  - framework:
+      slug: hipaa
+      name: "HIPAA"
+    control:
+      ref: "164.308(a)(1)(ii)(B)"
+      title: "Risk Management"
+      severity: MEDIUM
+      description: "Implement security measures sufficient to reduce risks to a reasonable level."
+    conditions:
+      logic: AND
+      managed_auto_pass: false
+      rules:
+        - { signal: secrets_not_in_git, op: eq, value: "yes" }
+        - { signal: rbac_configured, op: eq, value: "yes" }
+    evidence: "GitOps secrets management and RBAC reduce risk of ePHI credentials being exposed through deployment tooling."
+    remediation: "Verify no ePHI or credentials appear in Git repos; enforce RBAC restrictions for applications in the ePHI namespace."
+
+  - framework:
+      slug: ndpr
+      name: "NDPR"
+    control:
+      ref: "Art.2.6"
+      title: "Data Security"
+      severity: MEDIUM
+      description: "Adequate technical measures shall be employed to safeguard personal data."
+    conditions:
+      logic: AND
+      managed_auto_pass: false
+      rules:
+        - { signal: secrets_not_in_git, op: eq, value: "yes" }
+        - { signal: tls_enforced, op: eq, value: "yes" }
+    evidence: "Secure secrets management and TLS protect deployments that may handle personal data of Nigerian residents."
+    remediation: "Exclude credentials from Git; enable TLS for all Argo CD endpoints; restrict deployment permissions via RBAC policies."

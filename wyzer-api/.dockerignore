@@ -1,0 +1,16 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# wyzer-api — Docker ignore
+# Keeps the build context lean; mirrors .gitignore
+# ─────────────────────────────────────────────────────────────────────────────
+node_modules/
+dist/
+.env
+.env.local
+prisma/dev.db
+prisma/dev.db-journal
+coverage/
+*.log
+.git/
+.github/
+README.md
+fly.staging.toml

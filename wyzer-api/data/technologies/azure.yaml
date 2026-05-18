@@ -1,0 +1,169 @@
+slug: azure
+name: "Microsoft Azure"
+category: cloud-provider
+vendor: "Microsoft Corporation"
+is_managed_available: true
+logo_url: /logos/azure.svg
+
+config_questions:
+  - signal_key: mfa_enforced
+    question: "Is MFA enforced for all Azure Active Directory accounts via Conditional Access Policies?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 1
+  - signal_key: rbac_least_privilege
+    question: "Are Azure RBAC role assignments scoped to the minimum required resource level (no subscription-level Owner)?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 2
+  - signal_key: managed_identity
+    question: "Are workloads using Azure Managed Identities rather than stored service principal secrets?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 3
+  - signal_key: defender_enabled
+    question: "Is Microsoft Defender for Cloud enabled with Standard tier for all subscriptions?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 4
+  - signal_key: activity_logs_exported
+    question: "Are Azure Activity Logs and Diagnostic Logs exported to a Log Analytics Workspace or SIEM?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 5
+  - signal_key: cmk_encryption
+    question: "Are Azure Storage Accounts, SQL Databases, and Key Vault secrets encrypted with customer-managed keys?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 6
+  - signal_key: private_endpoints
+    question: "Are Private Endpoints used for PaaS services (Storage, SQL, Key Vault) to prevent public internet access?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 7
+  - signal_key: policy_guardrails
+    question: "Are Azure Policy initiatives assigned to enforce guardrails (deny public blobs, require tags, enforce TLS)?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 8
+
+control_mappings:
+  - framework:
+      slug: soc2
+      name: "SOC 2 Type II"
+    control:
+      ref: "CC6.1"
+      title: "Logical Access Controls"
+      severity: CRITICAL
+      description: "The entity implements logical access security measures to protect information assets."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: mfa_enforced, op: eq, value: "yes" }
+        - { signal: rbac_least_privilege, op: eq, value: "yes" }
+        - { signal: managed_identity, op: eq, value: "yes" }
+    evidence: "MFA-enforced Conditional Access, least-privilege RBAC, and Managed Identities enforce strong access controls."
+    remediation: "Enable Conditional Access MFA policy; remove Owner at subscription scope; create Managed Identity per workload."
+
+  - framework:
+      slug: soc2
+      name: "SOC 2 Type II"
+    control:
+      ref: "CC7.2"
+      title: "Evaluates Security Events"
+      severity: HIGH
+      description: "The entity monitors system components and the operation of controls on an ongoing basis."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: defender_enabled, op: eq, value: "yes" }
+        - { signal: activity_logs_exported, op: eq, value: "yes" }
+    evidence: "Defender for Cloud and exported activity logs provide continuous threat detection and security event monitoring."
+    remediation: "Enable Defender for Cloud Standard; create Log Analytics workspace; configure diagnostic settings on all resources."
+
+  - framework:
+      slug: iso27001
+      name: "ISO/IEC 27001:2022"
+    control:
+      ref: "A.8.24"
+      title: "Use of Cryptography"
+      severity: HIGH
+      description: "Rules for the effective use of cryptography, including key management, shall be implemented."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: cmk_encryption, op: eq, value: "yes" }
+    evidence: "Customer-managed keys in Azure Key Vault provide control over encryption of data at rest across Azure PaaS services."
+    remediation: "Enable CMK in Key Vault for Azure Storage, SQL, and other services containing sensitive data; enable soft-delete."
+
+  - framework:
+      slug: pci-dss
+      name: "PCI-DSS v4.0"
+    control:
+      ref: "1.3.1"
+      title: "Inbound Traffic Restriction"
+      severity: CRITICAL
+      description: "Inbound traffic to the CDE is restricted to that which is necessary."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: private_endpoints, op: eq, value: "yes" }
+        - { signal: policy_guardrails, op: eq, value: "yes" }
+    evidence: "Private Endpoints eliminate public network exposure of PaaS services; Policy guardrails prevent misconfigurations."
+    remediation: "Configure Private Endpoints for all CDE PaaS services; assign Azure Policy to deny-public-access initiatives."
+
+  - framework:
+      slug: gdpr
+      name: "GDPR"
+    control:
+      ref: "Art.32"
+      title: "Security of Processing"
+      severity: HIGH
+      description: "Technical and organisational measures shall ensure appropriate security of personal data."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: cmk_encryption, op: eq, value: "yes" }
+        - { signal: activity_logs_exported, op: eq, value: "yes" }
+    evidence: "CMK encryption protects personal data at rest; activity logs provide accountability required under GDPR Art. 5(2)."
+    remediation: "Enable CMK for all services containing personal data; export logs with 90-day minimum retention."
+
+  - framework:
+      slug: hipaa
+      name: "HIPAA"
+    control:
+      ref: "164.312(a)(1)"
+      title: "Access Control"
+      severity: CRITICAL
+      description: "Implement technical policies and procedures that allow access only to authorised persons."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: mfa_enforced, op: eq, value: "yes" }
+        - { signal: rbac_least_privilege, op: eq, value: "yes" }
+        - { signal: activity_logs_exported, op: eq, value: "yes" }
+    evidence: "MFA, RBAC, and audit logs satisfy HIPAA access control and audit control requirements for ePHI on Azure."
+    remediation: "Sign Microsoft HIPAA BAA; restrict ePHI resource access via Azure RBAC; enable 6-year log retention."
+
+  - framework:
+      slug: ndpr
+      name: "NDPR"
+    control:
+      ref: "Art.2.6"
+      title: "Data Security"
+      severity: HIGH
+      description: "Adequate technical measures shall be employed to safeguard personal data."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: cmk_encryption, op: eq, value: "yes" }
+        - { signal: private_endpoints, op: eq, value: "yes" }
+    evidence: "CMK encryption and Private Endpoints protect personal data of Nigerian residents stored in Azure PaaS services."
+    remediation: "Enable CMK and Private Endpoints for all Azure services processing Nigerian resident data; review RBAC assignments."

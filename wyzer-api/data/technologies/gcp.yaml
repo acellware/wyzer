@@ -1,0 +1,170 @@
+slug: gcp
+name: "Google Cloud Platform"
+category: cloud-provider
+vendor: "Google LLC"
+is_managed_available: true
+logo_url: /logos/gcp.svg
+
+config_questions:
+  - signal_key: org_policies_enforced
+    question: "Are GCP Organization Policies configured to prevent public resource exposure (e.g., no public IPs, disable service account key creation)?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 1
+  - signal_key: iam_least_privilege
+    question: "Are IAM bindings configured with least-privilege roles (no primitive roles: Owner/Editor at project level)?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 2
+  - signal_key: workload_identity
+    question: "Are workloads using Workload Identity Federation rather than exported service account keys?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 3
+  - signal_key: audit_logs_enabled
+    question: "Are Cloud Audit Logs (Admin Activity, Data Access) enabled for all critical services?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 4
+  - signal_key: cmek_enabled
+    question: "Are Cloud KMS customer-managed encryption keys (CMEK) used for sensitive data storage?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 5
+  - signal_key: vpc_service_controls
+    question: "Are VPC Service Controls configured to create security perimeters around sensitive resources?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 6
+  - signal_key: security_command_center
+    question: "Is Google Security Command Center (Standard or Premium) enabled for threat detection?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 7
+  - signal_key: mfa_enforced
+    question: "Is MFA enforced for all Google Workspace / Cloud Identity accounts with GCP access?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 8
+
+control_mappings:
+  - framework:
+      slug: soc2
+      name: "SOC 2 Type II"
+    control:
+      ref: "CC6.1"
+      title: "Logical Access Controls"
+      severity: CRITICAL
+      description: "The entity implements logical access security measures to protect information assets."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: iam_least_privilege, op: eq, value: "yes" }
+        - { signal: mfa_enforced, op: eq, value: "yes" }
+        - { signal: workload_identity, op: eq, value: "yes" }
+    evidence: "Least-privilege IAM, MFA enforcement, and Workload Identity Federation ensure no standing credentials and minimal access rights."
+    remediation: "Replace Owner/Editor bindings with predefined roles; enforce MFA via Google Cloud Identity; adopt Workload Identity."
+
+  - framework:
+      slug: soc2
+      name: "SOC 2 Type II"
+    control:
+      ref: "CC7.2"
+      title: "Evaluates Security Events"
+      severity: HIGH
+      description: "The entity monitors system components and the operation of controls on an ongoing basis."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: audit_logs_enabled, op: eq, value: "yes" }
+        - { signal: security_command_center, op: eq, value: "yes" }
+    evidence: "Cloud Audit Logs and Security Command Center provide continuous monitoring and threat detection across GCP services."
+    remediation: "Enable Data Access audit logs for BigQuery, GCS, and other sensitive services; enable SCC Standard tier minimum."
+
+  - framework:
+      slug: iso27001
+      name: "ISO/IEC 27001:2022"
+    control:
+      ref: "A.8.24"
+      title: "Use of Cryptography"
+      severity: HIGH
+      description: "Rules for the effective use of cryptography, including key management, shall be defined and implemented."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: cmek_enabled, op: eq, value: "yes" }
+    evidence: "Cloud KMS CMEK provides customer control over encryption keys used for data at rest."
+    remediation: "Create CMKs in Cloud KMS; configure GCS buckets, BigQuery datasets, and Pub/Sub topics to use CMEK."
+
+  - framework:
+      slug: pci-dss
+      name: "PCI-DSS v4.0"
+    control:
+      ref: "7.2.1"
+      title: "Access Control - Least Privilege"
+      severity: CRITICAL
+      description: "Access to system components in the CDE is restricted to only those whose job requires it."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: iam_least_privilege, op: eq, value: "yes" }
+        - { signal: vpc_service_controls, op: eq, value: "yes" }
+        - { signal: org_policies_enforced, op: eq, value: "yes" }
+    evidence: "IAM least privilege, VPC Service Controls, and Org Policies collectively enforce CDE access restrictions."
+    remediation: "Define VPC service perimeters around CDE projects; apply Org Policy constraints to restrict risky operations."
+
+  - framework:
+      slug: gdpr
+      name: "GDPR"
+    control:
+      ref: "Art.32"
+      title: "Security of Processing"
+      severity: HIGH
+      description: "Technical measures shall protect personal data from unauthorised or unlawful processing."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: cmek_enabled, op: eq, value: "yes" }
+        - { signal: audit_logs_enabled, op: eq, value: "yes" }
+    evidence: "CMEK encryption and audit logs provide technical safeguards and accountability for personal data processing."
+    remediation: "Enable CMEK on all GCS, BigQuery, and Pub/Sub resources containing personal data; export audit logs to Cloud Logging."
+
+  - framework:
+      slug: hipaa
+      name: "HIPAA"
+    control:
+      ref: "164.312(a)(1)"
+      title: "Access Control"
+      severity: CRITICAL
+      description: "Implement technical policies and procedures that allow access only to authorised persons."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: iam_least_privilege, op: eq, value: "yes" }
+        - { signal: mfa_enforced, op: eq, value: "yes" }
+        - { signal: audit_logs_enabled, op: eq, value: "yes" }
+    evidence: "IAM, MFA, and audit logs provide the access control and auditability required for ePHI on GCP."
+    remediation: "Sign GCP HIPAA BAA; restrict ePHI project IAM bindings; enable Data Access logs on Cloud Healthcare API."
+
+  - framework:
+      slug: ndpr
+      name: "NDPR"
+    control:
+      ref: "Art.2.6"
+      title: "Data Security"
+      severity: HIGH
+      description: "Adequate technical measures shall be employed to safeguard personal data."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: cmek_enabled, op: eq, value: "yes" }
+        - { signal: iam_least_privilege, op: eq, value: "yes" }
+    evidence: "CMEK encryption and least-privilege IAM protect personal data of Nigerian residents stored and processed on GCP."
+    remediation: "Apply CMEK to all GCP resources containing Nigerian user data; review IAM bindings for external access."

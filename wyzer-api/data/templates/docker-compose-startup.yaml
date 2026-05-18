@@ -1,0 +1,35 @@
+slug: docker-compose-startup
+name: "Docker Compose Startup"
+description: "Small team running Docker Compose on a single server with Postgres and Redis"
+use_case: "Bootstrapped startups or contractor teams with a single VPS"
+data_scopes: [pii]
+preview_tech_slugs: [postgresql, redis, docker]
+items:
+  - technology_slug: postgresql
+    deployment_mode: self-hosted
+    config_answers:
+      encryption_at_rest: "not_sure"
+      tls_enforced: "not_sure"
+      publicly_accessible: "not_sure"
+      backup_enabled: "not_sure"
+      backup_retention: "not_sure"
+      rbac_enabled: "not_sure"
+      audit_logging: "not_sure"
+  - technology_slug: redis
+    deployment_mode: self-hosted
+    config_answers:
+      auth_enabled: "not_sure"
+      tls_enabled: "not_sure"
+      network_isolated: "not_sure"
+      persistence_mode: "not_sure"
+      stores_pii: "not_sure"
+      acl_enabled: "not_sure"
+  - technology_slug: docker
+    deployment_mode: self-hosted
+    config_answers:
+      base_image_pinned: "not_sure"
+      runs_as_root: "not_sure"
+      image_scanning_enabled: "no"
+      secrets_in_image: "not_sure"
+      registry_private: "no"
+      read_only_filesystem: "not_sure"

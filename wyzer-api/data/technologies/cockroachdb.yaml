@@ -1,0 +1,169 @@
+slug: cockroachdb
+name: "CockroachDB"
+category: database
+vendor: "Cockroach Labs"
+is_managed_available: true
+logo_url: /logos/cockroachdb.svg
+
+config_questions:
+  - signal_key: tls_enforced
+    question: "Is TLS enforced for all client and inter-node CockroachDB connections?"
+    input_type: toggle
+    applies_to_modes: [self_managed, managed]
+    order_index: 1
+  - signal_key: encryption_at_rest
+    question: "Is enterprise encryption-at-rest enabled for CockroachDB data stores?"
+    input_type: toggle
+    applies_to_modes: [self_managed, managed]
+    order_index: 2
+  - signal_key: rbac_configured
+    question: "Are SQL roles and privileges configured using least-privilege principles per application?"
+    input_type: toggle
+    applies_to_modes: [self_managed, managed]
+    order_index: 3
+  - signal_key: publicly_accessible
+    question: "Is the CockroachDB cluster accessible from the public internet?"
+    input_type: radio
+    applies_to_modes: [self_managed, managed]
+    options:
+      - { label: "No — private network only", value: "no" }
+      - { label: "Yes — with TLS and authentication", value: "yes_auth" }
+      - { label: "Yes — open access", value: "yes_open" }
+    order_index: 4
+  - signal_key: audit_logging
+    question: "Is CockroachDB audit logging enabled to record SQL statements for sensitive tables?"
+    input_type: toggle
+    applies_to_modes: [self_managed, managed]
+    order_index: 5
+  - signal_key: backup_enabled
+    question: "Are automated BACKUP jobs to cloud storage configured and tested?"
+    input_type: toggle
+    applies_to_modes: [self_managed, managed]
+    order_index: 6
+  - signal_key: multi_region
+    question: "Is the cluster deployed across multiple regions for availability and data residency compliance?"
+    input_type: toggle
+    applies_to_modes: [self_managed, managed]
+    order_index: 7
+
+control_mappings:
+  - framework:
+      slug: soc2
+      name: "SOC 2 Type II"
+    control:
+      ref: "CC6.1"
+      title: "Logical Access Controls"
+      severity: HIGH
+      description: "The entity implements logical access security measures to protect information assets."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: rbac_configured, op: eq, value: "yes" }
+        - { signal: publicly_accessible, op: in, value: ["no", "yes_auth"] }
+    evidence: "SQL RBAC and private network placement ensure only authorised services and users access CockroachDB."
+    remediation: "Create per-application SQL users with GRANT on required tables only; restrict cluster network access."
+
+  - framework:
+      slug: soc2
+      name: "SOC 2 Type II"
+    control:
+      ref: "A1.2"
+      title: "Environmental Protections - Availability"
+      severity: MEDIUM
+      description: "The entity authorises, designs, develops, maintains, and tests environmental protections."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: backup_enabled, op: eq, value: "yes" }
+        - { signal: multi_region, op: eq, value: "yes" }
+    evidence: "Automated backups and multi-region deployment provide high availability and recovery capabilities."
+    remediation: "Configure BACKUP cron jobs to cloud storage; test RESTORE; deploy across 3+ regions for survival goal."
+
+  - framework:
+      slug: iso27001
+      name: "ISO/IEC 27001:2022"
+    control:
+      ref: "A.8.24"
+      title: "Use of Cryptography"
+      severity: HIGH
+      description: "Rules for the effective use of cryptography, including key management, shall be implemented."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: encryption_at_rest, op: eq, value: "yes" }
+        - { signal: tls_enforced, op: eq, value: "yes" }
+    evidence: "Enterprise encryption-at-rest and TLS satisfy data protection requirements for data at rest and in transit."
+    remediation: "Enable enterprise encryption with a store key; enforce TLS; rotate store key on a defined schedule."
+
+  - framework:
+      slug: pci-dss
+      name: "PCI-DSS v4.0"
+    control:
+      ref: "3.5.1"
+      title: "Encryption of Stored Cardholder Data"
+      severity: CRITICAL
+      description: "Primary account numbers are secured with strong cryptography for storage."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: encryption_at_rest, op: eq, value: "yes" }
+        - { signal: tls_enforced, op: eq, value: "yes" }
+        - { signal: publicly_accessible, op: eq, value: "no" }
+    evidence: "Encryption at rest, TLS, and private cluster placement ensure CDE data in CockroachDB is fully protected."
+    remediation: "Enable enterprise encryption; enforce TLS; deploy CDE schema in dedicated private cluster; audit SQL roles."
+
+  - framework:
+      slug: gdpr
+      name: "GDPR"
+    control:
+      ref: "Art.32"
+      title: "Security of Processing"
+      severity: HIGH
+      description: "Technical measures shall protect personal data from unauthorised access."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: encryption_at_rest, op: eq, value: "yes" }
+        - { signal: rbac_configured, op: eq, value: "yes" }
+    evidence: "Encryption at rest and RBAC ensure personal data in CockroachDB is protected and access-controlled."
+    remediation: "Enable encryption at rest; create per-service SQL roles; document CockroachDB in GDPR data processing records."
+
+  - framework:
+      slug: hipaa
+      name: "HIPAA"
+    control:
+      ref: "164.312(a)(2)(iv)"
+      title: "Encryption and Decryption"
+      severity: HIGH
+      description: "Implement a mechanism to encrypt and decrypt electronic protected health information."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: encryption_at_rest, op: eq, value: "yes" }
+        - { signal: tls_enforced, op: eq, value: "yes" }
+        - { signal: audit_logging, op: eq, value: "yes" }
+    evidence: "Enterprise encryption, TLS, and SQL audit logging satisfy HIPAA encryption and audit requirements for ePHI."
+    remediation: "Enable enterprise encryption at rest; TLS for all connections; enable SENSITIVE_ACCESS audit logging for ePHI tables."
+
+  - framework:
+      slug: ndpr
+      name: "NDPR"
+    control:
+      ref: "Art.2.6"
+      title: "Data Security"
+      severity: HIGH
+      description: "Adequate technical measures shall be employed to safeguard personal data."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: encryption_at_rest, op: eq, value: "yes" }
+        - { signal: rbac_configured, op: eq, value: "yes" }
+    evidence: "Encryption at rest and RBAC protect personal data of Nigerian residents stored in CockroachDB."
+    remediation: "Enable enterprise encryption; scope SQL privileges to minimal tables; review cluster region placements for data residency."

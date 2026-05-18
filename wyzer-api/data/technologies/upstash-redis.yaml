@@ -1,0 +1,158 @@
+slug: upstash-redis
+name: "Upstash Redis"
+category: key-value
+vendor: "Upstash, Inc."
+is_managed_available: true
+logo_url: /logos/upstash.svg
+
+config_questions:
+  - signal_key: tls_enforced
+    question: "Is TLS enforced for all Upstash Redis connections (rediss:// protocol)?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 1
+  - signal_key: read_only_tokens
+    question: "Are read-only REST API tokens used for services that only need read access?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 2
+  - signal_key: eviction_policy
+    question: "Is an appropriate eviction policy configured to prevent unbounded data accumulation?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 3
+  - signal_key: no_sensitive_plaintext
+    question: "Is sensitive data (PII, tokens) stored in Redis as encrypted or hashed values rather than plaintext?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 4
+  - signal_key: ip_allowlist
+    question: "Is IP allowlisting configured on the Upstash database to restrict access to known application IPs?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 5
+  - signal_key: token_rotation
+    question: "Are Upstash REST API tokens rotated regularly and stored in a secrets manager?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 6
+
+control_mappings:
+  - framework:
+      slug: soc2
+      name: "SOC 2 Type II"
+    control:
+      ref: "CC6.1"
+      title: "Logical Access Controls"
+      severity: HIGH
+      description: "The entity implements logical access security measures to protect information assets."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: tls_enforced, op: eq, value: "yes" }
+        - { signal: read_only_tokens, op: eq, value: "yes" }
+    evidence: "TLS-encrypted connections and read-only tokens enforce least-privilege access to cached data."
+    remediation: "Use rediss:// for all connections; create read-only tokens for services that do not need write access; rotate tokens."
+
+  - framework:
+      slug: soc2
+      name: "SOC 2 Type II"
+    control:
+      ref: "CC6.7"
+      title: "Restricts Transmission of Confidential Information"
+      severity: MEDIUM
+      description: "The entity restricts the transmission of confidential information using encryption."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: tls_enforced, op: eq, value: "yes" }
+    evidence: "TLS encryption on Upstash Redis connections protects sensitive cache payloads in transit."
+    remediation: "Verify all Redis clients use rediss:// (TLS) URLs; reject connections without TLS."
+
+  - framework:
+      slug: iso27001
+      name: "ISO/IEC 27001:2022"
+    control:
+      ref: "A.8.3"
+      title: "Information Access Restriction"
+      severity: MEDIUM
+      description: "Access to information and application system functions shall be restricted in accordance with the access control policy."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: ip_allowlist, op: eq, value: "yes" }
+        - { signal: token_rotation, op: eq, value: "yes" }
+    evidence: "IP allowlisting and rotated tokens restrict access to Upstash Redis from authorised sources only."
+    remediation: "Configure IP allowlist in Upstash console; store tokens in Secrets Manager; rotate on a 90-day schedule."
+
+  - framework:
+      slug: pci-dss
+      name: "PCI-DSS v4.0"
+    control:
+      ref: "3.5.1"
+      title: "Encryption of Stored Cardholder Data"
+      severity: CRITICAL
+      description: "Stored sensitive data is encrypted with strong cryptography."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: no_sensitive_plaintext, op: eq, value: "yes" }
+        - { signal: tls_enforced, op: eq, value: "yes" }
+    evidence: "Encrypted cached values and TLS transit protection safeguard any cardholder data stored in Upstash Redis."
+    remediation: "Never cache raw PANs; encrypt or hash sensitive values at application layer before caching; enforce TLS."
+
+  - framework:
+      slug: gdpr
+      name: "GDPR"
+    control:
+      ref: "Art.32"
+      title: "Security of Processing"
+      severity: MEDIUM
+      description: "Technical measures shall protect personal data from unauthorised access."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: tls_enforced, op: eq, value: "yes" }
+        - { signal: no_sensitive_plaintext, op: eq, value: "yes" }
+        - { signal: eviction_policy, op: eq, value: "yes" }
+    evidence: "TLS, encrypted values, and eviction policies ensure personal data in Redis is protected and not retained indefinitely."
+    remediation: "Encrypt PII before caching; set TTLs on all personal data keys; document Upstash as a sub-processor in GDPR records."
+
+  - framework:
+      slug: hipaa
+      name: "HIPAA"
+    control:
+      ref: "164.312(e)(1)"
+      title: "Transmission Security"
+      severity: HIGH
+      description: "Guard against unauthorised access to ePHI being transmitted over electronic communications networks."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: tls_enforced, op: eq, value: "yes" }
+        - { signal: no_sensitive_plaintext, op: eq, value: "yes" }
+    evidence: "TLS and encrypted cache values protect ePHI that passes through or is temporarily cached in Upstash Redis."
+    remediation: "Enforce TLS (rediss://); do not cache plaintext ePHI; confirm Upstash HIPAA BAA availability for your use case."
+
+  - framework:
+      slug: ndpr
+      name: "NDPR"
+    control:
+      ref: "Art.2.6"
+      title: "Data Security"
+      severity: MEDIUM
+      description: "Adequate technical measures shall be employed to safeguard personal data."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: tls_enforced, op: eq, value: "yes" }
+        - { signal: no_sensitive_plaintext, op: eq, value: "yes" }
+    evidence: "TLS and non-plaintext personal data storage protect personal data of Nigerian residents cached in Upstash Redis."
+    remediation: "Use TLS; hash or encrypt Nigerian resident identifiers before caching; set key TTLs for personal data fields."

@@ -1,0 +1,400 @@
+// Wyzer — Prisma Schema
+// T-003: users, email_verifications, organisations, organisation_members
+// T-030: technologies, frameworks, controls, tech_control_mappings, stacks, stack_items, reports
+// T-030 (updated): technology_config_questions, stack_templates, conditions-based mappings
+
+generator client {
+ provider = "prisma-client-js"
+}
+
+datasource db {
+ provider = "postgresql"
+ url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Enums
+// ─────────────────────────────────────────────────────────────────────────────
+
+enum CompanySize {
+ SOLO // 1 person
+ MICRO // 2–10
+ SMALL // 11–50
+ MEDIUM // 51–250
+ LARGE // 251+
+}
+
+enum Plan {
+ FREE
+ PRO
+ TEAM
+}
+
+enum MemberRole {
+ OWNER
+ ADMIN
+ MEMBER
+}
+
+enum DeploymentMode {
+ MANAGED
+ SELF_HOSTED
+ ON_PREM
+}
+
+enum InputType {
+ TOGGLE
+ RADIO
+ CHIP_MULTI
+}
+
+enum Severity {
+ CRITICAL
+ HIGH
+ MEDIUM
+ LOW
+}
+
+enum ReportStatus {
+ PENDING
+ RUNNING
+ DONE
+ FAILED
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Users
+// ─────────────────────────────────────────────────────────────────────────────
+
+model User {
+ id              String    @id @default(cuid())
+ firstName       String
+ lastName        String
+ email           String    @unique
+ passwordHash    String
+ emailVerifiedAt DateTime?
+
+ /// Job title supplied at registration (the "role" field in RegisterDto).
+ /// Not to be confused with OrganisationMember.role (access level).
+ jobTitle String
+ country  String // ISO 3166-1 alpha-2
+
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+
+ emailVerifications EmailVerification[]
+ memberships        OrganisationMember[]
+
+ @@map("users")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Email verifications
+// ─────────────────────────────────────────────────────────────────────────────
+
+model EmailVerification {
+ id        String    @id @default(cuid())
+ userId    String
+ /// SHA-256 hash of the raw token sent in the verification URL.
+ /// The raw token is NEVER stored — only the hash.
+ tokenHash String    @unique
+ expiresAt DateTime
+ usedAt    DateTime?
+ createdAt DateTime  @default(now())
+
+ user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+ @@index([userId])
+ @@map("email_verifications")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Organisations
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Organisation {
+ id               String      @id @default(cuid())
+ name             String
+ /// URL-safe unique identifier derived from the company name at registration.
+ slug             String      @unique
+ size             CompanySize
+ plan             Plan        @default(FREE)
+ /// Stripe customer ID — set after first Checkout session
+ stripeCustomerId String?
+ createdAt        DateTime    @default(now())
+ updatedAt        DateTime    @updatedAt
+
+ members   OrganisationMember[]
+ invites   OrganisationInvite[]
+ stacks    Stack[]
+ auditLogs AuditLog[]
+
+ @@map("organisations")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Organisation members (join table with role)
+// ─────────────────────────────────────────────────────────────────────────────
+
+model OrganisationMember {
+ id             String     @id @default(cuid())
+ organisationId String
+ userId         String
+ role           MemberRole @default(MEMBER)
+ joinedAt       DateTime   @default(now())
+
+ organisation Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+ user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+ @@unique([organisationId, userId])
+ @@index([userId])
+ @@map("organisation_members")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Technologies (T-030)
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Technology {
+ id        String  @id @default(cuid())
+ /// Stable machine-readable key, e.g. "postgresql", "redis"
+ slug      String  @unique
+ name      String
+ category  String // e.g. "database", "cloud", "iac", "container"
+ vendor    String?
+ /// Whether a managed / hosted option exists for this technology
+ isManaged Boolean @default(false)
+ logoUrl   String?
+
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+
+ configQuestions TechnologyConfigQuestion[]
+ controlMappings TechControlMapping[]
+ stackItems      StackItem[]
+
+ @@map("technologies")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Technology config questions (T-030 extended)
+// ─────────────────────────────────────────────────────────────────────────────
+
+model TechnologyConfigQuestion {
+ id             String           @id @default(cuid())
+ technologyId   String
+ signalKey      String
+ question       String
+ inputType      InputType
+ appliesToModes DeploymentMode[]
+ orderIndex     Int
+ /// JSON array of { value: string; label: string } — only for radio/chip_multi
+ options        Json?
+
+ technology Technology @relation(fields: [technologyId], references: [id], onDelete: Cascade)
+
+ @@unique([technologyId, signalKey])
+ @@index([technologyId])
+ @@map("technology_config_questions")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Stack templates (T-031b)
+// ─────────────────────────────────────────────────────────────────────────────
+
+model StackTemplate {
+ id           String   @id @default(cuid())
+ slug         String   @unique
+ name         String
+ description  String
+ useCase      String?
+ dataScopes   String[]
+ /// JSON: { items: Array<{ technologySlug, deploymentMode, configAnswers }> }
+ templateData Json
+
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+
+ @@map("stack_templates")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Compliance frameworks (T-030)
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Framework {
+ id          String  @id @default(cuid())
+ slug        String  @unique // e.g. "soc2", "iso27001"
+ name        String // e.g. "SOC 2 Type II"
+ description String?
+
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+
+ controls Control[]
+
+ @@map("frameworks")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Controls (individual requirements within a framework) (T-030)
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Control {
+ id          String   @id @default(cuid())
+ frameworkId String
+ /// Human-readable reference, e.g. "CC6.1"
+ ref         String
+ title       String
+ description String?
+ severity    Severity @default(MEDIUM)
+
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+
+ framework    Framework            @relation(fields: [frameworkId], references: [id], onDelete: Cascade)
+ techMappings TechControlMapping[]
+
+ @@unique([frameworkId, ref])
+ @@index([frameworkId])
+ @@map("controls")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Tech–control mappings (T-030)
+// ─────────────────────────────────────────────────────────────────────────────
+
+model TechControlMapping {
+ id             String          @id @default(cuid())
+ technologyId   String
+ controlId      String
+ /// Which deployment mode this mapping applies to (null = all modes)
+ deploymentMode DeploymentMode?
+ /// JSON: ControlConditions { logic, managed_auto_pass, conditions: ConditionRule[] }
+ conditions     Json
+ evidence       String?
+ remediation    String?
+
+ technology Technology @relation(fields: [technologyId], references: [id], onDelete: Cascade)
+ control    Control    @relation(fields: [controlId], references: [id], onDelete: Cascade)
+
+ @@unique([technologyId, controlId, deploymentMode])
+ @@index([technologyId])
+ @@index([controlId])
+ @@map("tech_control_mappings")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Stacks (T-030)
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Stack {
+ id             String   @id @default(cuid())
+ organisationId String
+ name           String
+ description    String?
+ /// Data type scopes selected for this stack (e.g. "pii", "phi"); drives framework selection
+ dataScopes     String[]
+
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+
+ organisation Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+ items        StackItem[]
+ reports      Report[]
+
+ @@index([organisationId])
+ @@map("stacks")
+}
+
+model StackItem {
+ id             String         @id @default(cuid())
+ stackId        String
+ technologyId   String
+ deploymentMode DeploymentMode
+ /// Signal-key → selected answer for each config question (e.g. { "encryption_at_rest": "yes" })
+ configAnswers  Json           @default("{}")
+
+ stack      Stack      @relation(fields: [stackId], references: [id], onDelete: Cascade)
+ technology Technology @relation(fields: [technologyId], references: [id])
+
+ @@unique([stackId, technologyId])
+ @@index([stackId])
+ @@map("stack_items")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Reports (T-030 / T-036)
+// ─────────────────────────────────────────────────────────────────────────────
+
+model Report {
+ id             String       @id @default(cuid())
+ stackId        String
+ /// JSON result from the compliance engine (stored as raw JSON)
+ result         Json?
+ status         ReportStatus @default(PENDING)
+ error          String?
+ /// Cloudflare R2 URL of the generated PDF (null until PDF job completes)
+ pdfUrl         String?
+ /// Random token used to share the report publicly
+ shareToken     String?      @unique
+ /// Expiry for the share token (30 days from generation)
+ shareExpiresAt DateTime?
+
+ createdAt DateTime @default(now())
+ updatedAt DateTime @updatedAt
+
+ stack Stack @relation(fields: [stackId], references: [id], onDelete: Cascade)
+
+ @@index([stackId])
+ @@map("reports")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Organisation invites (T-043)
+// ─────────────────────────────────────────────────────────────────────────────
+
+model OrganisationInvite {
+ id             String     @id @default(cuid())
+ organisationId String
+ /// Email address of the invited person
+ email          String
+ role           MemberRole @default(MEMBER)
+ /// Random hex token sent in the invite email
+ token          String     @unique
+ expiresAt      DateTime
+ acceptedAt     DateTime?
+ createdAt      DateTime   @default(now())
+
+ organisation Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+
+ @@index([organisationId])
+ @@index([email])
+ @@map("organisation_invites")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Audit log (T-044)
+// ─────────────────────────────────────────────────────────────────────────────
+
+model AuditLog {
+ id             String   @id @default(cuid())
+ organisationId String
+ /// The user who performed the action (null for system actions)
+ userId         String?
+ /// Dot-namespaced action string, e.g. "stack.created", "report.generated"
+ action         String
+ /// Resource type, e.g. "stack", "report", "member"
+ resourceType   String
+ /// ID of the affected resource
+ resourceId     String?
+ /// Additional metadata (e.g. stack name, framework IDs)
+ metadata       Json?
+ createdAt      DateTime @default(now())
+
+ organisation Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+
+ @@index([organisationId])
+ @@index([createdAt])
+ @@map("audit_logs")
+}

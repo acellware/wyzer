@@ -1,0 +1,243 @@
+slug: aws-ec2
+name: AWS EC2
+category: cloud
+vendor: Amazon Web Services
+is_managed_available: false
+logo_url: /logos/aws-ec2.svg
+
+config_questions:
+  - signal_key: imds_v2_enforced
+    question: "Is IMDSv2 (instance metadata service v2) enforced on all instances?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 1
+  - signal_key: security_groups_restrict_ssh
+    question: "Do security groups restrict SSH access to trusted IPs only?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 2
+  - signal_key: ebs_encrypted
+    question: "Are EBS volumes encrypted at rest?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 3
+  - signal_key: vpc_isolated
+    question: "Are instances deployed in a private VPC subnet?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 4
+  - signal_key: iam_role_attached
+    question: "Do instances use IAM instance roles instead of long-lived credentials?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 5
+  - signal_key: cloudtrail_enabled
+    question: "Is AWS CloudTrail enabled for API activity logging?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 6
+  - signal_key: patch_management
+    question: "Is automated patch management in place (e.g. AWS Systems Manager)?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 7
+
+control_mappings:
+  - framework:
+      slug: soc2
+      name: "SOC 2 Type II"
+    control:
+      ref: "CC6.1"
+      title: "Logical and Physical Access Controls"
+      severity: HIGH
+      description: "The entity implements logical access security software and architectures over protected information assets."
+    conditions:
+      logic: AND
+      managed_auto_pass: false
+      rules:
+        - { signal: iam_role_attached, op: eq, value: "yes" }
+        - { signal: security_groups_restrict_ssh, op: eq, value: "yes" }
+    evidence: "IAM instance roles with least-privilege policies and restricted SSH access control logical access."
+    remediation: "Attach IAM roles instead of embedding credentials; limit SSH to bastion hosts or Systems Manager Session Manager."
+
+  - framework:
+      slug: soc2
+      name: "SOC 2 Type II"
+    control:
+      ref: "CC6.6"
+      title: "Logical Access - External Threats"
+      severity: HIGH
+      description: "Logical access security measures restrict access from outside the system boundary."
+    conditions:
+      logic: AND
+      managed_auto_pass: false
+      rules:
+        - { signal: vpc_isolated, op: eq, value: "yes" }
+        - { signal: security_groups_restrict_ssh, op: eq, value: "yes" }
+    evidence: "Instances are in a private VPC subnet with restrictive security groups."
+    remediation: "Move instances to private subnets; restrict all inbound traffic to minimum necessary ports and sources."
+
+  - framework:
+      slug: soc2
+      name: "SOC 2 Type II"
+    control:
+      ref: "CC7.2"
+      title: "Evaluates Security Events"
+      severity: MEDIUM
+      description: "The entity monitors system components and the operation of those controls on an ongoing basis."
+    conditions:
+      logic: AND
+      managed_auto_pass: false
+      rules:
+        - { signal: cloudtrail_enabled, op: eq, value: "yes" }
+    evidence: "CloudTrail records all AWS API calls for audit and incident investigation."
+    remediation: "Enable CloudTrail in all regions; forward logs to CloudWatch Logs or a SIEM."
+
+  - framework:
+      slug: soc2
+      name: "SOC 2 Type II"
+    control:
+      ref: "CC6.8"
+      title: "Prevents Unauthorised or Malicious Software"
+      severity: MEDIUM
+      description: "The entity implements controls to prevent or detect and act upon introduction of authorised software."
+    conditions:
+      logic: AND
+      managed_auto_pass: false
+      rules:
+        - { signal: imds_v2_enforced, op: eq, value: "yes" }
+        - { signal: patch_management, op: eq, value: "yes" }
+    evidence: "IMDSv2 prevents SSRF-based metadata exfiltration; automated patching reduces known vulnerability exposure."
+    remediation: "Enforce IMDSv2 via instance metadata options; configure AWS Systems Manager Patch Manager."
+
+  - framework:
+      slug: iso27001
+      name: "ISO/IEC 27001:2022"
+    control:
+      ref: "A.8.24"
+      title: "Use of Cryptography"
+      severity: HIGH
+      description: "Rules for the effective use of cryptography shall be defined and implemented."
+    conditions:
+      logic: AND
+      managed_auto_pass: false
+      rules:
+        - { signal: ebs_encrypted, op: eq, value: "yes" }
+    evidence: "EBS encryption with AWS-managed or customer-managed KMS keys protects data at rest."
+    remediation: "Enable EBS default encryption in the AWS account; use AWS KMS CMK for sensitive workloads."
+
+  - framework:
+      slug: iso27001
+      name: "ISO/IEC 27001:2022"
+    control:
+      ref: "A.8.9"
+      title: "Configuration Management"
+      severity: MEDIUM
+      description: "Configurations, including security configurations, shall be established, documented, implemented, monitored, and reviewed."
+    conditions:
+      logic: AND
+      managed_auto_pass: false
+      rules:
+        - { signal: patch_management, op: eq, value: "yes" }
+        - { signal: imds_v2_enforced, op: eq, value: "yes" }
+    evidence: "Automated patching and IMDSv2 enforcement represent active configuration management."
+    remediation: "Use AWS Config rules to detect drift; integrate Systems Manager State Manager for baseline enforcement."
+
+  - framework:
+      slug: gdpr
+      name: "GDPR"
+    control:
+      ref: "Art.32"
+      title: "Security of Processing"
+      severity: HIGH
+      description: "Technical and organisational measures shall ensure an appropriate level of security for personal data."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: ebs_encryption, op: eq, value: "yes" }
+        - { signal: imdsv2_enforced, op: eq, value: "yes" }
+    evidence: "EBS encryption at rest and IMDSv2 enforcement protect personal data stored on and accessed from EC2 instances."
+    remediation: "Enable EBS encryption by default; enforce IMDSv2 on all instances; document EC2 as infrastructure in GDPR records."
+
+  - framework:
+      slug: pci-dss
+      name: "PCI-DSS v4.0"
+    control:
+      ref: "1.3.1"
+      title: "Inbound Traffic Restriction to CDE"
+      severity: CRITICAL
+      description: "Inbound traffic to the cardholder data environment is restricted to that which is necessary."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: security_groups_restrictive, op: eq, value: "yes" }
+        - { signal: no_public_ssh, op: eq, value: "yes" }
+    evidence: "Restrictive security groups and no direct public SSH access enforce CDE inbound traffic controls."
+    remediation: "Remove 0.0.0.0/0 inbound rules; restrict SSH to bastion IPs or VPN CIDRs; document CDE network diagrams."
+
+  - framework:
+      slug: pci-dss
+      name: "PCI-DSS v4.0"
+    control:
+      ref: "3.5.1"
+      title: "Encryption of Stored Cardholder Data"
+      severity: CRITICAL
+      description: "Primary account numbers are secured with strong cryptography wherever stored."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: ebs_encryption, op: eq, value: "yes" }
+    evidence: "EBS encryption with AWS-managed or customer-managed KMS keys secures stored cardholder data on EC2 volumes."
+    remediation: "Enable default EBS encryption per region; use CMK for volumes in the CDE; document key management."
+
+  - framework:
+      slug: hipaa
+      name: "HIPAA"
+    control:
+      ref: "164.312(a)(2)(iv)"
+      title: "Encryption and Decryption"
+      severity: HIGH
+      description: "Implement a mechanism to encrypt and decrypt electronic protected health information."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: ebs_encryption, op: eq, value: "yes" }
+    evidence: "EBS encryption protects ePHI stored on EC2 instance volumes at rest."
+    remediation: "Enable EBS encryption by default in all regions running ePHI workloads; use CMK for sensitive volumes."
+
+  - framework:
+      slug: hipaa
+      name: "HIPAA"
+    control:
+      ref: "164.312(b)"
+      title: "Audit Controls"
+      severity: HIGH
+      description: "Implement mechanisms that record and examine activity in information systems containing ePHI."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: cloudwatch_agent, op: eq, value: "yes" }
+    evidence: "CloudWatch Agent provides system-level audit logging from EC2 instances hosting ePHI workloads."
+    remediation: "Install CloudWatch Agent; forward OS-level auth, syslog, and application logs; retain 6 years for HIPAA."
+
+  - framework:
+      slug: ndpr
+      name: "NDPR"
+    control:
+      ref: "Art.2.6"
+      title: "Data Security"
+      severity: HIGH
+      description: "Adequate technical measures shall be employed to safeguard personal data."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: ebs_encryption, op: eq, value: "yes" }
+        - { signal: security_groups_restrictive, op: eq, value: "yes" }
+    evidence: "EBS encryption and restrictive security groups protect personal data of Nigerian residents on EC2 instances."
+    remediation: "Enable EBS encryption; restrict access via security groups; document EC2 instances in NDPR data processing records."

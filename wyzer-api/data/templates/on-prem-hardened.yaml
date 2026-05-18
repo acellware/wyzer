@@ -1,0 +1,43 @@
+slug: on-prem-hardened
+name: "On-Premises Hardened Stack"
+description: "Hardened on-premises deployment for air-gapped or regulated environments"
+use_case: "Government, defence, or healthcare organisations with strict data residency requirements"
+data_scopes: [pii, phi]
+preview_tech_slugs: [postgresql, redis, docker, terraform]
+items:
+  - technology_slug: postgresql
+    deployment_mode: on-prem
+    config_answers:
+      encryption_at_rest: "yes"
+      tls_enforced: "yes"
+      publicly_accessible: "no"
+      backup_enabled: "yes"
+      backup_retention: "gt_90d"
+      rbac_enabled: "yes"
+      audit_logging: "yes"
+  - technology_slug: redis
+    deployment_mode: on-prem
+    config_answers:
+      auth_enabled: "yes"
+      tls_enabled: "yes"
+      network_isolated: "yes"
+      persistence_mode: "rdb_aof"
+      stores_pii: "not_sure"
+      acl_enabled: "yes"
+  - technology_slug: docker
+    deployment_mode: on-prem
+    config_answers:
+      base_image_pinned: "yes"
+      runs_as_root: "no"
+      image_scanning_enabled: "yes"
+      secrets_in_image: "no"
+      registry_private: "yes"
+      read_only_filesystem: "yes"
+  - technology_slug: terraform
+    deployment_mode: on-prem
+    config_answers:
+      state_encrypted: "yes"
+      state_backend: "s3"
+      secrets_in_code: "no"
+      modules_pinned: "yes"
+      plan_reviewed: "yes"

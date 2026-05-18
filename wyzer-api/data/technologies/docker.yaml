@@ -1,0 +1,208 @@
+slug: docker
+name: Docker
+category: container
+vendor: Docker Inc.
+is_managed_available: false
+logo_url: /logos/docker.svg
+
+config_questions:
+  - signal_key: base_image_pinned
+    question: "Are base images referenced by digest or pinned tag (not :latest)?"
+    input_type: toggle
+    applies_to_modes: [self-hosted, on-prem]
+    order_index: 1
+  - signal_key: runs_as_root
+    question: "Do containers run as root (UID 0)?"
+    input_type: toggle
+    applies_to_modes: [self-hosted, on-prem]
+    order_index: 2
+  - signal_key: image_scanning_enabled
+    question: "Are container images scanned for known vulnerabilities (e.g. Trivy, Snyk)?"
+    input_type: toggle
+    applies_to_modes: [self-hosted, on-prem]
+    order_index: 3
+  - signal_key: secrets_in_image
+    question: "Are secrets or credentials baked into Docker images or layers?"
+    input_type: toggle
+    applies_to_modes: [self-hosted, on-prem]
+    order_index: 4
+  - signal_key: registry_private
+    question: "Are images stored in a private container registry?"
+    input_type: toggle
+    applies_to_modes: [self-hosted, on-prem]
+    order_index: 5
+  - signal_key: read_only_filesystem
+    question: "Do containers run with a read-only root filesystem?"
+    input_type: toggle
+    applies_to_modes: [self-hosted, on-prem]
+    order_index: 6
+
+control_mappings:
+  - framework:
+      slug: soc2
+      name: "SOC 2 Type II"
+    control:
+      ref: "CC6.8"
+      title: "Prevents Unauthorised or Malicious Software"
+      severity: MEDIUM
+      description: "The entity implements controls to prevent or detect and act upon introduction of unauthorised software."
+    conditions:
+      logic: AND
+      managed_auto_pass: false
+      rules:
+        - { signal: image_scanning_enabled, op: eq, value: "yes" }
+        - { signal: base_image_pinned, op: eq, value: "yes" }
+    evidence: "Image scanning detects known CVEs before deployment; pinned base images prevent unexpected changes."
+    remediation: "Add Trivy or Snyk to your CI pipeline; change FROM directives to use SHA256 digests or version-pinned tags."
+
+  - framework:
+      slug: soc2
+      name: "SOC 2 Type II"
+    control:
+      ref: "CC6.1"
+      title: "Logical and Physical Access Controls"
+      severity: HIGH
+      description: "The entity implements logical access security software and architectures over protected information assets."
+    conditions:
+      logic: AND
+      managed_auto_pass: false
+      rules:
+        - { signal: runs_as_root, op: eq, value: "no" }
+        - { signal: secrets_in_image, op: eq, value: "no" }
+    evidence: "Non-root containers and no embedded secrets limit blast radius of a container escape."
+    remediation: "Add a USER directive in Dockerfile; pass secrets via environment variables or secrets mounts at runtime."
+
+  - framework:
+      slug: iso27001
+      name: "ISO/IEC 27001:2022"
+    control:
+      ref: "A.8.9"
+      title: "Configuration Management"
+      severity: MEDIUM
+      description: "Configurations shall be established, documented, implemented, monitored, and reviewed."
+    conditions:
+      logic: AND
+      managed_auto_pass: false
+      rules:
+        - { signal: base_image_pinned, op: eq, value: "yes" }
+        - { signal: registry_private, op: eq, value: "yes" }
+    evidence: "Pinned base images and a private registry ensure reproducible, controlled builds."
+    remediation: "Enable image signing and use a private registry; pin all FROM references; audit build logs."
+
+  - framework:
+      slug: iso27001
+      name: "ISO/IEC 27001:2022"
+    control:
+      ref: "A.8.3"
+      title: "Information Access Restriction"
+      severity: HIGH
+      description: "Access to information and application system functions shall be restricted in accordance with the access control policy."
+    conditions:
+      logic: AND
+      managed_auto_pass: false
+      rules:
+        - { signal: runs_as_root, op: eq, value: "no" }
+        - { signal: read_only_filesystem, op: eq, value: "yes" }
+    evidence: "Non-root containers with read-only filesystems limit access to the underlying host."
+    remediation: "Set securityContext.runAsNonRoot in Kubernetes or '--user' in docker run; add --read-only flag."
+
+  - framework:
+      slug: gdpr
+      name: "GDPR"
+    control:
+      ref: "Art.25"
+      title: "Data Protection by Design and Default"
+      severity: MEDIUM
+      description: "Data protection shall be integrated into processing activities from the design stage."
+    conditions:
+      logic: AND
+      managed_auto_pass: false
+      rules:
+        - { signal: no_root_user, op: eq, value: "yes" }
+        - { signal: readonly_rootfs, op: eq, value: "yes" }
+    evidence: "Non-root containers and read-only file systems embed data protection principles in container design."
+    remediation: "Set USER in Dockerfile; add readOnlyRootFilesystem: true in pod/container spec; review images for PII hardcoding."
+
+  - framework:
+      slug: pci-dss
+      name: "PCI-DSS v4.0"
+    control:
+      ref: "5.3.1"
+      title: "Anti-Malware Solution"
+      severity: HIGH
+      description: "All system components are protected against malware and the protection is kept current."
+    conditions:
+      logic: AND
+      managed_auto_pass: false
+      rules:
+        - { signal: image_scanning, op: eq, value: "yes" }
+    evidence: "Container image scanning detects malicious packages and known vulnerabilities before deployment to the CDE."
+    remediation: "Integrate Trivy or Grype into CI; fail pipeline on HIGH/CRITICAL CVEs; maintain approved base image list."
+
+  - framework:
+      slug: pci-dss
+      name: "PCI-DSS v4.0"
+    control:
+      ref: "7.2.1"
+      title: "Access Control - Least Privilege"
+      severity: HIGH
+      description: "Access to system components is restricted to only those whose job requires it."
+    conditions:
+      logic: AND
+      managed_auto_pass: false
+      rules:
+        - { signal: no_root_user, op: eq, value: "yes" }
+        - { signal: privileged_disabled, op: eq, value: "yes" }
+    evidence: "Non-root and non-privileged containers enforce least-privilege access in CDE containerised workloads."
+    remediation: "Remove --privileged flag from all CDE containers; run as non-root user; drop Linux capabilities not needed."
+
+  - framework:
+      slug: hipaa
+      name: "HIPAA"
+    control:
+      ref: "164.312(a)(1)"
+      title: "Access Control"
+      severity: HIGH
+      description: "Implement technical policies and procedures that allow access only to authorised persons."
+    conditions:
+      logic: AND
+      managed_auto_pass: false
+      rules:
+        - { signal: no_root_user, op: eq, value: "yes" }
+        - { signal: privileged_disabled, op: eq, value: "yes" }
+    evidence: "Non-root and non-privileged containers restrict access to ePHI processing containers to authorised workloads."
+    remediation: "Audit all Dockerfiles for USER instructions; remove --privileged; use seccomp/AppArmor profiles."
+
+  - framework:
+      slug: hipaa
+      name: "HIPAA"
+    control:
+      ref: "164.312(c)(1)"
+      title: "Integrity Controls"
+      severity: MEDIUM
+      description: "Implement policies to protect ePHI from improper alteration or destruction."
+    conditions:
+      logic: AND
+      managed_auto_pass: false
+      rules:
+        - { signal: image_scanning, op: eq, value: "yes" }
+        - { signal: readonly_rootfs, op: eq, value: "yes" }
+    evidence: "Image scanning and read-only file systems prevent malicious modification of ePHI-processing container workloads."
+    remediation: "Scan and sign images; mount data volumes as read-write but set container rootfs to read-only."
+
+  - framework:
+      slug: ndpr
+      name: "NDPR"
+    control:
+      ref: "Art.2.6"
+      title: "Data Security"
+      severity: MEDIUM
+      description: "Adequate technical measures shall be employed to safeguard personal data."
+    conditions:
+      logic: AND
+      managed_auto_pass: false
+      rules:
+        - { signal: no_root_user, op: eq, value: "yes" }
+        - { signal: image_scanning, op: eq, value: "yes" }
+    evidence: "Non-root containers and image scanning protect workloads processing personal data of Nigerian residents."
+    remediation: "Set non-root USER in Dockerfiles; integrate image scanning; document Docker in NDPR data processing records."

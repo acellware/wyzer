@@ -1,0 +1,164 @@
+slug: aws-waf
+name: "AWS WAF"
+category: networking
+vendor: "Amazon Web Services"
+is_managed_available: true
+logo_url: /logos/aws-waf.svg
+
+config_questions:
+  - signal_key: managed_rule_groups
+    question: "Are AWS Managed Rule Groups (Core ruleset, Known bad inputs) attached to the WebACL?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 1
+  - signal_key: sql_injection_rules
+    question: "Are SQL injection protection rules enabled?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 2
+  - signal_key: xss_rules
+    question: "Are cross-site scripting (XSS) protection rules enabled?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 3
+  - signal_key: rate_limiting
+    question: "Are rate-based rules configured to limit request bursts per IP?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 4
+  - signal_key: logging_enabled
+    question: "Is WAF full logging enabled with logs forwarded to S3 or CloudWatch Logs?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 5
+  - signal_key: geo_blocking
+    question: "Are geo-blocking rules configured to restrict access from non-operating regions?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 6
+  - signal_key: webacl_associated
+    question: "Is the WebACL associated with all public-facing ALBs, API Gateways, or CloudFront distributions?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 7
+
+control_mappings:
+  - framework:
+      slug: soc2
+      name: "SOC 2 Type II"
+    control:
+      ref: "CC6.6"
+      title: "Logical Access Security - External Threats"
+      severity: CRITICAL
+      description: "The entity implements controls to prevent or detect and act upon the introduction of malicious software from external sources."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: managed_rule_groups, op: eq, value: "yes" }
+        - { signal: webacl_associated, op: eq, value: "yes" }
+    evidence: "AWS WAF with managed rule groups on all public endpoints forms a continuous security barrier against web exploits."
+    remediation: "Attach the Core Ruleset, Known Bad Inputs, and SQL injection managed rule groups; associate WebACL with all ALBs."
+
+  - framework:
+      slug: soc2
+      name: "SOC 2 Type II"
+    control:
+      ref: "CC7.2"
+      title: "Evaluates Security Events"
+      severity: HIGH
+      description: "The entity monitors system components and the operation of controls on an ongoing basis."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: logging_enabled, op: eq, value: "yes" }
+    evidence: "WAF full logging provides real-time evidence of blocked and allowed requests for security event investigations."
+    remediation: "Enable WAF logging to S3; set up CloudWatch metrics and alarms for blocked request rate spikes."
+
+  - framework:
+      slug: iso27001
+      name: "ISO/IEC 27001:2022"
+    control:
+      ref: "A.8.23"
+      title: "Web Filtering"
+      severity: HIGH
+      description: "Access to external websites shall be managed to reduce exposure to malicious content."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: managed_rule_groups, op: eq, value: "yes" }
+        - { signal: xss_rules, op: eq, value: "yes" }
+    evidence: "Managed rulesets and XSS protections filter malicious payloads before they reach application resources."
+    remediation: "Enable Core Ruleset (AWS managed); enable XSS rules; review rule group overrides to minimise false positives."
+
+  - framework:
+      slug: pci-dss
+      name: "PCI-DSS v4.0"
+    control:
+      ref: "6.4.1"
+      title: "Web-Facing Applications Protected by WAF"
+      severity: CRITICAL
+      description: "All public-facing web applications are protected against known vulnerabilities by an automated technical solution."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: managed_rule_groups, op: eq, value: "yes" }
+        - { signal: sql_injection_rules, op: eq, value: "yes" }
+        - { signal: logging_enabled, op: eq, value: "yes" }
+    evidence: "AWS WAF with SQL injection and managed rule groups satisfies PCI DSS 6.4.1; logging provides audit evidence."
+    remediation: "Confirm WebACL has SQL injection and Core Ruleset in block mode; route WAF logs to centralised SIEM."
+
+  - framework:
+      slug: gdpr
+      name: "GDPR"
+    control:
+      ref: "Art.32"
+      title: "Security of Processing"
+      severity: HIGH
+      description: "Technical measures shall protect personal data against unauthorised or unlawful processing."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: managed_rule_groups, op: eq, value: "yes" }
+        - { signal: logging_enabled, op: eq, value: "yes" }
+    evidence: "WAF rules prevent injection attacks that could expose personal data; logging supports breach investigation and accountability."
+    remediation: "Enable managed rules; document AWS WAF as a technical measure in your GDPR Article 32 security assessment."
+
+  - framework:
+      slug: hipaa
+      name: "HIPAA"
+    control:
+      ref: "164.312(c)(1)"
+      title: "Integrity Controls"
+      severity: HIGH
+      description: "Implement policies and procedures to protect ePHI from improper alteration or destruction."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: sql_injection_rules, op: eq, value: "yes" }
+        - { signal: xss_rules, op: eq, value: "yes" }
+        - { signal: webacl_associated, op: eq, value: "yes" }
+    evidence: "SQL injection and XSS rules prevent malicious modification of ePHI through web application attack vectors."
+    remediation: "Attach WebACL to all endpoints processing ePHI; enable SQLi and XSS managed rules in block mode."
+
+  - framework:
+      slug: ndpr
+      name: "NDPR"
+    control:
+      ref: "Art.2.6"
+      title: "Data Security"
+      severity: MEDIUM
+      description: "Adequate technical measures shall be employed to safeguard personal data."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: managed_rule_groups, op: eq, value: "yes" }
+        - { signal: webacl_associated, op: eq, value: "yes" }
+    evidence: "WAF managed rules protect web applications handling personal data of Nigerian residents from injection-based exfiltration."
+    remediation: "Associate WebACL with all endpoints processing Nigerian user data; enable OWASP Core and SQLi managed rule groups."

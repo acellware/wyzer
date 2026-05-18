@@ -1,0 +1,203 @@
+slug: github-actions
+name: "GitHub Actions"
+category: ci-cd
+vendor: "GitHub"
+is_managed_available: true
+logo_url: /logos/github-actions.svg
+
+config_questions:
+  - signal_key: secrets_in_vault
+    question: "Are CI/CD secrets stored in GitHub Encrypted Secrets (not hardcoded in workflow files)?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 1
+  - signal_key: pinned_actions
+    question: "Are third-party actions pinned to a specific commit SHA (not a mutable tag)?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 2
+  - signal_key: pr_reviews_required
+    question: "Are pull request reviews required before merging to the main branch?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 3
+  - signal_key: oidc_auth
+    question: "Do workflows use OIDC for cloud authentication (not long-lived API keys)?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 4
+  - signal_key: least_privilege_permissions
+    question: "Are workflow permissions set to the minimum required (read-only by default)?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 5
+  - signal_key: audit_logging
+    question: "Is GitHub audit log streaming enabled for the organisation?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 6
+  - signal_key: sast_scanning
+    question: "Is SAST / code scanning (CodeQL or equivalent) enabled in pipelines?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 7
+  - signal_key: dependency_scanning
+    question: "Is dependency/SCA scanning (Dependabot or equivalent) enabled?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 8
+
+control_mappings:
+  - framework:
+      slug: soc2
+      name: "SOC 2 Type II"
+    control:
+      ref: "CC6.1"
+      title: "Logical and Physical Access Controls"
+      severity: HIGH
+      description: "The entity implements logical access security software and architectures over protected information assets."
+    conditions:
+      logic: AND
+      managed_auto_pass: false
+      rules:
+        - { signal: secrets_in_vault, op: eq, value: "yes" }
+        - { signal: least_privilege_permissions, op: eq, value: "yes" }
+    evidence: "Encrypted Secrets and least-privilege workflow permissions prevent unauthorised access to production credentials."
+    remediation: "Store all secrets in GitHub Encrypted Secrets; set permissions: read-all at workflow level and override per job."
+
+  - framework:
+      slug: soc2
+      name: "SOC 2 Type II"
+    control:
+      ref: "CC8.1"
+      title: "Change Management"
+      severity: HIGH
+      description: "The entity authorises, designs, develops, and implements changes to infrastructure and software."
+    conditions:
+      logic: AND
+      managed_auto_pass: false
+      rules:
+        - { signal: pr_reviews_required, op: eq, value: "yes" }
+        - { signal: pinned_actions, op: eq, value: "yes" }
+    evidence: "Required PR reviews enforce four-eyes principle; pinned actions prevent supply-chain attacks via mutable tags."
+    remediation: "Enable branch protection requiring 1+ approved reviews; pin all actions to full-length commit SHAs."
+
+  - framework:
+      slug: soc2
+      name: "SOC 2 Type II"
+    control:
+      ref: "CC7.2"
+      title: "Evaluates Security Events"
+      severity: MEDIUM
+      description: "The entity monitors system components and the operation of those controls on an ongoing basis."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: audit_logging, op: eq, value: "yes" }
+    evidence: "GitHub audit log stream provides evidence of all workflow runs, secret access, and permission changes."
+    remediation: "Enable GitHub audit log streaming to a SIEM; configure alerts for sensitive events like secret modification."
+
+  - framework:
+      slug: iso27001
+      name: "ISO/IEC 27001:2022"
+    control:
+      ref: "A.8.25"
+      title: "Secure Development Lifecycle"
+      severity: HIGH
+      description: "Rules for the secure development of software and systems shall be established and applied."
+    conditions:
+      logic: AND
+      managed_auto_pass: false
+      rules:
+        - { signal: sast_scanning, op: eq, value: "yes" }
+        - { signal: dependency_scanning, op: eq, value: "yes" }
+    evidence: "SAST and dependency scanning in the pipeline catch security vulnerabilities before code reaches production."
+    remediation: "Enable CodeQL on push/PR; configure Dependabot for all ecosystems; fail builds on critical findings."
+
+  - framework:
+      slug: iso27001
+      name: "ISO/IEC 27001:2022"
+    control:
+      ref: "A.8.3"
+      title: "Information Access Restriction"
+      severity: HIGH
+      description: "Access to information and application system functions shall be restricted in accordance with the access control policy."
+    conditions:
+      logic: AND
+      managed_auto_pass: false
+      rules:
+        - { signal: oidc_auth, op: eq, value: "yes" }
+        - { signal: least_privilege_permissions, op: eq, value: "yes" }
+    evidence: "OIDC eliminates long-lived credentials; least-privilege permissions reduce blast radius of compromised workflows."
+    remediation: "Configure GitHub OIDC provider in AWS/GCP/Azure; remove all long-lived IAM keys from secrets."
+
+  - framework:
+      slug: gdpr
+      name: "GDPR"
+    control:
+      ref: "Art.32"
+      title: "Security of Processing"
+      severity: MEDIUM
+      description: "Implement appropriate technical measures to ensure security appropriate to the risk."
+    conditions:
+      logic: AND
+      managed_auto_pass: false
+      rules:
+        - { signal: secrets_in_vault, op: eq, value: "yes" }
+        - { signal: oidc_auth, op: eq, value: "yes" }
+    evidence: "Encrypted Secrets and OIDC prevent long-lived credentials from exposing personal data processed in CI/CD pipelines."
+    remediation: "Migrate to OIDC; audit all workflow secrets to ensure no personal data is stored in environment variables."
+
+  - framework:
+      slug: pci-dss
+      name: "PCI-DSS v4.0"
+    control:
+      ref: "Req.6.3"
+      title: "Security Vulnerabilities Identified and Addressed"
+      severity: HIGH
+      description: "Security vulnerabilities are identified and addressed through security patches."
+    conditions:
+      logic: AND
+      managed_auto_pass: false
+      rules:
+        - { signal: sast_scanning, op: eq, value: "yes" }
+        - { signal: dependency_scanning, op: eq, value: "yes" }
+        - { signal: pinned_actions, op: eq, value: "yes" }
+    evidence: "SAST, SCA scanning, and pinned actions prevent vulnerable code and supply-chain compromises from reaching the CDE."
+    remediation: "Enforce CodeQL and Dependabot; pin all actions; block merging PRs with critical SAST findings."
+
+  - framework:
+      slug: hipaa
+      name: "HIPAA"
+    control:
+      ref: "164.312(a)(1)"
+      title: "Access Control"
+      severity: HIGH
+      description: "Implement technical policies and procedures for electronic information systems to allow access only to those authorised."
+    conditions:
+      logic: AND
+      managed_auto_pass: false
+      rules:
+        - { signal: secrets_in_vault, op: eq, value: "yes" }
+        - { signal: least_privilege_permissions, op: eq, value: "yes" }
+        - { signal: oidc_auth, op: eq, value: "yes" }
+    evidence: "Encrypted Secrets, least-privilege, and OIDC collectively restrict access to ePHI-adjacent CI/CD credentials."
+    remediation: "Remove all long-lived credentials; use OIDC; audit workflow trigger permissions for ePHI pipelines."
+
+  - framework:
+      slug: ndpr
+      name: "NDPR"
+    control:
+      ref: "Art.2.6"
+      title: "Data Security"
+      severity: MEDIUM
+      description: "Adequate technical measures shall be employed to safeguard personal data."
+    conditions:
+      logic: AND
+      managed_auto_pass: false
+      rules:
+        - { signal: secrets_in_vault, op: eq, value: "yes" }
+        - { signal: pr_reviews_required, op: eq, value: "yes" }
+    evidence: "Encrypted Secrets and peer-reviewed changes reduce risk of personal data exposure via misconfigured pipelines."
+    remediation: "Store all secrets in GitHub Encrypted Secrets; require PRs reviews before changes deploy to personal data environments."

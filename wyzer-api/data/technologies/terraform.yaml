@@ -1,0 +1,208 @@
+slug: terraform
+name: Terraform
+category: iac
+vendor: HashiCorp
+is_managed_available: false
+logo_url: /logos/terraform.svg
+
+config_questions:
+  - signal_key: state_encrypted
+    question: "Is Terraform state encrypted at rest?"
+    input_type: toggle
+    applies_to_modes: [self-hosted, on-prem]
+    order_index: 1
+  - signal_key: state_backend
+    question: "Where is Terraform state stored?"
+    input_type: radio
+    applies_to_modes: [self-hosted, on-prem]
+    options:
+      - { value: local, label: "Local filesystem (not recommended)" }
+      - { value: s3, label: "S3 (or compatible) with locking" }
+      - { value: terraform_cloud, label: "Terraform Cloud / HCP Terraform" }
+      - { value: gcs, label: "Google Cloud Storage" }
+    order_index: 2
+  - signal_key: secrets_in_code
+    question: "Are secrets or credentials hardcoded in .tf files or checked into version control?"
+    input_type: toggle
+    applies_to_modes: [self-hosted, on-prem]
+    order_index: 3
+  - signal_key: modules_pinned
+    question: "Are all module and provider versions pinned?"
+    input_type: toggle
+    applies_to_modes: [self-hosted, on-prem]
+    order_index: 4
+  - signal_key: plan_reviewed
+    question: "Are all terraform plan outputs reviewed before apply (e.g. in a PR workflow)?"
+    input_type: toggle
+    applies_to_modes: [self-hosted, on-prem]
+    order_index: 5
+
+control_mappings:
+  - framework:
+      slug: soc2
+      name: "SOC 2 Type II"
+    control:
+      ref: "CC8.1"
+      title: "Change Management"
+      severity: MEDIUM
+      description: "The entity authorises, designs, develops, configures, documents, tests, approves, and implements changes to infrastructure, data, software, and procedures."
+    conditions:
+      logic: AND
+      managed_auto_pass: false
+      rules:
+        - { signal: plan_reviewed, op: eq, value: "yes" }
+        - { signal: modules_pinned, op: eq, value: "yes" }
+    evidence: "PR-based plan review and pinned versions enforce a controlled change management workflow."
+    remediation: "Integrate Terraform in CI with required plan review; pin all providers and modules with version constraints and lockfile."
+
+  - framework:
+      slug: soc2
+      name: "SOC 2 Type II"
+    control:
+      ref: "CC6.1"
+      title: "Logical and Physical Access Controls"
+      severity: HIGH
+      description: "The entity implements logical access security software and architectures over protected information assets."
+    conditions:
+      logic: AND
+      managed_auto_pass: false
+      rules:
+        - { signal: secrets_in_code, op: eq, value: "no" }
+    evidence: "No credentials or secrets are stored in Terraform code or state in plaintext."
+    remediation: "Use environment variables, Vault, AWS Secrets Manager, or Terraform Cloud variable sets for all secrets."
+
+  - framework:
+      slug: iso27001
+      name: "ISO/IEC 27001:2022"
+    control:
+      ref: "A.8.9"
+      title: "Configuration Management"
+      severity: MEDIUM
+      description: "Configurations shall be established, documented, implemented, monitored, and reviewed."
+    conditions:
+      logic: AND
+      managed_auto_pass: false
+      rules:
+        - { signal: state_backend, op: neq, value: "local" }
+        - { signal: state_encrypted, op: eq, value: "yes" }
+    evidence: "Remote state with encryption provides a single source of truth for infrastructure configuration."
+    remediation: "Migrate state to a remote backend (S3, Terraform Cloud) with encryption and state locking enabled."
+
+  - framework:
+      slug: iso27001
+      name: "ISO/IEC 27001:2022"
+    control:
+      ref: "A.8.25"
+      title: "Secure Development Life Cycle"
+      severity: MEDIUM
+      description: "Rules for the secure development of software and systems shall be established and applied."
+    conditions:
+      logic: AND
+      managed_auto_pass: false
+      rules:
+        - { signal: plan_reviewed, op: eq, value: "yes" }
+        - { signal: secrets_in_code, op: eq, value: "no" }
+    evidence: "Plan reviews in PRs and no secrets in code meet secure IaC development practices."
+    remediation: "Enforce IaC scanning (e.g. Checkov, tfsec) in CI; require plan approval for all infrastructure changes."
+
+  - framework:
+      slug: gdpr
+      name: "GDPR"
+    control:
+      ref: "Art.25"
+      title: "Data Protection by Design and Default"
+      severity: MEDIUM
+      description: "Data protection shall be integrated into processing by default."
+    conditions:
+      logic: AND
+      managed_auto_pass: false
+      rules:
+        - { signal: state_encrypted, op: eq, value: "yes" }
+        - { signal: no_secrets_in_code, op: eq, value: "yes" }
+    evidence: "Encrypted Terraform state and no hardcoded secrets prevent personal data credentials from being exposed."
+    remediation: "Enable state encryption; remove any PII or credentials from .tf files and variables; use Vault provider."
+
+  - framework:
+      slug: pci-dss
+      name: "PCI-DSS v4.0"
+    control:
+      ref: "6.4.3"
+      title: "Change Control Process"
+      severity: HIGH
+      description: "All changes to system components in the CDE are managed via a formal change control process."
+    conditions:
+      logic: AND
+      managed_auto_pass: false
+      rules:
+        - { signal: code_review_required, op: eq, value: "yes" }
+        - { signal: plan_before_apply, op: eq, value: "yes" }
+    evidence: "PR-reviewed Terraform changes with mandatory plan output satisfy PCI DSS change control for CDE infrastructure."
+    remediation: "Require two-person review for CDE Terraform; run terraform plan in CI and attach to PR; block apply on failures."
+
+  - framework:
+      slug: pci-dss
+      name: "PCI-DSS v4.0"
+    control:
+      ref: "3.4.2"
+      title: "Technical Controls for Cryptographic Keys"
+      severity: HIGH
+      description: "Technical controls prevent copy and move of clear-text primary account numbers onto removable media."
+    conditions:
+      logic: AND
+      managed_auto_pass: false
+      rules:
+        - { signal: no_secrets_in_code, op: eq, value: "yes" }
+        - { signal: state_encrypted, op: eq, value: "yes" }
+    evidence: "No secrets in code and encrypted state prevent cardholder data from appearing in Terraform artifacts."
+    remediation: "Scan for secrets with trufflehog; encrypt remote state; use Vault dynamic secrets for CDE resources."
+
+  - framework:
+      slug: hipaa
+      name: "HIPAA"
+    control:
+      ref: "164.308(a)(5)(ii)(B)"
+      title: "Protection from Malicious Software"
+      severity: MEDIUM
+      description: "Implement procedures for guarding against malicious software."
+    conditions:
+      logic: AND
+      managed_auto_pass: false
+      rules:
+        - { signal: code_review_required, op: eq, value: "yes" }
+        - { signal: no_secrets_in_code, op: eq, value: "yes" }
+    evidence: "Code review and secrets scanning prevent malicious or misconfigured IaC from exposing ePHI infrastructure."
+    remediation: "Run tfsec or Checkov in CI; block PRs with HIGH findings affecting ePHI infrastructure."
+
+  - framework:
+      slug: hipaa
+      name: "HIPAA"
+    control:
+      ref: "164.312(a)(1)"
+      title: "Access Control"
+      severity: HIGH
+      description: "Implement technical policies and procedures that allow access only to authorised persons."
+    conditions:
+      logic: AND
+      managed_auto_pass: false
+      rules:
+        - { signal: state_encrypted, op: eq, value: "yes" }
+        - { signal: remote_state, op: eq, value: "yes" }
+    evidence: "Remote encrypted state with access controls ensures only authorised engineers can inspect ePHI infrastructure state."
+    remediation: "Use S3+DynamoDB or Terraform Cloud for remote state; restrict state access via IAM/workspace permissions."
+
+  - framework:
+      slug: ndpr
+      name: "NDPR"
+    control:
+      ref: "Art.2.6"
+      title: "Data Security"
+      severity: MEDIUM
+      description: "Adequate technical measures shall be employed to safeguard personal data."
+    conditions:
+      logic: AND
+      managed_auto_pass: false
+      rules:
+        - { signal: state_encrypted, op: eq, value: "yes" }
+        - { signal: no_secrets_in_code, op: eq, value: "yes" }
+    evidence: "Encrypted state and no hardcoded credentials protect infrastructure managing personal data of Nigerian residents."
+    remediation: "Enable state encryption; run secret scanning; document Terraform scope in NDPR data processing records."

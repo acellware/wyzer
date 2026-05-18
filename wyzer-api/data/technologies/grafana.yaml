@@ -1,0 +1,162 @@
+slug: grafana
+name: "Grafana"
+category: observability
+vendor: "Grafana Labs"
+is_managed_available: true
+logo_url: /logos/grafana.svg
+
+config_questions:
+  - signal_key: auth_sso
+    question: "Is Grafana configured to use SSO (OAuth/SAML) rather than local username/password?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 1
+  - signal_key: role_based_access
+    question: "Are Grafana roles (Viewer/Editor/Admin) assigned using least-privilege principles per team?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 2
+  - signal_key: tls_enforced
+    question: "Is HTTPS/TLS enforced for all Grafana web traffic (no plain HTTP allowed)?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 3
+  - signal_key: audit_logging
+    question: "Is Grafana audit logging enabled (Enterprise or via proxy access logs)?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 4
+  - signal_key: api_key_scoped
+    question: "Are Grafana API keys scoped to minimum role and rotated regularly?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 5
+  - signal_key: dashboards_not_public
+    question: "Are public (unauthenticated) dashboard sharing links disabled?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 6
+  - signal_key: secrets_in_vault
+    question: "Are datasource credentials stored in a secrets manager, not Grafana's built-in encrypted storage?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 7
+
+control_mappings:
+  - framework:
+      slug: soc2
+      name: "SOC 2 Type II"
+    control:
+      ref: "CC6.1"
+      title: "Logical Access Controls"
+      severity: HIGH
+      description: "The entity implements logical access security measures to protect against threats from sources outside its system boundaries."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: auth_sso, op: eq, value: "yes" }
+        - { signal: dashboards_not_public, op: eq, value: "yes" }
+    evidence: "SSO authentication and disabled public links ensure Grafana dashboards are accessible only to authorised personnel."
+    remediation: "Configure Grafana OAuth/SAML integration; disable anonymous access; disable public dashboard sharing in grafana.ini."
+
+  - framework:
+      slug: soc2
+      name: "SOC 2 Type II"
+    control:
+      ref: "CC7.2"
+      title: "Evaluates Security Events"
+      severity: MEDIUM
+      description: "The entity monitors system components and evaluates security events."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: audit_logging, op: eq, value: "yes" }
+    evidence: "Grafana audit logs capture user actions, login events, and dashboard changes for security event review."
+    remediation: "Enable Grafana audit logs (Enterprise feature) or route access logs to a SIEM for correlation."
+
+  - framework:
+      slug: iso27001
+      name: "ISO/IEC 27001:2022"
+    control:
+      ref: "A.8.3"
+      title: "Information Access Restriction"
+      severity: MEDIUM
+      description: "Access to information and system functions shall be restricted in accordance with the access control policy."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: role_based_access, op: eq, value: "yes" }
+        - { signal: auth_sso, op: eq, value: "yes" }
+    evidence: "Grafana RBAC with SSO enforces that users have access only to the teams and dashboards relevant to their role."
+    remediation: "Define organisations and teams in Grafana; assign roles per team; federate identity via SAML or OAuth2."
+
+  - framework:
+      slug: gdpr
+      name: "GDPR"
+    control:
+      ref: "Art.32"
+      title: "Security of Processing"
+      severity: MEDIUM
+      description: "Technical measures shall protect personal data from unauthorised access."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: tls_enforced, op: eq, value: "yes" }
+        - { signal: dashboards_not_public, op: eq, value: "yes" }
+    evidence: "TLS and disabled public access prevent personal data visible in dashboards from leaking to unauthenticated parties."
+    remediation: "Enforce HTTPS only; disable public sharing; review dashboards for PII exposure in metrics or log panels."
+
+  - framework:
+      slug: pci-dss
+      name: "PCI-DSS v4.0"
+    control:
+      ref: "7.2.1"
+      title: "Access Control System Assignment"
+      severity: HIGH
+      description: "All components of the access control system are set to deny-all unless explicitly granted."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: dashboards_not_public, op: eq, value: "yes" }
+        - { signal: role_based_access, op: eq, value: "yes" }
+    evidence: "Grafana's RBAC model with public sharing disabled enforces least-privilege access to operational metrics within the CDE."
+    remediation: "Set `allow_public` to false in grafana.ini; restrict Viewer access to CDE-related dashboards by org/team."
+
+  - framework:
+      slug: hipaa
+      name: "HIPAA"
+    control:
+      ref: "164.312(a)(1)"
+      title: "Access Control"
+      severity: MEDIUM
+      description: "Implement technical policies and procedures for electronic information systems that allow access only to authorised persons."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: auth_sso, op: eq, value: "yes" }
+        - { signal: dashboards_not_public, op: eq, value: "yes" }
+    evidence: "SSO and restricted dashboard sharing ensure Grafana instances monitoring ePHI workloads are locked to authorised users."
+    remediation: "Require SSO login; disable public sharing; do not embed patient-level data in dashboard panels visible to non-clinical staff."
+
+  - framework:
+      slug: ndpr
+      name: "NDPR"
+    control:
+      ref: "Art.2.6"
+      title: "Data Security"
+      severity: MEDIUM
+      description: "Adequate technical measures shall be employed to safeguard personal data."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: tls_enforced, op: eq, value: "yes" }
+        - { signal: role_based_access, op: eq, value: "yes" }
+    evidence: "TLS and RBAC protect dashboards that may visualise personal data of Nigerian residents."
+    remediation: "Enforce HTTPS; review dashboard data sources for Nigerian PII exposure; restrict access via team-scoped roles."

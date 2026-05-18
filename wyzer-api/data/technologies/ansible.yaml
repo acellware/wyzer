@@ -1,0 +1,163 @@
+slug: ansible
+name: "Ansible"
+category: iac
+vendor: "Red Hat"
+is_managed_available: false
+logo_url: /logos/ansible.svg
+
+config_questions:
+  - signal_key: vault_for_secrets
+    question: "Are all secrets in Ansible playbooks encrypted using Ansible Vault?"
+    input_type: toggle
+    applies_to_modes: [self_managed]
+    order_index: 1
+  - signal_key: no_plaintext_passwords
+    question: "Are there no plaintext passwords or API keys in any playbook, inventory, or variable file?"
+    input_type: toggle
+    applies_to_modes: [self_managed]
+    order_index: 2
+  - signal_key: least_privilege_user
+    question: "Do Ansible automation users have only the minimum required OS-level permissions (no blanket sudo)?"
+    input_type: toggle
+    applies_to_modes: [self_managed]
+    order_index: 3
+  - signal_key: playbooks_in_scm
+    question: "Are all playbooks and roles stored in version-controlled repositories with access controls?"
+    input_type: toggle
+    applies_to_modes: [self_managed]
+    order_index: 4
+  - signal_key: idempotency_tested
+    question: "Are playbooks tested for idempotency in a staging environment before production runs?"
+    input_type: toggle
+    applies_to_modes: [self_managed]
+    order_index: 5
+  - signal_key: pr_review_required
+    question: "Do all playbook changes require peer review and approval before merge?"
+    input_type: toggle
+    applies_to_modes: [self_managed]
+    order_index: 6
+  - signal_key: execution_logging
+    question: "Are all Ansible execution logs centrally stored and retained for audit purposes?"
+    input_type: toggle
+    applies_to_modes: [self_managed]
+    order_index: 7
+
+control_mappings:
+  - framework:
+      slug: soc2
+      name: "SOC 2 Type II"
+    control:
+      ref: "CC8.1"
+      title: "Changes to Infrastructure, Data, and Software"
+      severity: HIGH
+      description: "The entity authorizes, designs, develops, tests, approves, and implements changes to infrastructure."
+    conditions:
+      logic: AND
+      managed_auto_pass: false
+      rules:
+        - { signal: playbooks_in_scm, op: eq, value: "yes" }
+        - { signal: pr_review_required, op: eq, value: "yes" }
+    evidence: "Version-controlled playbooks with PR reviews ensure all infrastructure changes are authorised and traceable."
+    remediation: "Store all playbooks in Git; require at least one approving review per change; enforce branch protection on main."
+
+  - framework:
+      slug: soc2
+      name: "SOC 2 Type II"
+    control:
+      ref: "CC6.1"
+      title: "Logical Access Controls"
+      severity: HIGH
+      description: "The entity implements logical access security to protect against threats from sources outside its system boundaries."
+    conditions:
+      logic: AND
+      managed_auto_pass: false
+      rules:
+        - { signal: vault_for_secrets, op: eq, value: "yes" }
+        - { signal: no_plaintext_passwords, op: eq, value: "yes" }
+    evidence: "Ansible Vault encryption and no plaintext credentials ensure automation secrets are protected at rest."
+    remediation: "Encrypt all secrets with Ansible Vault; scan playbooks for plaintext credentials using git-secrets or trufflehog."
+
+  - framework:
+      slug: iso27001
+      name: "ISO/IEC 27001:2022"
+    control:
+      ref: "A.8.9"
+      title: "Configuration Management"
+      severity: HIGH
+      description: "Configurations, including security configurations, of hardware, software, services, and networks shall be established, documented, monitored, and reviewed."
+    conditions:
+      logic: AND
+      managed_auto_pass: false
+      rules:
+        - { signal: playbooks_in_scm, op: eq, value: "yes" }
+        - { signal: idempotency_tested, op: eq, value: "yes" }
+    evidence: "Playbooks in SCM with idempotency testing ensure configurations are documented and consistently applied."
+    remediation: "Use Molecule or a staging environment for idempotency tests; link playbook changes to change management tickets."
+
+  - framework:
+      slug: pci-dss
+      name: "PCI-DSS v4.0"
+    control:
+      ref: "6.4.3"
+      title: "Change Control Process"
+      severity: HIGH
+      description: "All changes to system components in the cardholder data environment are managed via a formal change control process."
+    conditions:
+      logic: AND
+      managed_auto_pass: false
+      rules:
+        - { signal: pr_review_required, op: eq, value: "yes" }
+        - { signal: execution_logging, op: eq, value: "yes" }
+    evidence: "PR approvals and execution logs provide full traceability of all infrastructure changes in the CDE."
+    remediation: "Require two-person review for CDE playbooks; ship Ansible job logs to SIEM; retain for 12 months."
+
+  - framework:
+      slug: gdpr
+      name: "GDPR"
+    control:
+      ref: "Art.25"
+      title: "Data Protection by Design and Default"
+      severity: MEDIUM
+      description: "Data protection shall be integrated into processing activities from the design stage."
+    conditions:
+      logic: AND
+      managed_auto_pass: false
+      rules:
+        - { signal: vault_for_secrets, op: eq, value: "yes" }
+        - { signal: no_plaintext_passwords, op: eq, value: "yes" }
+    evidence: "Encrypted secrets prevent exposure of credentials that access personal data stores during infrastructure automation runs."
+    remediation: "Adopt Ansible Vault for all credentials; integrate secret scanning in pre-commit hooks across playbook repos."
+
+  - framework:
+      slug: hipaa
+      name: "HIPAA"
+    control:
+      ref: "164.312(c)(2)"
+      title: "Mechanism to Authenticate ePHI"
+      severity: MEDIUM
+      description: "Implement electronic mechanisms to corroborate that ePHI has not been altered or destroyed in an unauthorized manner."
+    conditions:
+      logic: AND
+      managed_auto_pass: false
+      rules:
+        - { signal: playbooks_in_scm, op: eq, value: "yes" }
+        - { signal: execution_logging, op: eq, value: "yes" }
+    evidence: "SCM-tracked playbooks and execution logs provide evidence that configuration changes to ePHI systems were authorised."
+    remediation: "Tag ePHI-related playbooks; log every Ansible Tower/AWX job run; link runs to ticket numbers in change log."
+
+  - framework:
+      slug: ndpr
+      name: "NDPR"
+    control:
+      ref: "Art.2.6"
+      title: "Data Security"
+      severity: MEDIUM
+      description: "Adequate technical measures shall be employed to safeguard personal data."
+    conditions:
+      logic: AND
+      managed_auto_pass: false
+      rules:
+        - { signal: vault_for_secrets, op: eq, value: "yes" }
+        - { signal: least_privilege_user, op: eq, value: "yes" }
+    evidence: "Vault-encrypted secrets and least-privilege automation users reduce the attack surface on systems holding Nigerian personal data."
+    remediation: "Rotate Ansible Vault passwords; restrict automation user privileges using sudoers with specific command allowlists."

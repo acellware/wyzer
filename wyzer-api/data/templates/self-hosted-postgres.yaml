@@ -1,0 +1,34 @@
+slug: self-hosted-postgres
+name: "Self-Hosted PostgreSQL Stack"
+description: "On-premises or self-hosted PostgreSQL with Docker and Terraform"
+use_case: "Teams with data residency requirements or on-prem data centres"
+data_scopes: [pii]
+preview_tech_slugs: [postgresql, terraform, docker]
+items:
+  - technology_slug: postgresql
+    deployment_mode: self-hosted
+    config_answers:
+      encryption_at_rest: "not_sure"
+      tls_enforced: "not_sure"
+      publicly_accessible: "no"
+      backup_enabled: "not_sure"
+      backup_retention: "not_sure"
+      rbac_enabled: "not_sure"
+      audit_logging: "not_sure"
+  - technology_slug: terraform
+    deployment_mode: self-hosted
+    config_answers:
+      state_encrypted: "not_sure"
+      state_backend: "local"
+      secrets_in_code: "not_sure"
+      modules_pinned: "not_sure"
+      plan_reviewed: "not_sure"
+  - technology_slug: docker
+    deployment_mode: self-hosted
+    config_answers:
+      base_image_pinned: "not_sure"
+      runs_as_root: "not_sure"
+      image_scanning_enabled: "not_sure"
+      secrets_in_image: "not_sure"
+      registry_private: "not_sure"
+      read_only_filesystem: "not_sure"

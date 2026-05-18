@@ -1,0 +1,283 @@
+slug: postgresql
+name: PostgreSQL
+category: database
+vendor: "PostgreSQL Global Development Group"
+is_managed_available: true
+logo_url: /logos/postgresql.svg
+
+config_questions:
+  - signal_key: encryption_at_rest
+    question: "Is encryption at rest enabled?"
+    input_type: toggle
+    applies_to_modes: [self-hosted, on-prem]
+    order_index: 1
+  - signal_key: tls_enforced
+    question: "Is TLS/SSL enforced for all connections?"
+    input_type: toggle
+    applies_to_modes: [managed, self-hosted, on-prem]
+    order_index: 2
+  - signal_key: publicly_accessible
+    question: "Is the database reachable from the public internet?"
+    input_type: toggle
+    applies_to_modes: [managed, self-hosted, on-prem]
+    order_index: 3
+  - signal_key: backup_enabled
+    question: "Are automated backups enabled?"
+    input_type: toggle
+    applies_to_modes: [managed, self-hosted, on-prem]
+    order_index: 4
+  - signal_key: backup_retention
+    question: "What is your backup retention period?"
+    input_type: radio
+    applies_to_modes: [managed, self-hosted, on-prem]
+    options:
+      - { value: lt_7d, label: "Less than 7 days" }
+      - { value: 7_30d, label: "7 to 30 days" }
+      - { value: 30_90d, label: "30 to 90 days" }
+      - { value: gt_90d, label: "90+ days" }
+    order_index: 5
+  - signal_key: rbac_enabled
+    question: "Are role-based access controls configured?"
+    input_type: toggle
+    applies_to_modes: [managed, self-hosted, on-prem]
+    order_index: 6
+  - signal_key: audit_logging
+    question: "Is audit logging enabled (e.g. pgaudit)?"
+    input_type: toggle
+    applies_to_modes: [managed, self-hosted, on-prem]
+    order_index: 7
+
+control_mappings:
+  - framework:
+      slug: soc2
+      name: "SOC 2 Type II"
+    control:
+      ref: "CC6.1"
+      title: "Logical and Physical Access Controls"
+      severity: HIGH
+      description: "The entity implements logical access security software and architectures over protected information assets."
+    conditions:
+      logic: AND
+      managed_auto_pass: false
+      rules:
+        - { signal: rbac_enabled, op: eq, value: "yes" }
+    evidence: "PostgreSQL GRANT/REVOKE and pg_hba.conf provide comprehensive logical access controls."
+    remediation: "Configure roles with least-privilege GRANT statements; enable row-level security on sensitive tables."
+
+  - framework:
+      slug: soc2
+      name: "SOC 2 Type II"
+    control:
+      ref: "CC6.6"
+      title: "Logical Access - External Threats"
+      severity: HIGH
+      description: "Logical access security measures restrict access from outside the system boundary."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: publicly_accessible, op: eq, value: "no" }
+        - { signal: tls_enforced, op: eq, value: "yes" }
+    evidence: "Database is not publicly reachable and all connections are encrypted in transit."
+    remediation: "Place the database in a private subnet; set ssl=on in postgresql.conf."
+
+  - framework:
+      slug: soc2
+      name: "SOC 2 Type II"
+    control:
+      ref: "CC6.7"
+      title: "Restrictions on Information Transmission"
+      severity: MEDIUM
+      description: "The transmission and movement of information is limited to authorised users."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: tls_enforced, op: eq, value: "yes" }
+    evidence: "TLS/SSL ensures all data in transit is encrypted between client and server."
+    remediation: "Set ssl=on and ssl_min_protocol_version=TLSv1.2 in postgresql.conf."
+
+  - framework:
+      slug: soc2
+      name: "SOC 2 Type II"
+    control:
+      ref: "CC7.2"
+      title: "Evaluates Security Events"
+      severity: MEDIUM
+      description: "The entity monitors system components and the operation of those controls on an ongoing basis."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: audit_logging, op: eq, value: "yes" }
+    evidence: "pgaudit provides session and object-level audit logging for compliance evidence."
+    remediation: "Install and configure the pgaudit extension; ship logs to a centralised SIEM."
+
+  - framework:
+      slug: iso27001
+      name: "ISO/IEC 27001:2022"
+    control:
+      ref: "A.8.3"
+      title: "Information Access Restriction"
+      severity: HIGH
+      description: "Access to information and application system functions shall be restricted in accordance with the access control policy."
+    conditions:
+      logic: AND
+      managed_auto_pass: false
+      rules:
+        - { signal: rbac_enabled, op: eq, value: "yes" }
+    evidence: "Fine-grained GRANT/REVOKE privileges and role hierarchies enforce least-privilege access."
+    remediation: "Audit all GRANT statements and remove excessive privileges; review pg_roles."
+
+  - framework:
+      slug: iso27001
+      name: "ISO/IEC 27001:2022"
+    control:
+      ref: "A.8.24"
+      title: "Use of Cryptography"
+      severity: HIGH
+      description: "Rules for the effective use of cryptography shall be defined and implemented."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: encryption_at_rest, op: eq, value: "yes" }
+        - { signal: tls_enforced, op: eq, value: "yes" }
+    evidence: "Data at rest encrypted via pgcrypto or cloud-managed AES-256; data in transit via TLS."
+    remediation: "Enable filesystem-level encryption or pgcrypto; enforce TLS on all connections."
+
+  - framework:
+      slug: iso27001
+      name: "ISO/IEC 27001:2022"
+    control:
+      ref: "A.8.14"
+      title: "Redundancy of Information Processing"
+      severity: MEDIUM
+      description: "Information processing facilities shall be implemented with sufficient redundancy."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: backup_enabled, op: eq, value: "yes" }
+        - { signal: backup_retention, op: "in", value: ["7_30d", "30_90d", "gt_90d"] }
+    evidence: "Automated backups with sufficient retention provide recovery capability."
+    remediation: "Enable automated backups with at least 7-day retention; test restore procedures."
+
+  - framework:
+      slug: gdpr
+      name: "GDPR"
+    control:
+      ref: "Art.32"
+      title: "Security of Processing"
+      severity: HIGH
+      description: "Implement appropriate technical measures to ensure a level of security appropriate to the risk of processing personal data."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: encryption_at_rest, op: eq, value: "yes" }
+        - { signal: tls_enforced, op: eq, value: "yes" }
+        - { signal: rbac_enabled, op: eq, value: "yes" }
+    evidence: "Encryption at rest, TLS, and RBAC protect personal data stored in PostgreSQL tables."
+    remediation: "Enable filesystem/column encryption; enforce TLS; restrict role privileges to minimum required for GDPR-relevant tables."
+
+  - framework:
+      slug: gdpr
+      name: "GDPR"
+    control:
+      ref: "Art.5(1)(e)"
+      title: "Storage Limitation"
+      severity: MEDIUM
+      description: "Personal data shall be kept for no longer than is necessary for the purposes for which it is processed."
+    conditions:
+      logic: AND
+      managed_auto_pass: false
+      rules:
+        - { signal: backup_retention, op: in, value: ["7_30d", "30_90d"] }
+    evidence: "Bounded backup retention supports GDPR storage limitation by ensuring personal data is not kept indefinitely."
+    remediation: "Define and enforce data retention policies; schedule DELETE jobs for expired personal data; document in GDPR records."
+
+  - framework:
+      slug: pci-dss
+      name: "PCI-DSS v4.0"
+    control:
+      ref: "3.5.1"
+      title: "Encryption of Stored Cardholder Data"
+      severity: CRITICAL
+      description: "Primary account numbers are secured with strong cryptography wherever stored in the CDE."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: encryption_at_rest, op: eq, value: "yes" }
+        - { signal: tls_enforced, op: eq, value: "yes" }
+    evidence: "Encryption at rest and TLS ensure PAN and authentication data are cryptographically protected in PostgreSQL."
+    remediation: "Enable AES-256 encryption at OS or column level; enforce sslmode=verify-full; apply to all CDE tables."
+
+  - framework:
+      slug: pci-dss
+      name: "PCI-DSS v4.0"
+    control:
+      ref: "7.2.1"
+      title: "Access Control - Least Privilege"
+      severity: CRITICAL
+      description: "Access for accounts and related roles is limited to the least privileges necessary to perform job functions."
+    conditions:
+      logic: AND
+      managed_auto_pass: false
+      rules:
+        - { signal: rbac_enabled, op: eq, value: "yes" }
+        - { signal: publicly_accessible, op: eq, value: "no" }
+    evidence: "PostgreSQL RBAC with per-service roles and private network placement enforce least-privilege CDE access."
+    remediation: "Revoke PUBLIC schema access; create per-application roles with table-level GRANTs; restrict cluster to VPC."
+
+  - framework:
+      slug: hipaa
+      name: "HIPAA"
+    control:
+      ref: "164.312(a)(2)(iv)"
+      title: "Encryption and Decryption"
+      severity: HIGH
+      description: "Implement a mechanism to encrypt and decrypt electronic protected health information."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: encryption_at_rest, op: eq, value: "yes" }
+        - { signal: tls_enforced, op: eq, value: "yes" }
+    evidence: "PostgreSQL AES-256 at-rest encryption and TLS satisfy HIPAA ePHI encryption requirements."
+    remediation: "Enable tablespace encryption or pgcrypto for ePHI columns; enforce sslmode=require for all connections."
+
+  - framework:
+      slug: hipaa
+      name: "HIPAA"
+    control:
+      ref: "164.312(b)"
+      title: "Audit Controls"
+      severity: HIGH
+      description: "Implement hardware, software, and procedural mechanisms that record and examine activity in information systems containing ePHI."
+    conditions:
+      logic: AND
+      managed_auto_pass: false
+      rules:
+        - { signal: audit_logging, op: eq, value: "yes" }
+    evidence: "pgaudit records all SQL operations on ePHI tables, satisfying HIPAA audit control requirements."
+    remediation: "Configure pgaudit for OBJECT-level logging on ePHI schemas; ship logs to SIEM; retain for 6 years."
+
+  - framework:
+      slug: ndpr
+      name: "NDPR"
+    control:
+      ref: "Art.2.6"
+      title: "Data Security"
+      severity: HIGH
+      description: "Adequate technical measures shall be employed to safeguard personal data."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: encryption_at_rest, op: eq, value: "yes" }
+        - { signal: tls_enforced, op: eq, value: "yes" }
+        - { signal: rbac_enabled, op: eq, value: "yes" }
+    evidence: "Encryption and RBAC protect personal data of Nigerian residents stored in PostgreSQL tables."
+    remediation: "Enable encryption at rest; enforce TLS; create dedicated read-only roles for reporting; document in NDPR processing records."

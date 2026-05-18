@@ -1,0 +1,173 @@
+slug: cloudflare
+name: "Cloudflare"
+category: networking
+vendor: "Cloudflare, Inc."
+is_managed_available: true
+logo_url: /logos/cloudflare.svg
+
+config_questions:
+  - signal_key: waf_enabled
+    question: "Is the Cloudflare Web Application Firewall (WAF) enabled with managed ruleset?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 1
+  - signal_key: tls_minimum_version
+    question: "What is the minimum TLS version enforced for all zones?"
+    input_type: radio
+    applies_to_modes: [managed]
+    options:
+      - { label: "TLS 1.3 only", value: "1.3" }
+      - { label: "TLS 1.2+", value: "1.2" }
+      - { label: "TLS 1.1 or lower allowed", value: "1.1" }
+    order_index: 2
+  - signal_key: ddos_protection
+    question: "Is Cloudflare DDoS protection enabled at L3/L4 and L7?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 3
+  - signal_key: bot_management
+    question: "Is Bot Management or Super Bot Fight Mode enabled?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 4
+  - signal_key: access_zero_trust
+    question: "Is Cloudflare Access (Zero Trust) enforced for internal application access?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 5
+  - signal_key: audit_logs_enabled
+    question: "Are Cloudflare Audit Logs forwarded to a SIEM or log storage?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 6
+  - signal_key: rate_limiting
+    question: "Are rate limiting rules configured to protect API endpoints from abuse?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 7
+  - signal_key: dnssec_enabled
+    question: "Is DNSSEC enabled for all Cloudflare-managed zones?"
+    input_type: toggle
+    applies_to_modes: [managed]
+    order_index: 8
+
+control_mappings:
+  - framework:
+      slug: soc2
+      name: "SOC 2 Type II"
+    control:
+      ref: "CC6.6"
+      title: "Logical Access Security Measures - External Threats"
+      severity: HIGH
+      description: "The entity implements controls to prevent or detect and act upon the introduction of unauthorized or malicious software."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: waf_enabled, op: eq, value: "yes" }
+        - { signal: ddos_protection, op: eq, value: "yes" }
+    evidence: "Cloudflare WAF and DDoS protection act as the perimeter defence against application-layer and volumetric attacks."
+    remediation: "Enable WAF with OWASP managed ruleset; enable DDoS protection; set WAF managed rules to Block mode."
+
+  - framework:
+      slug: soc2
+      name: "SOC 2 Type II"
+    control:
+      ref: "CC6.1"
+      title: "Logical Access Controls"
+      severity: MEDIUM
+      description: "The entity implements network controls to protect it against unauthorised access."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: access_zero_trust, op: eq, value: "yes" }
+        - { signal: tls_minimum_version, op: in, value: ["1.2", "1.3"] }
+    evidence: "Cloudflare Access enforces identity verification before allowing access to internal apps; TLS 1.2+ encrypts transit data."
+    remediation: "Enable Cloudflare Access for all internal tools; set minimum TLS version to 1.2 or higher on all zones."
+
+  - framework:
+      slug: iso27001
+      name: "ISO/IEC 27001:2022"
+    control:
+      ref: "A.8.20"
+      title: "Networks Security"
+      severity: HIGH
+      description: "Networks and network devices shall be secured, managed and controlled to protect information in systems and applications."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: waf_enabled, op: eq, value: "yes" }
+        - { signal: rate_limiting, op: eq, value: "yes" }
+        - { signal: dnssec_enabled, op: eq, value: "yes" }
+    evidence: "WAF, rate limiting, and DNSSEC together harden DNS and HTTP layers against known attack vectors."
+    remediation: "Enable WAF managed ruleset; configure rate limiting rules per API endpoint; enable DNSSEC for every zone."
+
+  - framework:
+      slug: gdpr
+      name: "GDPR"
+    control:
+      ref: "Art.32"
+      title: "Security of Processing"
+      severity: HIGH
+      description: "Appropriate technical and organisational measures shall be taken including encryption and network security."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: tls_minimum_version, op: in, value: ["1.2", "1.3"] }
+        - { signal: waf_enabled, op: eq, value: "yes" }
+    evidence: "Minimum TLS 1.2 encrypts personal data in transit; WAF blocks injection and exfiltration attacks."
+    remediation: "Set minimum TLS to 1.2 and enable WAF; document Cloudflare as a sub-processor in your data processing agreements."
+
+  - framework:
+      slug: pci-dss
+      name: "PCI-DSS v4.0"
+    control:
+      ref: "6.4.1"
+      title: "Web-Facing Applications - WAF"
+      severity: CRITICAL
+      description: "All public-facing web applications are protected against known attacks by deploying an automated technical solution."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: waf_enabled, op: eq, value: "yes" }
+        - { signal: bot_management, op: eq, value: "yes" }
+    evidence: "Cloudflare WAF and Bot Management satisfy PCI DSS 6.4.1 automated technical solution requirement."
+    remediation: "Enable WAF with OWASP and Cloudflare managed rules in blocking mode; enable Bot Management for CDE endpoints."
+
+  - framework:
+      slug: hipaa
+      name: "HIPAA"
+    control:
+      ref: "164.312(e)(1)"
+      title: "Transmission Security"
+      severity: HIGH
+      description: "Implement technical security measures to guard against unauthorized access to ePHI that is being transmitted."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: tls_minimum_version, op: in, value: ["1.2", "1.3"] }
+        - { signal: ddos_protection, op: eq, value: "yes" }
+    evidence: "TLS 1.2+ encrypts ePHI in transit through Cloudflare; DDoS protection ensures availability for healthcare workloads."
+    remediation: "Configure Cloudflare zones serving ePHI to enforce TLS 1.2 minimum; enable DDoS managed rulesets."
+
+  - framework:
+      slug: ndpr
+      name: "NDPR"
+    control:
+      ref: "Art.2.6"
+      title: "Data Security"
+      severity: MEDIUM
+      description: "Adequate technical measures shall be employed to safeguard personal data."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: tls_minimum_version, op: in, value: ["1.2", "1.3"] }
+        - { signal: waf_enabled, op: eq, value: "yes" }
+    evidence: "TLS encryption and WAF protection safeguard personal data of Nigerian residents during transmission and processing."
+    remediation: "Enforce TLS 1.2 minimum on zones serving Nigerian users; enable WAF; log traffic for incident response evidence."

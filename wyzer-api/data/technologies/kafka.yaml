@@ -1,0 +1,186 @@
+slug: kafka
+name: "Apache Kafka"
+category: message-queue
+vendor: "Apache Software Foundation"
+is_managed_available: true
+logo_url: /logos/kafka.svg
+
+config_questions:
+  - signal_key: tls_enforced
+    question: "Is TLS enforced for all broker-client and inter-broker communications?"
+    input_type: toggle
+    applies_to_modes: [managed, self-hosted, on-prem]
+    order_index: 1
+  - signal_key: auth_enabled
+    question: "Is authentication enabled (SASL/SCRAM, mTLS, or OAuth)?"
+    input_type: toggle
+    applies_to_modes: [managed, self-hosted, on-prem]
+    order_index: 2
+  - signal_key: acls_enabled
+    question: "Are Kafka ACLs configured to restrict topic-level access per consumer/producer?"
+    input_type: toggle
+    applies_to_modes: [managed, self-hosted, on-prem]
+    order_index: 3
+  - signal_key: encryption_at_rest
+    question: "Is data at rest encrypted on broker storage volumes?"
+    input_type: toggle
+    applies_to_modes: [managed, self-hosted, on-prem]
+    order_index: 4
+  - signal_key: audit_logging
+    question: "Is Kafka audit logging enabled (Confluent audit logs or custom authorizer)?"
+    input_type: toggle
+    applies_to_modes: [managed, self-hosted, on-prem]
+    order_index: 5
+  - signal_key: publicly_accessible
+    question: "Are Kafka brokers reachable from the public internet?"
+    input_type: toggle
+    applies_to_modes: [managed, self-hosted, on-prem]
+    order_index: 6
+  - signal_key: replication_factor
+    question: "What is the default replication factor for topics?"
+    input_type: radio
+    applies_to_modes: [managed, self-hosted, on-prem]
+    options:
+      - { value: "1", label: "1 (no redundancy)" }
+      - { value: "2", label: "2" }
+      - { value: "3", label: "3 (recommended minimum)" }
+      - { value: "more", label: "More than 3" }
+    order_index: 7
+
+control_mappings:
+  - framework:
+      slug: soc2
+      name: "SOC 2 Type II"
+    control:
+      ref: "CC6.1"
+      title: "Logical and Physical Access Controls"
+      severity: HIGH
+      description: "The entity implements logical access security software and architectures over protected information assets."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: auth_enabled, op: eq, value: "yes" }
+        - { signal: acls_enabled, op: eq, value: "yes" }
+    evidence: "SASL authentication and Kafka ACLs restrict topic access to authorised producers and consumers."
+    remediation: "Enable SASL/SCRAM-SHA-512 and define per-topic ACLs; deny all by default."
+
+  - framework:
+      slug: soc2
+      name: "SOC 2 Type II"
+    control:
+      ref: "CC6.6"
+      title: "Logical Access - External Threats"
+      severity: HIGH
+      description: "Logical access security measures restrict access from outside the system boundary."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: publicly_accessible, op: eq, value: "no" }
+        - { signal: tls_enforced, op: eq, value: "yes" }
+    evidence: "Private broker placement and TLS prevent external interception of message streams."
+    remediation: "Bind brokers to private network interfaces; set listeners to SASL_SSL only."
+
+  - framework:
+      slug: iso27001
+      name: "ISO/IEC 27001:2022"
+    control:
+      ref: "A.8.24"
+      title: "Use of Cryptography"
+      severity: HIGH
+      description: "Rules for the effective use of cryptography shall be defined and implemented."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: tls_enforced, op: eq, value: "yes" }
+        - { signal: encryption_at_rest, op: eq, value: "yes" }
+    evidence: "TLS for in-transit encryption and volume-level encryption at rest satisfy ISO 27001 cryptography controls."
+    remediation: "Configure ssl.keystore and ssl.truststore; encrypt broker EBS/data volumes with cloud KMS."
+
+  - framework:
+      slug: iso27001
+      name: "ISO/IEC 27001:2022"
+    control:
+      ref: "A.8.14"
+      title: "Redundancy of Information Processing"
+      severity: MEDIUM
+      description: "Information processing facilities shall be implemented with sufficient redundancy."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: replication_factor, op: "in", value: ["3", "more"] }
+    evidence: "Replication factor >= 3 ensures message durability across broker failures."
+    remediation: "Set default.replication.factor=3 and min.insync.replicas=2 in broker configuration."
+
+  - framework:
+      slug: gdpr
+      name: "GDPR"
+    control:
+      ref: "Art.32"
+      title: "Security of Processing"
+      severity: HIGH
+      description: "Implement appropriate technical measures to ensure security appropriate to the risk."
+    conditions:
+      logic: AND
+      managed_auto_pass: false
+      rules:
+        - { signal: tls_enforced, op: eq, value: "yes" }
+        - { signal: auth_enabled, op: eq, value: "yes" }
+        - { signal: acls_enabled, op: eq, value: "yes" }
+        - { signal: encryption_at_rest, op: eq, value: "yes" }
+    evidence: "TLS, authentication, ACLs, and encryption at rest protect personal data flowing through Kafka topics."
+    remediation: "Enable SASL_SSL listeners; define per-topic ACLs; encrypt broker storage; enable audit logging."
+
+  - framework:
+      slug: pci-dss
+      name: "PCI-DSS v4.0"
+    control:
+      ref: "Req.4"
+      title: "Protect Cardholder Data with Strong Cryptography"
+      severity: HIGH
+      description: "Strong cryptography is used to safeguard PAN during transmission over open networks."
+    conditions:
+      logic: AND
+      managed_auto_pass: true
+      rules:
+        - { signal: tls_enforced, op: eq, value: "yes" }
+        - { signal: encryption_at_rest, op: eq, value: "yes" }
+    evidence: "TLS for in-transit and encrypted storage for at-rest protect PAN transmitted through Kafka."
+    remediation: "Use SSL listener with TLS 1.2+; encrypt broker storage; avoid topic names that hint at PAN content."
+
+  - framework:
+      slug: hipaa
+      name: "HIPAA"
+    control:
+      ref: "164.312(e)(1)"
+      title: "Transmission Security"
+      severity: HIGH
+      description: "Implement technical security measures to guard against unauthorised access to ePHI transmitted over networks."
+    conditions:
+      logic: AND
+      managed_auto_pass: false
+      rules:
+        - { signal: tls_enforced, op: eq, value: "yes" }
+        - { signal: auth_enabled, op: eq, value: "yes" }
+    evidence: "TLS and authentication protect ePHI transmitted in Kafka messages from interception and unauthorised access."
+    remediation: "Enforce SASL_SSL listener; use mutual TLS for inter-broker and client communications for ePHI topics."
+
+  - framework:
+      slug: ndpr
+      name: "NDPR"
+    control:
+      ref: "Art.2.6"
+      title: "Data Security"
+      severity: HIGH
+      description: "Adequate technical measures shall be employed to safeguard personal data."
+    conditions:
+      logic: AND
+      managed_auto_pass: false
+      rules:
+        - { signal: tls_enforced, op: eq, value: "yes" }
+        - { signal: acls_enabled, op: eq, value: "yes" }
+    evidence: "TLS and ACLs safeguard personal data of Nigerian residents transmitted through Kafka."
+    remediation: "Enable TLS listener; define topic ACLs restricting access to authorised services handling Nigerian PII."

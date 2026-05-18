@@ -1,0 +1,24 @@
+slug: minimal-saas
+name: "Minimal SaaS Stack"
+description: "Lean SaaS setup with managed Postgres and Redis — perfect for getting SOC 2 basics right"
+use_case: "Early-stage SaaS products wanting a compliance baseline fast"
+data_scopes: [pii]
+preview_tech_slugs: [postgresql, redis]
+items:
+  - technology_slug: postgresql
+    deployment_mode: managed
+    config_answers:
+      tls_enforced: "yes"
+      publicly_accessible: "no"
+      backup_enabled: "yes"
+      backup_retention: "7_30d"
+      rbac_enabled: "not_sure"
+      audit_logging: "not_sure"
+  - technology_slug: redis
+    deployment_mode: managed
+    config_answers:
+      auth_enabled: "yes"
+      tls_enabled: "yes"
+      network_isolated: "yes"
+      stores_pii: "not_sure"
+      acl_enabled: "not_sure"
