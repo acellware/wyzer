@@ -1,0 +1,124 @@
+version: "3.9"
+
+services:
+  # ── PostgreSQL ──────────────────────────────────────────────────────────────
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: wyzer
+      POSTGRES_PASSWORD: wyzer_secret
+      POSTGRES_DB: wyzer_dev
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U wyzer -d wyzer_dev"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
+
+  # ── Redis ───────────────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6378:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: 128M
+
+  # ── Mailhog (local SMTP + web UI) ───────────────────────────────────────────
+  mailhog:
+    image: mailhog/mailhog:latest
+    restart: unless-stopped
+    ports:
+      - "1026:1025" # SMTP
+      - "8026:8025" # Web UI
+    logging:
+      driver: "none" # suppress noise in dev
+
+  # ── wyzer-api (NestJS) ──────────────────────────────────────────────────────
+  api:
+    build:
+      context: ./wyzer-api
+      target: development
+    restart: unless-stopped
+    env_file:
+      - ./wyzer-api/.env
+    environment:
+      DATABASE_URL: "postgresql://wyzer:wyzer_secret@db:5432/wyzer_dev"
+      REDIS_URL: "redis://redis:6379"
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./wyzer-api/src:/app/src # hot-reload source
+      - ./wyzer-api/prisma:/app/prisma # schema + migrations
+      - /app/node_modules # do NOT mount host node_modules
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: npm run start:dev
+    healthcheck:
+      test:
+        ["CMD-SHELL", "wget -qO- http://localhost:3001/api/v1/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
+
+  # ── wyzer-web (React/Vite) ──────────────────────────────────────────────────
+  web:
+    build:
+      context: ./wyzer-web
+      target: development
+    restart: unless-stopped
+    environment:
+      VITE_API_URL: "http://localhost:3001/api/v1"
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./wyzer-web/src:/app/src
+      - /app/node_modules
+    depends_on:
+      api:
+        condition: service_healthy
+    profiles:
+      - web # only start with: docker compose --profile web up
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000 || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 256M
+
+volumes:
+  postgres_data:
+  redis_data:

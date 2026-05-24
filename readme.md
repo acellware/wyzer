@@ -113,6 +113,8 @@ npm run dev
 
 ```bash
 docker compose --profile web up --build
+# OR if using custom docker-compose file
+docker compose -f docker-compose.local.yaml --profile web up --build
 ```
 
 Services: db → redis → mailhog → api (waits for healthy) → web.
