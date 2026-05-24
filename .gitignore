@@ -18,4 +18,4 @@ node_modules/
 # ── Build / cache artifacts ───────────────────────────────────────────────────
 .vite/
 dist/
-docker-compose.local.yml
+docker-compose.local.yaml
