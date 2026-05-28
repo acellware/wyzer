@@ -68,16 +68,16 @@ enum ReportStatus {
 
 model User {
  id              String    @id @default(cuid())
- firstName       String
- lastName        String
+ firstName       String?
+ lastName        String?
  email           String    @unique
- passwordHash    String
+ passwordHash    String? // null for passwordless (OTP) users
  emailVerifiedAt DateTime?
 
- /// Job title supplied at registration (the "role" field in RegisterDto).
+ /// Job title / role supplied at signup.
  /// Not to be confused with OrganisationMember.role (access level).
- jobTitle String
- country  String // ISO 3166-1 alpha-2
+ jobTitle String?
+ country  String? // ISO 3166-1 alpha-2
 
  createdAt DateTime @default(now())
  updatedAt DateTime @updatedAt
@@ -109,20 +109,37 @@ model EmailVerification {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// OTP codes — used for passwordless auth
+// ─────────────────────────────────────────────────────────────────────────────
+
+model OtpCode {
+ id        String    @id @default(cuid())
+ email     String
+ /// SHA-256 hash of the 6-digit code. Raw code is NEVER stored.
+ codeHash  String    @unique
+ expiresAt DateTime
+ usedAt    DateTime?
+ createdAt DateTime  @default(now())
+
+ @@index([email])
+ @@map("otp_codes")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Organisations
 // ─────────────────────────────────────────────────────────────────────────────
 
 model Organisation {
- id               String      @id @default(cuid())
+ id               String       @id @default(cuid())
  name             String
  /// URL-safe unique identifier derived from the company name at registration.
- slug             String      @unique
- size             CompanySize
- plan             Plan        @default(FREE)
+ slug             String       @unique
+ size             CompanySize? // optional — not collected in the OTP signup flow
+ plan             Plan         @default(FREE)
  /// Stripe customer ID — set after first Checkout session
  stripeCustomerId String?
- createdAt        DateTime    @default(now())
- updatedAt        DateTime    @updatedAt
+ createdAt        DateTime     @default(now())
+ updatedAt        DateTime     @updatedAt
 
  members   OrganisationMember[]
  invites   OrganisationInvite[]

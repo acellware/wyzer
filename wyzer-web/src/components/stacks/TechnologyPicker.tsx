@@ -7,6 +7,7 @@ import {
  Check,
  BadgeCheck,
 } from 'lucide-react';
+import { useState } from 'react';
 import type { Technology } from '../../api/technologies';
 
 // ── CategoryTabs ──────────────────────────────────────────────────────────────
@@ -62,6 +63,7 @@ export function TechnologyCard({
  selected,
  onToggle,
 }: TechnologyCardProps) {
+ const [imgError, setImgError] = useState(false);
  return (
   <button
    type='button'
@@ -82,10 +84,11 @@ export function TechnologyCard({
    </span>
 
    {/* Logo or initial */}
-   {technology.logoUrl ? (
+   {technology.logoUrl && !imgError ? (
     <img
      src={technology.logoUrl}
      alt={technology.name}
+     onError={() => setImgError(true)}
      className='w-10 h-10 object-contain rounded-lg bg-canvas p-1'
     />
    ) : (

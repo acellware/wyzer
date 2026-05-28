@@ -118,7 +118,7 @@ export function Navbar() {
         'var(--color-accent)')
       }
      >
-      Start free
+      Try for free
      </Link>
      <button
       className='md:hidden h-8 w-8 inline-flex items-center justify-center rounded-md transition-colors'
@@ -169,7 +169,7 @@ export function Navbar() {
        className='h-10 px-4 inline-flex items-center justify-center text-[14px] font-medium rounded-lg text-white'
        style={{ backgroundColor: 'var(--color-accent)' }}
       >
-       Start free
+       Try for free
       </Link>
      </div>
     </div>

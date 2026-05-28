@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { CheckCircle2, Loader2, XCircle } from 'lucide-react';
 import { useAcceptInvite } from '../../../api/invitations';
+import { toApiError } from '../../../api/errors';
 
 /**
  * T-043 — Organisation invite acceptance handler.
@@ -48,11 +49,10 @@ export default function AcceptInvitePage() {
  }
 
  if (isError) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const err = error as any;
-  const status: number | undefined = err?.response?.status;
-  const msg: string =
-   err?.response?.data?.message ??
+  const apiError = toApiError(error);
+  const status = apiError.statusCode;
+  const msg =
+   apiError.message ||
    'This invite may have expired, already been used, or does not match your account.';
 
   if (status === 401) {

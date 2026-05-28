@@ -9,6 +9,7 @@ import {
  ShieldCheck,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { toast } from 'sonner';
 import {
  useOrgMembers,
  usePendingInvites,
@@ -18,6 +19,8 @@ import {
 } from '../../api/invitations';
 import { useCreateBillingPortalSession } from '../../api/billing';
 import { authStore } from '../../store/auth';
+import { confirm } from '../../components/ui/ConfirmDialog';
+import { getErrorMessage } from '../../api/errors';
 
 const ROLE_LABEL: Record<MemberRole, string> = {
  OWNER: 'Owner',
@@ -106,14 +109,20 @@ function MembersSection() {
        </span>
        {canRemove && (
         <button
-         onClick={() => {
-          if (
-           confirm(
-            `Remove ${m.user.firstName} ${m.user.lastName} from the organisation?`,
-           )
-          ) {
-           removeMember.mutate(m.user.id);
-          }
+         onClick={async () => {
+          const fullName = `${m.user.firstName} ${m.user.lastName}`.trim();
+          const ok = await confirm({
+           title: `Remove ${fullName}?`,
+           message: `They'll lose access to this organisation immediately. You can re-invite them later.`,
+           confirmLabel: 'Remove',
+           variant: 'danger',
+          });
+          if (!ok) return;
+          removeMember.mutate(m.user.id, {
+           onSuccess: () => toast.success(`Removed ${fullName}`),
+           onError: (err) =>
+            toast.error(getErrorMessage(err, 'Failed to remove member')),
+          });
          }}
          disabled={removeMember.isPending}
          className='p-1.5 rounded-lg text-ink-dim hover:text-danger hover:bg-danger/10 transition-colors disabled:opacity-50'
@@ -146,9 +155,12 @@ function InviteForm() {
    { email: email.trim(), role },
    {
     onSuccess: () => {
+     toast.success(`Invitation sent to ${email.trim()}`);
      setEmail('');
      setRole('MEMBER');
     },
+    onError: (err) =>
+     toast.error(getErrorMessage(err, 'Failed to send invitation')),
    },
   );
  };

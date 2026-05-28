@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { toast } from 'sonner';
 import {
  RadialBarChart,
  RadialBar,
@@ -27,6 +28,8 @@ import {
  type UnverifiedItem,
  type Severity,
 } from '../../../api/reports';
+import { useFrameworks } from '../../../api/frameworks';
+import { getErrorMessage } from '../../../api/errors';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -165,6 +168,7 @@ function UnverifiedRow({ item }: { item: UnverifiedItem }) {
 export default function ReportPage() {
  const { id } = useParams<{ id: string }>();
  const { data: report, isLoading } = useReport(id!);
+ const { data: frameworks = [] } = useFrameworks();
  const requestPdf = useRequestPdf(id!);
  const createShare = useCreateShareToken(id!);
  const [shareUrl, setShareUrl] = useState<string | null>(null);
@@ -176,7 +180,21 @@ export default function ReportPage() {
    return;
   }
   createShare.mutate(undefined, {
-   onSuccess: (data) => setShareUrl(data.shareUrl),
+   onSuccess: (data) => {
+    setShareUrl(data.shareUrl);
+    copyToClipboard(data.shareUrl);
+    toast.success('Share link copied to clipboard');
+   },
+   onError: (err) =>
+    toast.error(getErrorMessage(err, 'Failed to create share link')),
+  });
+ }
+
+ function handleExportPdf() {
+  requestPdf.mutate(undefined, {
+   onSuccess: () =>
+    toast.success('PDF export started — it will appear here when ready'),
+   onError: (err) => toast.error(getErrorMessage(err, 'Failed to export PDF')),
   });
  }
 
@@ -240,7 +258,7 @@ export default function ReportPage() {
         </a>
        ) : (
         <button
-         onClick={() => requestPdf.mutate()}
+         onClick={handleExportPdf}
          disabled={requestPdf.isPending}
          className='inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-surface border border-line text-ink-secondary hover:text-ink-primary hover:bg-surface-raised disabled:opacity-50 transition-colors'
         >
@@ -329,9 +347,16 @@ export default function ReportPage() {
         <div className='flex flex-wrap gap-10'>
          {(
           Object.entries(report.result.frameworkScores) as [string, number][]
-         ).map(([frameworkId, score]) => (
-          <ScoreRing key={frameworkId} score={score} label={frameworkId} />
-         ))}
+         ).map(([frameworkId, score]) => {
+          const fw = frameworks.find((f) => f.id === frameworkId);
+          return (
+           <ScoreRing
+            key={frameworkId}
+            score={score}
+            label={fw?.name ?? frameworkId}
+           />
+          );
+         })}
         </div>
        )}
       </section>

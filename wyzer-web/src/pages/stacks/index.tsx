@@ -1,7 +1,10 @@
 import { Link } from 'react-router-dom';
 import { Layers, Plus, ChevronRight, Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
 import { useStacks, useDeleteStack } from '../../api/stacks';
 import { Button } from '../../components/ui/Button';
+import { confirm } from '../../components/ui/ConfirmDialog';
+import { getErrorMessage } from '../../api/errors';
 
 export default function StacksPage() {
  const { data: stacks, isLoading } = useStacks();
@@ -66,10 +69,20 @@ export default function StacksPage() {
           {stack.items.length} tech{stack.items.length !== 1 ? 's' : ''}
          </span>
          <button
-          onClick={() => {
-           if (confirm(`Delete "${stack.name}"?`)) {
-            deleteStack.mutate(stack.id);
-           }
+          onClick={async () => {
+           const ok = await confirm({
+            title: `Delete "${stack.name}"?`,
+            message:
+             'This permanently removes the stack and its compliance history. This action cannot be undone.',
+            confirmLabel: 'Delete',
+            variant: 'danger',
+           });
+           if (!ok) return;
+           deleteStack.mutate(stack.id, {
+            onSuccess: () => toast.success(`Deleted "${stack.name}"`),
+            onError: (err) =>
+             toast.error(getErrorMessage(err, 'Failed to delete stack')),
+           });
           }}
           className='opacity-0 group-hover:opacity-100 p-1.5 rounded-lg text-ink-dim hover:text-danger hover:bg-danger-dim transition-all'
           aria-label='Delete stack'

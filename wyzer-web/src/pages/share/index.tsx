@@ -12,6 +12,10 @@ import {
  Loader2,
  HelpCircle,
  ExternalLink,
+ LinkIcon,
+ RefreshCw,
+ Clock,
+ ShieldCheck,
 } from 'lucide-react';
 import {
  useSharedReport,
@@ -19,6 +23,7 @@ import {
  type UnverifiedItem,
  type Severity,
 } from '../../api/reports';
+import { ApiError } from '../../api/errors';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -135,7 +140,14 @@ function UnverifiedRow({ item }: { item: UnverifiedItem }) {
 
 export default function SharedReportPage() {
  const { token = '' } = useParams<{ token: string }>();
- const { data: report, isLoading, isError } = useSharedReport(token);
+ const {
+  data: report,
+  isLoading,
+  isError,
+  error,
+  refetch,
+  isFetching,
+ } = useSharedReport(token);
 
  if (isLoading) {
   return (
@@ -146,17 +158,42 @@ export default function SharedReportPage() {
  }
 
  if (isError || !report) {
+  const apiErr = error instanceof ApiError ? error : null;
+  const isNotFound = apiErr?.statusCode === 404 || apiErr?.statusCode === 410;
+  const isNetwork = apiErr?.isNetworkError ?? false;
+  const isServer =
+   !isNotFound && !isNetwork && (apiErr?.statusCode ?? 0) >= 500;
+
+  let icon = <LinkIcon size={22} style={{ color: 'var(--color-muted)' }} />;
+  let iconTone: IconTone = 'neutral';
+  let title = 'Share link invalid or expired';
+  let body =
+   'The owner may have revoked access or the link is no longer active. Ask them for a fresh link.';
+
+  if (isNetwork) {
+   icon = <RefreshCw size={22} style={{ color: 'var(--color-warn)' }} />;
+   iconTone = 'warn';
+   title = "Can't reach Wyzer";
+   body =
+    'Check your internet connection and try again. If the problem persists, the service may be temporarily unavailable.';
+  } else if (isServer) {
+   icon = <XCircle size={22} style={{ color: 'var(--color-danger)' }} />;
+   iconTone = 'danger';
+   title = 'Something went wrong on our end';
+   body =
+    'We hit an unexpected error loading this report. Please try again in a moment.';
+  }
+
   return (
-   <div className='min-h-screen flex flex-col items-center justify-center gap-4 bg-canvas'>
-    <XCircle size={40} className='text-danger' />
-    <h1 className='text-xl font-semibold text-ink-primary'>
-     Share link invalid or expired
-    </h1>
-    <p className='text-sm text-ink-muted'>This link is no longer active.</p>
-    <Link to='/' className='text-sm text-brand hover:underline'>
-     Learn about Wyzer →
-    </Link>
-   </div>
+   <ShareEmptyState
+    icon={icon}
+    iconTone={iconTone}
+    title={title}
+    body={body}
+    showRetry={isNetwork || isServer}
+    onRetry={() => refetch()}
+    retrying={isFetching}
+   />
   );
  }
 
@@ -164,13 +201,23 @@ export default function SharedReportPage() {
 
  if (!result) {
   return (
-   <div className='min-h-screen flex items-center justify-center bg-canvas'>
-    <p className='text-ink-muted'>This report has not completed yet.</p>
-   </div>
+   <ShareEmptyState
+    icon={<Clock size={22} style={{ color: 'var(--color-accent)' }} />}
+    iconTone='brand'
+    title='Report still processing'
+    body="This report hasn't finished generating yet. Refresh the page in a few moments to see the results."
+    showRetry
+    onRetry={() => refetch()}
+    retrying={isFetching}
+    retryLabel='Refresh'
+   />
   );
  }
 
  const frameworks = Object.entries(result.frameworkScores);
+ const frameworkNameById = new Map(
+  (report.frameworks ?? []).map((f) => [f.id, f.name]),
+ );
 
  return (
   <div className='min-h-screen bg-canvas'>
@@ -211,9 +258,10 @@ export default function SharedReportPage() {
       Framework Scores
      </h2>
      <div className='flex flex-wrap gap-8'>
-      {frameworks.map(([slug, score]) => (
-       <ScoreRing key={slug} score={score} label={slug} />
-      ))}
+      {frameworks.map(([id, score]) => {
+       const label = frameworkNameById.get(id) ?? id;
+       return <ScoreRing key={id} score={score} label={label} />;
+      })}
      </div>
     </section>
 
@@ -361,6 +409,227 @@ export default function SharedReportPage() {
      </Link>
     </div>
    </div>
+  </div>
+ );
+}
+
+// ── Empty / Error State ───────────────────────────────────────────────────────
+
+type IconTone = 'neutral' | 'warn' | 'danger' | 'brand';
+
+function ShareEmptyState({
+ icon,
+ iconTone,
+ title,
+ body,
+ showRetry,
+ onRetry,
+ retrying,
+ retryLabel = 'Try again',
+}: {
+ icon: React.ReactNode;
+ iconTone: IconTone;
+ title: string;
+ body: string;
+ showRetry?: boolean;
+ onRetry?: () => void;
+ retrying?: boolean;
+ retryLabel?: string;
+}) {
+ const toneBg: Record<IconTone, string> = {
+  neutral: 'rgba(120, 113, 108, 0.10)',
+  warn: 'rgba(234, 179, 8, 0.14)',
+  danger: 'rgba(239, 68, 68, 0.10)',
+  brand: 'rgba(84, 104, 255, 0.12)',
+ };
+
+ return (
+  <div
+   style={{
+    minHeight: '100vh',
+    display: 'flex',
+    flexDirection: 'column',
+    backgroundColor: 'var(--color-page)',
+    color: 'var(--color-ink)',
+   }}
+  >
+   {/* Body */}
+   <main
+    style={{
+     flex: 1,
+     display: 'flex',
+     alignItems: 'center',
+     justifyContent: 'center',
+     padding: '3rem 1.5rem',
+    }}
+   >
+    <div style={{ width: '100%', maxWidth: 440 }}>
+     {/* Primary card */}
+     <div
+      style={{
+       backgroundColor: 'var(--color-surface)',
+       border: '1px solid var(--color-border-subtle)',
+       borderRadius: 16,
+       boxShadow: '0 1px 2px rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.04)',
+       padding: '2rem',
+       textAlign: 'center',
+      }}
+     >
+      <div
+       style={{
+        margin: '0 auto 1.25rem',
+        width: 48,
+        height: 48,
+        borderRadius: 999,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: toneBg[iconTone],
+       }}
+      >
+       {icon}
+      </div>
+      <h1
+       style={{
+        fontSize: 18,
+        fontWeight: 600,
+        color: 'var(--color-ink)',
+        margin: '0 0 0.5rem',
+       }}
+      >
+       {title}
+      </h1>
+      <p
+       style={{
+        fontSize: 14,
+        color: 'var(--color-muted)',
+        lineHeight: 1.55,
+        margin: 0,
+       }}
+      >
+       {body}
+      </p>
+
+      {showRetry && onRetry && (
+       <button
+        type='button'
+        onClick={onRetry}
+        disabled={retrying}
+        style={{
+         marginTop: '1.5rem',
+         display: 'inline-flex',
+         alignItems: 'center',
+         gap: 8,
+         padding: '0.5rem 1rem',
+         borderRadius: 8,
+         fontSize: 14,
+         fontWeight: 500,
+         color: 'var(--color-ink)',
+         backgroundColor: 'var(--color-raised)',
+         border: '1px solid var(--color-border-subtle)',
+         cursor: retrying ? 'default' : 'pointer',
+         opacity: retrying ? 0.6 : 1,
+        }}
+       >
+        <RefreshCw
+         size={14}
+         className={retrying ? 'animate-spin' : undefined}
+        />
+        {retrying ? 'Retrying…' : retryLabel}
+       </button>
+      )}
+     </div>
+
+     {/* Pitch card */}
+     <div
+      style={{
+       marginTop: '1.5rem',
+       backgroundColor: 'var(--color-surface)',
+       border: '1px solid var(--color-border-subtle)',
+       borderRadius: 16,
+       padding: '1.5rem',
+      }}
+     >
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+       <div
+        style={{
+         width: 36,
+         height: 36,
+         borderRadius: 8,
+         backgroundColor: toneBg.brand,
+         display: 'flex',
+         alignItems: 'center',
+         justifyContent: 'center',
+         flexShrink: 0,
+        }}
+       >
+        <ShieldCheck size={18} style={{ color: 'var(--color-accent)' }} />
+       </div>
+       <div style={{ minWidth: 0 }}>
+        <h2
+         style={{
+          fontSize: 14,
+          fontWeight: 600,
+          color: 'var(--color-ink)',
+          margin: 0,
+         }}
+        >
+         Generate your own compliance report
+        </h2>
+        <p
+         style={{
+          marginTop: 4,
+          marginBottom: 0,
+          fontSize: 12.5,
+          color: 'var(--color-muted)',
+          lineHeight: 1.55,
+         }}
+        >
+         Wyzer maps your stack against SOC 2, ISO 27001, HIPAA and more — in
+         minutes, not months.
+        </p>
+        <div
+         style={{
+          marginTop: 12,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 12,
+         }}
+        >
+         <Link
+          to='/register'
+          style={{
+           display: 'inline-flex',
+           alignItems: 'center',
+           gap: 6,
+           fontSize: 12.5,
+           fontWeight: 500,
+           color: '#fff',
+           backgroundColor: 'var(--color-accent)',
+           padding: '6px 12px',
+           borderRadius: 6,
+           textDecoration: 'none',
+          }}
+         >
+          Get started free
+         </Link>
+         <Link
+          to='/'
+          style={{
+           fontSize: 12.5,
+           fontWeight: 500,
+           color: 'var(--color-muted)',
+           textDecoration: 'none',
+          }}
+         >
+          Learn more →
+         </Link>
+        </div>
+       </div>
+      </div>
+     </div>
+    </div>
+   </main>
   </div>
  );
 }
