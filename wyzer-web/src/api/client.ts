@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { authStore } from '../store/auth';
+import { toApiError } from './errors';
 
 // Re-export for convenience so callers don't need to import store separately
 export const setAccessToken = authStore.setToken;
@@ -37,36 +38,64 @@ apiClient.interceptors.response.use(
   const status = error.response?.status;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const config = error.config as any;
+  const url: string = config?.url ?? '';
+  const isRefreshCall = url.includes('/auth/refresh');
 
-  if (status === 401 && config && !config._retry) {
+  // Never try to silently refresh the refresh endpoint itself — that would
+  // deadlock the interceptor (it would queue waiting for its own completion).
+  if (status === 401 && config && !config._retry && !isRefreshCall) {
    config._retry = true;
 
-   if (!isRefreshing) {
-    isRefreshing = true;
-    try {
-     const { data } = await apiClient.post<{ accessToken: string }>(
-      '/auth/refresh',
-     );
-     authStore.setToken(data.accessToken);
-     notifySubscribers(data.accessToken);
-    } catch {
-     authStore.clear();
-     window.location.href = '/login';
-     return Promise.reject(error);
-    } finally {
-     isRefreshing = false;
-    }
+   // If a refresh is already in flight, queue this request to retry after
+   if (isRefreshing) {
+    return new Promise((resolve) => {
+     refreshSubscribers.push((token: string) => {
+      config.headers = config.headers ?? {};
+      config.headers.Authorization = `Bearer ${token}`;
+      resolve(apiClient(config));
+     });
+    });
    }
 
-   return new Promise((resolve) => {
-    refreshSubscribers.push((token: string) => {
-     config.headers = config.headers ?? {};
-     config.headers.Authorization = `Bearer ${token}`;
-     resolve(apiClient(config));
-    });
-   });
+   // First 401 — kick off the refresh
+   isRefreshing = true;
+   try {
+    const { data } = await apiClient.post<{ accessToken: string }>(
+     '/auth/refresh',
+    );
+    authStore.setToken(data.accessToken);
+    notifySubscribers(data.accessToken);
+    // Retry the original request with the new token
+    config.headers = config.headers ?? {};
+    config.headers.Authorization = `Bearer ${data.accessToken}`;
+    return apiClient(config);
+   } catch {
+    authStore.clear();
+    // Only force a redirect to /login if the user is currently on a route
+    // that requires auth. Public routes (share links, marketing pages,
+    // legal pages, auth pages) should NOT be yanked to /login on a
+    // background 401.
+    const path = window.location.pathname;
+    const isPublicRoute =
+     path === '/' ||
+     path.startsWith('/share/') ||
+     path.startsWith('/invitations/') ||
+     path.startsWith('/auth/') ||
+     path === '/login' ||
+     path === '/register' ||
+     path === '/privacy' ||
+     path === '/terms' ||
+     path === '/cookies' ||
+     path === '/pricing';
+    if (!isPublicRoute) {
+     window.location.href = '/login';
+    }
+    return Promise.reject(toApiError(error));
+   } finally {
+    isRefreshing = false;
+   }
   }
 
-  return Promise.reject(error);
+  return Promise.reject(toApiError(error));
  },
 );

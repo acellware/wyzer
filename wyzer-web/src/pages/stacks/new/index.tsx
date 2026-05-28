@@ -1,13 +1,22 @@
-import { useState, useMemo, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Plus, Search } from 'lucide-react';
+import { toast } from 'sonner';
 import { useTechnologies } from '../../../api/technologies';
 import {
  useCreateStack,
+ useStacks,
+ useStack,
  type DeploymentMode,
  type StackTemplate,
 } from '../../../api/stacks';
 import { apiClient } from '../../../api/client';
+import {
+ stackFingerprint,
+ fingerprintStackItems,
+} from '../../../helpers/stack-fingerprint';
+import { confirm } from '../../../components/ui/ConfirmDialog';
+import { getErrorMessage } from '../../../api/errors';
 import { Button } from '../../../components/ui/Button';
 import TemplateGallery from '../../../components/stacks/TemplateGallery';
 import DataScopeSelector from '../../../components/stacks/DataScopeSelector';
@@ -30,7 +39,11 @@ const questionCountCache: Record<string, number> = {};
 
 export default function NewStackPage() {
  const navigate = useNavigate();
+ const [searchParams] = useSearchParams();
+ const cloneFromId = searchParams.get('cloneFrom');
  const createStack = useCreateStack();
+ const { data: existingStacks = [] } = useStacks();
+ const { data: cloneSource } = useStack(cloneFromId ?? '');
 
  // ── Multi-step state ────────────────────────────────────────────────────────
  const [step, setStep] = useState<Step>(0);
@@ -68,12 +81,52 @@ export default function NewStackPage() {
   [selected, activeTechId],
  );
 
+ // ── Clone prefill ───────────────────────────────────────────────────────────
+ // If ?cloneFrom=<stackId> is present and loaded, prefill name, scopes, and items
+ // then jump to step 2 (technologies). This is the "edit" UX — edits always
+ // create a new stack so historical reports stay tied to their original config.
+ useEffect(() => {
+  if (!cloneSource) return;
+  setStackName(`${cloneSource.name} (copy)`);
+  setStackDescription(cloneSource.description ?? '');
+  setDataScopes(cloneSource.dataScopes);
+  setSelected(
+   cloneSource.items.map((it) => ({
+    technology: it.technology,
+    deploymentMode: it.deploymentMode,
+    configAnswers: it.configAnswers,
+   })),
+  );
+  setSelectedTemplate(null);
+  setStep(2);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+ }, [cloneSource?.id]);
+
  // ── Template selection (step 0) ─────────────────────────────────────────────
  function handleTemplateSelect(template: StackTemplate | null) {
   setSelectedTemplate(template);
   if (template) {
    setDataScopes(template.dataScopes);
    setStackName(template.name);
+   // Pre-select technologies from the template
+   const preselected: SelectedItem[] = template.templateData.items.flatMap(
+    (item) => {
+     const tech = template.previewTechnologies.find(
+      (t) => t.id === item.technologyId,
+     );
+     if (!tech) return [];
+     return [
+      {
+       technology: tech,
+       deploymentMode: item.deploymentMode,
+       configAnswers: item.configAnswers,
+      },
+     ];
+    },
+   );
+   setSelected(preselected);
+  } else {
+   setSelected([]);
   }
   setStep(1);
  }
@@ -148,6 +201,8 @@ export default function NewStackPage() {
     },
    ]);
    setShowCustomModal(false);
+  } catch (err) {
+   toast.error(getErrorMessage(err, 'Failed to add custom technology'));
   } finally {
    setAddingCustom(false);
   }
@@ -156,6 +211,32 @@ export default function NewStackPage() {
  // ── Final submit ────────────────────────────────────────────────────────────
  async function handleSubmit() {
   if (!stackName.trim() || selected.length === 0) return;
+
+  // Dedupe: if an existing stack has the exact same tech set + config, offer to use it
+  const newFp = stackFingerprint(
+   selected.map((s) => ({
+    technologyId: s.technology.id,
+    deploymentMode: s.deploymentMode,
+    configAnswers: s.configAnswers,
+   })),
+  );
+  const duplicate = existingStacks.find(
+   (s) => s.id !== cloneFromId && fingerprintStackItems(s.items) === newFp,
+  );
+  if (duplicate) {
+   const useExisting = await confirm({
+    title: 'You already have a matching stack',
+    message: `"${duplicate.name}" has the exact same technologies and configuration.\n\nOpen the existing stack instead of creating a duplicate?`,
+    confirmLabel: 'Open existing',
+    cancelLabel: 'Create anyway',
+    variant: 'warn',
+   });
+   if (useExisting) {
+    navigate(`/stacks/${duplicate.id}`);
+    return;
+   }
+  }
+
   setSubmitting(true);
   try {
    const stack = await createStack.mutateAsync({
@@ -174,7 +255,10 @@ export default function NewStackPage() {
     });
    }
 
+   toast.success('Stack created successfully');
    navigate(`/stacks/${stack.id}`);
+  } catch (err) {
+   toast.error(getErrorMessage(err, 'Failed to create stack'));
   } finally {
    setSubmitting(false);
   }

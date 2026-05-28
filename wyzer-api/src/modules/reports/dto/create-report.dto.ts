@@ -1,17 +1,18 @@
-import { IsArray, IsString, ArrayMinSize } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
+import { IsArray, IsString, IsOptional } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateReportDto {
-  @ApiProperty({ description: 'Stack ID to assess' })
-  @IsString()
-  stackId!: string;
+ @ApiProperty({ description: 'Stack ID to assess' })
+ @IsString()
+ stackId!: string;
 
-  @ApiProperty({
-    description: 'Framework IDs to include in the assessment',
-    type: [String],
-  })
-  @IsArray()
-  @ArrayMinSize(1)
-  @IsString({ each: true })
-  frameworkIds!: string[];
+ @ApiPropertyOptional({
+  description:
+   'Framework IDs to assess against. Omit or pass [] to run against all frameworks.',
+  type: [String],
+ })
+ @IsOptional()
+ @IsArray()
+ @IsString({ each: true })
+ frameworkIds?: string[];
 }

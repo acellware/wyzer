@@ -31,6 +31,18 @@
  --color-danger: hsl(358 70% 42%);
  --color-warn: hsl(30 90% 38%);
 
+ /* HSL channel vars — for Tailwind opacity modifier support */
+ --ch-page: 40 30% 96%;
+ --ch-surface: 40 22% 93%;
+ --ch-raised: 38 18% 89%;
+ --ch-ink: 30 22% 10%;
+ --ch-body: 30 14% 18%;
+ --ch-muted: 30 8% 40%;
+ --ch-border: 34 10% 70%;
+ --ch-border-subtle: 36 14% 84%;
+ --ch-accent: 234 62% 50%;
+ --ch-accent-ink: 234 65% 28%;
+
  /* App frame — product mocks are always dark */
  --color-app-page: hsl(222 14% 7%);
  --color-app-surface: hsl(222 13% 10%);
@@ -60,6 +72,18 @@
  --color-accent: hsl(234 80% 65%);
  --color-accent-soft: hsl(234 40% 18%);
  --color-accent-ink: hsl(234 80% 75%);
+
+ /* HSL channel vars — dark mode overrides */
+ --ch-page: 222 14% 7%;
+ --ch-surface: 222 13% 10%;
+ --ch-raised: 222 12% 14%;
+ --ch-ink: 40 22% 96%;
+ --ch-body: 220 14% 84%;
+ --ch-muted: 220 9% 58%;
+ --ch-border: 222 11% 28%;
+ --ch-border-subtle: 222 11% 18%;
+ --ch-accent: 234 80% 65%;
+ --ch-accent-ink: 234 80% 75%;
 }
 
 @layer base {

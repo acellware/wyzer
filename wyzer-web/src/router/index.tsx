@@ -1,4 +1,5 @@
 import { createBrowserRouter } from 'react-router-dom';
+import { DashboardLayout } from '../components/layout/DashboardLayout';
 import HomePage from '@pages/home';
 import LoginPage from '@pages/auth/login';
 import RegisterPage from '@pages/auth/register';
@@ -11,87 +12,46 @@ import CookiesPage from '@pages/cookies';
 import StacksPage from '@pages/stacks';
 import NewStackPage from '@pages/stacks/new';
 import StackDetailPage from '@pages/stacks/detail';
+import ReportsListPage from '@pages/reports';
 import ReportPage from '@pages/reports/detail';
 import SharedReportPage from '@pages/share';
 import AcceptInvitePage from '@pages/invitations/accept';
 import PricingPage from '@pages/pricing';
 import SettingsPage from '@pages/settings';
+import BillingPage from '@pages/billing';
+import TeamsPage from '@pages/teams';
+import ProfilePage from '@pages/profile';
 
 export const router = createBrowserRouter([
+ // ── Public routes ──────────────────────────────────────────────────────────
+ { path: '/', element: <HomePage /> },
+ { path: '/login', element: <LoginPage /> },
+ { path: '/register', element: <RegisterPage /> },
+ { path: '/auth/verify-email', element: <VerifyEmailPage /> },
+ { path: '/auth/verify', element: <VerifyPage /> },
+ { path: '/privacy', element: <PrivacyPage /> },
+ { path: '/terms', element: <TermsPage /> },
+ { path: '/cookies', element: <CookiesPage /> },
+ { path: '/pricing', element: <PricingPage /> },
+ // T-042 — public shareable report (no sidebar)
+ { path: '/share/:token', element: <SharedReportPage /> },
+ // T-043 — accept org invite via email link (no sidebar)
+ { path: '/invitations/accept', element: <AcceptInvitePage /> },
+
+ // ── Authenticated app (sidebar layout) ────────────────────────────────────
  {
-  path: '/',
-  element: <HomePage />,
- },
- {
-  path: '/login',
-  element: <LoginPage />,
- },
- {
-  path: '/register',
-  element: <RegisterPage />,
- },
- // T-018 — post-registration "check your email" page
- {
-  path: '/auth/verify-email',
-  element: <VerifyEmailPage />,
- },
- // T-019 — email verification link handler (called with ?token=)
- {
-  path: '/auth/verify',
-  element: <VerifyPage />,
- },
- {
-  path: '/dashboard',
-  element: <DashboardPage />,
- },
- {
-  path: '/privacy',
-  element: <PrivacyPage />,
- },
- {
-  path: '/terms',
-  element: <TermsPage />,
- },
- {
-  path: '/cookies',
-  element: <CookiesPage />,
- },
- // T-037 — stack builder
- {
-  path: '/stacks',
-  element: <StacksPage />,
- },
- {
-  path: '/stacks/new',
-  element: <NewStackPage />,
- },
- {
-  path: '/stacks/:id',
-  element: <StackDetailPage />,
- },
- // T-038 — compliance report view
- {
-  path: '/reports/:id',
-  element: <ReportPage />,
- },
- // T-042 — public shareable report
- {
-  path: '/share/:token',
-  element: <SharedReportPage />,
- },
- // T-043 — accept org invite via email link
- {
-  path: '/invitations/accept',
-  element: <AcceptInvitePage />,
- },
- // T-055 — pricing page
- {
-  path: '/pricing',
-  element: <PricingPage />,
- },
- // T-056 — org settings
- {
-  path: '/settings',
-  element: <SettingsPage />,
+  element: <DashboardLayout />,
+  children: [
+   { path: '/dashboard', element: <DashboardPage /> },
+   { path: '/stacks', element: <StacksPage /> },
+   { path: '/stacks/new', element: <NewStackPage /> },
+   { path: '/stacks/:id', element: <StackDetailPage /> },
+   { path: '/reports', element: <ReportsListPage /> },
+   { path: '/reports/:id', element: <ReportPage /> },
+   { path: '/settings', element: <SettingsPage /> },
+   { path: '/billing', element: <BillingPage /> },
+   { path: '/teams', element: <TeamsPage /> },
+   { path: '/profile', element: <ProfilePage /> },
+  ],
  },
 ]);

@@ -1,13 +1,15 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, FileText, Plus, Trash2 } from 'lucide-react';
+import { ArrowLeft, ChevronDown, FileText, Plus, Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
+import { useStack, useDeleteStack, type StackItem } from '../../../api/stacks';
 import {
- useStack,
- useDeleteStack,
- useRemoveStackItem,
- type StackItem,
-} from '../../../api/stacks';
+ useTechnologyConfigQuestions,
+ type ConfigQuestion,
+} from '../../../api/technologies';
 import { useCreateReport } from '../../../api/reports';
 import { Button } from '../../../components/ui/Button';
+import { confirm } from '../../../components/ui/ConfirmDialog';
+import { getErrorMessage } from '../../../api/errors';
 import { useState } from 'react';
 
 const DEPLOYMENT_MODE_LABEL: Record<string, string> = {
@@ -16,12 +18,128 @@ const DEPLOYMENT_MODE_LABEL: Record<string, string> = {
  ON_PREM: 'On-Prem',
 };
 
+/** Render a single saved answer in a human-friendly way given its question. */
+function formatAnswer(
+ question: ConfigQuestion,
+ raw: string | undefined,
+): string {
+ if (raw === undefined || raw === '') return '—';
+ if (raw === 'not_sure') return 'Not sure';
+ if (question.inputType === 'TOGGLE') {
+  if (raw === 'true') return 'Yes';
+  if (raw === 'false') return 'No';
+  return raw;
+ }
+ if (question.inputType === 'RADIO') {
+  return question.options?.find((o) => o.value === raw)?.label ?? raw;
+ }
+ if (question.inputType === 'CHIP_MULTI') {
+  const values = raw
+   .split(',')
+   .map((v) => v.trim())
+   .filter(Boolean);
+  const labels = values.map(
+   (v) => question.options?.find((o) => o.value === v)?.label ?? v,
+  );
+  return labels.length ? labels.join(', ') : '—';
+ }
+ return raw;
+}
+
+/** Collapsible row showing a stack item's deployment mode + read-only answers. */
+function StackItemRow({ item }: { item: StackItem }) {
+ const [open, setOpen] = useState(false);
+ const { data: questions = [], isLoading } = useTechnologyConfigQuestions(
+  open ? item.technologyId : '',
+  item.deploymentMode,
+ );
+
+ const answeredKeys = Object.keys(item.configAnswers).filter(
+  (k) => item.configAnswers[k] !== '',
+ );
+ const hasAnswers = answeredKeys.length > 0;
+
+ return (
+  <div className='rounded-xl bg-surface border border-line overflow-hidden'>
+   <button
+    type='button'
+    onClick={() => setOpen((v) => !v)}
+    className='w-full flex items-center justify-between px-4 py-3 text-left hover:bg-surface-raised/40 transition-colors'
+   >
+    <div className='flex items-center gap-3'>
+     <div className='w-7 h-7 rounded-lg bg-surface-raised flex items-center justify-center text-xs font-bold text-ink-secondary uppercase'>
+      {item.technology.name.slice(0, 2)}
+     </div>
+     <div>
+      <p className='text-sm font-medium text-ink-primary'>
+       {item.technology.name}
+      </p>
+      <p className='text-xs text-ink-muted capitalize'>
+       {item.technology.category}
+      </p>
+     </div>
+    </div>
+    <div className='flex items-center gap-3'>
+     <span className='px-2.5 py-1 rounded-lg text-2xs font-medium bg-brand/10 text-brand border border-brand/20'>
+      {DEPLOYMENT_MODE_LABEL[item.deploymentMode] ?? item.deploymentMode}
+     </span>
+     <ChevronDown
+      size={14}
+      className={`text-ink-dim transition-transform ${open ? 'rotate-180' : ''}`}
+     />
+    </div>
+   </button>
+
+   {open && (
+    <div className='px-4 py-3 border-t border-line bg-surface-raised/30'>
+     {isLoading ? (
+      <p className='text-xs text-ink-muted'>Loading configuration…</p>
+     ) : !hasAnswers ? (
+      <p className='text-xs text-ink-muted'>
+       No configuration answers recorded for this item.
+      </p>
+     ) : (
+      <dl className='space-y-2'>
+       {questions
+        .filter((q) => answeredKeys.includes(q.signalKey))
+        .map((q) => (
+         <div
+          key={q.id}
+          className='flex items-start justify-between gap-4 text-xs'
+         >
+          <dt className='text-ink-secondary flex-1'>{q.question}</dt>
+          <dd className='text-ink-primary font-medium text-right max-w-[55%]'>
+           {formatAnswer(q, item.configAnswers[q.signalKey])}
+          </dd>
+         </div>
+        ))}
+       {/* Fallback: keys present in answers but not in questions list */}
+       {answeredKeys
+        .filter((k) => !questions.some((q) => q.signalKey === k))
+        .map((k) => (
+         <div
+          key={k}
+          className='flex items-start justify-between gap-4 text-xs'
+         >
+          <dt className='text-ink-secondary flex-1'>{k}</dt>
+          <dd className='text-ink-primary font-medium text-right max-w-[55%]'>
+           {item.configAnswers[k]}
+          </dd>
+         </div>
+        ))}
+      </dl>
+     )}
+    </div>
+   )}
+  </div>
+ );
+}
+
 export default function StackDetailPage() {
  const { id } = useParams<{ id: string }>();
  const navigate = useNavigate();
  const { data: stack, isLoading } = useStack(id!);
  const deleteStack = useDeleteStack();
- const removeItem = useRemoveStackItem(id!);
  const createReport = useCreateReport();
  const [runningReport, setRunningReport] = useState(false);
 
@@ -78,12 +196,24 @@ export default function StackDetailPage() {
       <Button
        variant='outline'
        size='sm'
-       onClick={() => {
-        if (confirm(`Delete "${stack.name}"?`)) {
-         deleteStack.mutate(stack.id, {
-          onSuccess: () => navigate('/stacks'),
-         });
-        }
+       onClick={async () => {
+        if (!stack) return;
+        const ok = await confirm({
+         title: `Delete "${stack.name}"?`,
+         message:
+          'This permanently removes the stack and its compliance history. This action cannot be undone.',
+         confirmLabel: 'Delete',
+         variant: 'danger',
+        });
+        if (!ok) return;
+        deleteStack.mutate(stack.id, {
+         onSuccess: () => {
+          toast.success(`Deleted "${stack.name}"`);
+          navigate('/stacks');
+         },
+         onError: (err) =>
+          toast.error(getErrorMessage(err, 'Failed to delete stack')),
+        });
        }}
        leftIcon={<Trash2 size={14} />}
       >
@@ -95,7 +225,7 @@ export default function StackDetailPage() {
        loading={runningReport}
        leftIcon={<FileText size={14} />}
       >
-       Run Report
+       Check compliance
       </Button>
      </div>
     </div>
@@ -108,12 +238,12 @@ export default function StackDetailPage() {
       </h2>
       <Button
        as='link'
-       to={`/stacks/${stack.id}/edit`}
+       to={`/stacks/new?cloneFrom=${stack.id}`}
        variant='ghost'
        size='sm'
        leftIcon={<Plus size={14} />}
       >
-       Add
+       Clone & modify
       </Button>
      </div>
 
@@ -124,36 +254,7 @@ export default function StackDetailPage() {
      ) : (
       <div className='space-y-2'>
        {stack.items.map((item: StackItem) => (
-        <div
-         key={item.id}
-         className='group flex items-center justify-between px-4 py-3 rounded-xl bg-surface border border-line'
-        >
-         <div className='flex items-center gap-3'>
-          <div className='w-7 h-7 rounded-lg bg-surface-raised flex items-center justify-center text-xs font-bold text-ink-secondary uppercase'>
-           {item.technology.name.slice(0, 2)}
-          </div>
-          <div>
-           <p className='text-sm font-medium text-ink-primary'>
-            {item.technology.name}
-           </p>
-           <p className='text-xs text-ink-muted capitalize'>
-            {item.technology.category}
-           </p>
-          </div>
-         </div>
-         <div className='flex items-center gap-3'>
-          <span className='px-2.5 py-1 rounded-lg text-2xs font-medium bg-brand/10 text-brand border border-brand/20'>
-           {DEPLOYMENT_MODE_LABEL[item.deploymentMode] ?? item.deploymentMode}
-          </span>
-          <button
-           onClick={() => removeItem.mutate(item.technologyId)}
-           className='opacity-0 group-hover:opacity-100 p-1.5 rounded-lg text-ink-dim hover:text-danger hover:bg-danger-dim transition-all'
-           aria-label='Remove technology'
-          >
-           <Trash2 size={13} />
-          </button>
-         </div>
-        </div>
+        <StackItemRow key={item.id} item={item} />
        ))}
       </div>
      )}

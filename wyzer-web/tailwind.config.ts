@@ -5,31 +5,31 @@ const config: Config = {
  theme: {
   extend: {
    colors: {
-    // Brand
+    // Brand / accent
     brand: {
-     DEFAULT: '#5468FF',
-     dim: '#3D51CC',
-     bright: '#6E7FFF',
+     DEFAULT: 'hsl(var(--ch-accent) / <alpha-value>)',
+     dim: 'hsl(var(--ch-accent-ink) / <alpha-value>)',
+     bright: 'hsl(var(--ch-accent) / <alpha-value>)',
     },
     // Canvas / surfaces
-    canvas: '#050B17',
+    canvas: 'hsl(var(--ch-page) / <alpha-value>)',
     surface: {
-     DEFAULT: '#0C1526',
-     raised: '#111E35',
-     hover: '#15243E',
+     DEFAULT: 'hsl(var(--ch-surface) / <alpha-value>)',
+     raised: 'hsl(var(--ch-raised) / <alpha-value>)',
+     hover: 'hsl(var(--ch-raised) / <alpha-value>)',
     },
     // Borders
     line: {
-     DEFAULT: '#1B2B42',
-     subtle: '#0F1D30',
-     hover: '#243852',
+     DEFAULT: 'hsl(var(--ch-border) / <alpha-value>)',
+     subtle: 'hsl(var(--ch-border-subtle) / <alpha-value>)',
+     hover: 'hsl(var(--ch-border) / <alpha-value>)',
     },
     // Text hierarchy
     ink: {
-     primary: '#E8EEFF',
-     secondary: '#A8BDD4',
-     muted: '#7B92B8',
-     dim: '#4D6A8F',
+     primary: 'hsl(var(--ch-ink) / <alpha-value>)',
+     secondary: 'hsl(var(--ch-body) / <alpha-value>)',
+     muted: 'hsl(var(--ch-muted) / <alpha-value>)',
+     dim: 'hsl(var(--ch-muted) / <alpha-value>)',
     },
     // Semantic
     ok: {

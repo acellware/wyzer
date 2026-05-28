@@ -64,6 +64,13 @@ export interface ShareTokenResponse {
  expiresAt: string;
 }
 
+/** Public, unauthenticated shape returned by `GET /reports/share/:token`.
+ *  Includes an embedded `frameworks` lookup so the share page can render
+ *  human-readable names instead of opaque framework IDs. */
+export interface SharedReport extends Report {
+ frameworks: { id: string; slug: string; name: string }[];
+}
+
 export function useReport(id: string) {
  return useQuery<Report>({
   queryKey: ['reports', id],
@@ -108,10 +115,12 @@ export function useCreateShareToken(reportId: string) {
 }
 
 export function useSharedReport(token: string) {
- return useQuery<Report>({
+ return useQuery<SharedReport>({
   queryKey: ['shared-report', token],
   queryFn: () =>
-   apiClient.get<Report>(`/reports/share/${token}`).then((r) => r.data),
+   apiClient.get<SharedReport>(`/reports/share/${token}`).then((r) => r.data),
   enabled: Boolean(token),
+  retry: false,
+  meta: { silent: true },
  });
 }

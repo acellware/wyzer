@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useVerifyEmail } from '../../../api/auth';
+import { getErrorMessage } from '../../../api/errors';
 
 /**
  * T-019 — email verification handler.
@@ -44,13 +45,14 @@ export default function VerifyPage() {
  }
 
  if (isError) {
-  const msg =
-   (error as { response?: { data?: { message?: string } } })?.response?.data
-    ?.message ?? 'This link may have expired or already been used.';
+  const msg = getErrorMessage(
+   error,
+   'This link may have expired or already been used.',
+  );
   return (
    <StatusScreen
     title='Verification failed'
-    body={Array.isArray(msg) ? msg.join(' ') : msg}
+    body={msg}
     link={{ href: '/auth/verify-email', label: 'Request a new link' }}
    />
   );
