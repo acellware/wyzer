@@ -11,33 +11,39 @@ import { SectionHeader } from '@components/ui/SectionHeader';
 const FEATURES = [
  {
   icon: BarChart3,
-  title: 'Multi-framework scoring',
-  body: 'Map your stack against SOC 2, ISO 27001, GDPR, PCI-DSS, HIPAA, and NDPR simultaneously — not one framework at a time.',
+  title: 'Multi-framework mapping',
+  body:
+   "One run maps to SOC 2, ISO 27001, GDPR, PCI-DSS, HIPAA and NDPR simultaneously. Wyzer pre-computes the overlap between controls so you don't double-work.",
  },
  {
   icon: Zap,
-  title: 'Instant analysis',
-  body: 'From stack description to full scored report in under 3 seconds. No waiting, no forms, no consultants.',
+  title: 'Runs anywhere',
+  body:
+   'One agent, every surface. Drop it in CI, on a laptop, on a server, in a Kubernetes job, or behind a cron. No separate infra to operate.',
  },
  {
   icon: AlertTriangle,
-  title: 'Severity-ranked gaps',
-  body: "Every gap is ranked critical / major / minor based on the control's risk weight. Know exactly what to fix first.",
+  title: 'Continuous drift detection',
+  body:
+   'Every run is diffed against your last clean baseline. The moment a control regresses, your team gets a notification, not an audit-week surprise.',
  },
  {
   icon: FileText,
-  title: 'PDF export',
-  body: 'Generate board-ready, audit-ready compliance reports in one click. Formatted for stakeholders, not engineers.',
+  title: 'Auditor-ready evidence',
+  body:
+   'Every control ships with a timestamped artifact: the config we read, the controls it satisfies, and the run that produced it. Hand your auditor a link, not a spreadsheet.',
  },
  {
   icon: Users,
   title: 'Team workspaces',
-  body: 'Share stacks with your security, engineering, and compliance teams. Track remediation progress across the org.',
+  body:
+   'Share projects with your security, engineering, and compliance teams. Track remediation progress across every environment, every role, and every run.',
  },
  {
   icon: GitBranch,
   title: 'Wyzer Open Spec',
-  body: 'An open YAML specification for compliance mappings — analogous to OpenAPI. Use it, extend it, contribute back.',
+  body:
+   'An open YAML specification for compliance mappings, analogous to OpenAPI. Use it, extend it, and contribute back to the public registry.',
  },
 ];
 
@@ -48,8 +54,8 @@ export function FeaturesSection() {
     <SectionHeader
      index='04'
      kicker='features'
-     title='Everything your team needs.'
-     intro='Built for engineers, designed for compliance teams, readable by boards.'
+     title='Built for engineers. Trusted by auditors.'
+     intro='Continuous, evidence-grade compliance. Readable by boards, defensible at audit time.'
      className='mb-16'
     />
     <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-10'>

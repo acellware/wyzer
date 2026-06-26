@@ -3,6 +3,10 @@ import { useStackTemplates, type StackTemplate } from '../../api/stacks';
 
 interface Props {
  onSelect: (template: StackTemplate | null) => void;
+ /** Optional injected templates (e.g. from the public /check flow). */
+ templates?: StackTemplate[];
+ /** Optional injected loading flag (when data is provided externally). */
+ isLoading?: boolean;
 }
 
 const SCOPE_COLOR: Record<string, string> = {
@@ -12,8 +16,14 @@ const SCOPE_COLOR: Record<string, string> = {
  general: 'bg-surface-raised text-ink-secondary',
 };
 
-export default function TemplateGallery({ onSelect }: Props) {
- const { data: templates = [], isLoading } = useStackTemplates();
+export default function TemplateGallery({
+ onSelect,
+ templates: templatesProp,
+ isLoading: isLoadingProp,
+}: Props) {
+ const hook = useStackTemplates({ enabled: templatesProp === undefined });
+ const templates = templatesProp ?? hook.data ?? [];
+ const isLoading = isLoadingProp ?? hook.isLoading;
 
  return (
   <div>

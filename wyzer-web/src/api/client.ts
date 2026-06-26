@@ -79,6 +79,7 @@ apiClient.interceptors.response.use(
     const isPublicRoute =
      path === '/' ||
      path.startsWith('/share/') ||
+     path.startsWith('/check') ||
      path.startsWith('/invitations/') ||
      path.startsWith('/auth/') ||
      path === '/login' ||

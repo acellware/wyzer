@@ -3,6 +3,10 @@ import { useDataScopes, type DataScope } from '../../api/stacks';
 interface Props {
  selected: string[];
  onChange: (scopes: string[]) => void;
+ /** Optional injected data scopes (e.g. from the public /check flow). */
+ scopes?: DataScope[];
+ /** Optional injected loading flag (when data is provided externally). */
+ isLoading?: boolean;
 }
 
 const SCOPE_STYLES: Record<
@@ -92,8 +96,15 @@ function ScopeChip({
  );
 }
 
-export default function DataScopeSelector({ selected, onChange }: Props) {
- const { data: scopes = [], isLoading } = useDataScopes();
+export default function DataScopeSelector({
+ selected,
+ onChange,
+ scopes: scopesProp,
+ isLoading: isLoadingProp,
+}: Props) {
+ const hook = useDataScopes({ enabled: scopesProp === undefined });
+ const scopes = scopesProp ?? hook.data ?? [];
+ const isLoading = isLoadingProp ?? hook.isLoading;
 
  function toggle(scopeId: string) {
   onChange(

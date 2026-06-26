@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
-import { ScoreCardMockup } from './ScoreCardMockup';
+import { AgentRunMockup } from './AgentRunMockup';
 
 const FRAMEWORKS = ['SOC 2', 'ISO 27001', 'GDPR', 'PCI-DSS', 'HIPAA', 'NDPR'];
 
@@ -17,26 +17,27 @@ export function HeroSection() {
       className='font-mono text-[12px] mb-8'
       style={{ color: 'var(--color-muted)' }}
      >
-      compliance intelligence
+      continuous compliance for engineering teams
      </p>
      <h1
       className='text-display-1 balance mb-6'
       style={{ color: 'var(--color-ink)' }}
      >
-      Your stack. <span style={{ color: 'var(--color-accent)' }}>Scored</span>{' '}
-      against every standard.
+      Your real stack.{' '}
+      <span style={{ color: 'var(--color-accent)' }}>Continuously</span>{' '}
+      audit-ready.
      </h1>
      <p
       className='text-[18px] leading-[1.65] mb-10 max-w-[480px]'
       style={{ color: 'var(--color-body)' }}
      >
-      Describe your infrastructure once. Wyzer maps it to SOC&nbsp;2,
-      ISO&nbsp;27001, GDPR, PCI&#8209;DSS, HIPAA, and NDPR — then shows you
-      exactly what to fix.
+      The Wyzer agent runs in your CI, on a laptop, or as a scheduled job.
+      It inspects your real infrastructure and ships continuous evidence
+      for SOC&nbsp;2, ISO&nbsp;27001, GDPR, PCI&#8209;DSS, HIPAA, and NDPR.
      </p>
      <div className='flex flex-wrap gap-3 mb-12'>
-      <Link
-       to='/register'
+      <a
+       href='#waitlist'
        className='h-12 px-5 inline-flex items-center gap-2 text-[15px] font-medium rounded-[10px] text-white transition-colors'
        style={{ background: 'var(--color-accent)' }}
        onMouseEnter={(e) =>
@@ -48,10 +49,10 @@ export function HeroSection() {
          'var(--color-accent)')
        }
       >
-       Get your free score <ArrowRight size={16} />
-      </Link>
-      <a
-       href='#how'
+       Join the waitlist <ArrowRight size={16} />
+      </a>
+      <Link
+       to='/check'
        className='h-12 px-5 inline-flex items-center text-[15px] rounded-[10px] border transition-colors'
        style={{ color: 'var(--color-ink)', borderColor: 'var(--color-border)' }}
        onMouseEnter={(e) => {
@@ -66,8 +67,8 @@ export function HeroSection() {
          'var(--color-border)';
        }}
       >
-       See how it works
-      </a>
+       Try the free preview
+      </Link>
      </div>
      <p
       className='font-mono text-[11px] mb-2.5'
@@ -92,9 +93,9 @@ export function HeroSection() {
      </div>
     </div>
 
-    {/* Right — Score card */}
+    {/* Right — Agent run */}
     <div>
-     <ScoreCardMockup />
+     <AgentRunMockup />
     </div>
    </div>
   </section>

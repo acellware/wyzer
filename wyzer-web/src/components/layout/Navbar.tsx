@@ -88,7 +88,7 @@ export function Navbar() {
     <div className='flex items-center gap-1.5'>
      <ThemeToggle />
      <Link
-      to='/login'
+      to='/check'
       className='hidden sm:inline-flex items-center h-8 px-3 text-[13px] rounded-md transition-colors'
       style={{ color: 'var(--color-muted)' }}
       onMouseEnter={(e) => {
@@ -103,10 +103,10 @@ export function Navbar() {
         'transparent';
       }}
      >
-      Sign in
+      Free check
      </Link>
-     <Link
-      to='/register'
+     <a
+      href='#waitlist'
       className='h-9 px-4 inline-flex items-center text-[13px] font-medium rounded-[8px] transition-colors text-white'
       style={{ backgroundColor: 'var(--color-accent)' }}
       onMouseEnter={(e) =>
@@ -118,8 +118,8 @@ export function Navbar() {
         'var(--color-accent)')
       }
      >
-      Try for free
-     </Link>
+      Join waitlist
+     </a>
      <button
       className='md:hidden h-8 w-8 inline-flex items-center justify-center rounded-md transition-colors'
       style={{ color: 'var(--color-muted)' }}
@@ -158,19 +158,21 @@ export function Navbar() {
       style={{ borderColor: 'var(--color-border-subtle)' }}
      >
       <Link
-       to='/login'
+       to='/check'
+       onClick={() => setMobileOpen(false)}
        className='text-[14px] py-2'
        style={{ color: 'var(--color-muted)' }}
       >
-       Sign in
+       Free check
       </Link>
-      <Link
-       to='/register'
+      <a
+       href='#waitlist'
+       onClick={() => setMobileOpen(false)}
        className='h-10 px-4 inline-flex items-center justify-center text-[14px] font-medium rounded-lg text-white'
        style={{ backgroundColor: 'var(--color-accent)' }}
       >
-       Try for free
-      </Link>
+       Join waitlist
+      </a>
      </div>
     </div>
    )}

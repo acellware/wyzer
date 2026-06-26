@@ -26,7 +26,7 @@ const GAPS = [
 
 const NAV = [
  { icon: LayoutDashboard, label: 'Dashboard' },
- { icon: Layers, label: 'Stacks', active: true },
+ { icon: Layers, label: 'Projects', active: true },
  { icon: FileText, label: 'Reports' },
  { icon: Settings, label: 'Settings' },
 ];
@@ -110,7 +110,7 @@ export function ScoreCardMockup() {
  }, []);
 
  return (
-  <AppFrame title='wyzer.io/stacks/production'>
+  <AppFrame title='wyzer.io/projects/production'>
    <div className='flex' style={{ minHeight: '360px' }}>
     {/* Sidebar */}
     <div
@@ -187,7 +187,7 @@ export function ScoreCardMockup() {
       style={{ borderBottom: '1px solid var(--color-app-border)' }}
      >
       <span className='text-[11px]' style={{ color: 'var(--color-app-muted)' }}>
-       Stacks
+       Projects
       </span>
       <ChevronRight size={10} style={{ color: 'var(--color-app-muted)' }} />
       <span className='text-[11px]' style={{ color: 'var(--color-app-body)' }}>
@@ -200,28 +200,36 @@ export function ScoreCardMockup() {
         border: '1px solid hsl(145 40% 18%)',
        }}
       >
-       <span className='w-1.5 h-1.5 rounded-full bg-green-500' />
+       <span className='w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse' />
        <span className='font-mono text-[10px]' style={{ color: '#22c55e' }}>
-        scored
+        live
        </span>
       </div>
      </div>
 
      {/* Stack chips */}
-     <div className='px-4 pt-3 pb-2 flex items-center gap-1.5 flex-wrap shrink-0'>
-      {['AWS', 'PostgreSQL', 'Redis', 'Docker', 'Nginx'].map((t) => (
-       <span
-        key={t}
-        className='font-mono text-[10px] px-2 py-0.5 rounded'
-        style={{
-         color: 'var(--color-app-body)',
-         background: 'var(--color-app-raised)',
-         border: '1px solid var(--color-app-border)',
-        }}
-       >
-        {t}
-       </span>
-      ))}
+     <div className='px-4 pt-3 pb-2 flex items-center justify-between gap-2 flex-wrap shrink-0'>
+      <div className='flex items-center gap-1.5 flex-wrap'>
+       {['AWS', 'PostgreSQL', 'Redis', 'Docker', 'Nginx'].map((t) => (
+        <span
+         key={t}
+         className='font-mono text-[10px] px-2 py-0.5 rounded'
+         style={{
+          color: 'var(--color-app-body)',
+          background: 'var(--color-app-raised)',
+          border: '1px solid var(--color-app-border)',
+         }}
+        >
+         {t}
+        </span>
+       ))}
+      </div>
+      <span
+       className='font-mono text-[9px] shrink-0'
+       style={{ color: 'var(--color-app-muted)' }}
+      >
+       auto-synced 12s ago
+      </span>
      </div>
 
      {/* Score grid */}

@@ -5,17 +5,20 @@ const PAINS = [
  {
   icon: DollarSign,
   title: 'Consultants cost $30k–80k',
-  body: "Compliance audits take months and require expensive external consultants who still deliver a stale spreadsheet you can't maintain yourself.",
+  body:
+   "Compliance audits take months and require expensive external consultants. They still deliver a stale spreadsheet you can't maintain yourself.",
  },
  {
   icon: RefreshCw,
-  title: 'Reports go stale overnight',
-  body: 'The moment you ship a new service or rotate a key, your compliance posture changes. Most teams audit once a year and hope for the best.',
+  title: "Evidence is stale the moment it's collected",
+  body:
+   'Audit screenshots capture a single point in time. Deploy a service or rotate a key, and the evidence is instantly out of date.',
  },
  {
   icon: Layers,
   title: 'Six frameworks, six interpretations',
-  body: 'SOC 2, ISO 27001, GDPR — each framework has hundreds of controls. Cross-mapping them manually is a dedicated full-time job.',
+  body:
+   'SOC 2, ISO 27001, GDPR. Each framework has hundreds of controls. Cross-mapping them manually is a dedicated full-time job.',
  },
 ];
 
@@ -27,7 +30,7 @@ export function ProblemSection() {
      index='01'
      kicker='the problem'
      title='Compliance used to take 6 months and $50,000.'
-     intro='The same three problems kill compliance programs at every stage — from seed-stage startup to public company.'
+     intro='The same three problems kill compliance programs at every stage, from seed-stage startup to public company.'
      className='mb-16'
     />
     <div className='grid grid-cols-1 md:grid-cols-3 gap-x-12 gap-y-10'>

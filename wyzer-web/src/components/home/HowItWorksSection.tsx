@@ -5,23 +5,26 @@ const STEPS = [
  {
   num: '01',
   icon: Server,
-  title: 'Describe your stack',
-  body: 'Select the technologies powering your infrastructure — cloud providers, databases, caches, containers, IaC tools, and more. 60+ technologies supported.',
-  detail: '60+ technologies',
+  title: 'Run the agent',
+  body:
+   'One command runs anywhere: your CI pipeline, a developer laptop, or a scheduled job in your cluster. The agent inspects your repos, IaC, container images, and cloud accounts in under a minute.',
+  detail: 'Any environment',
  },
  {
   num: '02',
   icon: BarChart3,
-  title: 'Wyzer scores it',
-  body: 'Our compliance engine maps each technology against every applicable control across all selected frameworks — simultaneously, in under 3 seconds.',
-  detail: 'Results in < 3s',
+  title: 'Wyzer maps and scores',
+  body:
+   "Every signal is cross-referenced against the controls of all six frameworks at once: SOC 2, ISO 27001, GDPR, PCI-DSS, HIPAA, NDPR. Wyzer pre-computes overlaps so you don't double-work.",
+  detail: 'All 6 frameworks',
  },
  {
   num: '03',
   icon: CheckSquare,
-  title: 'Fix the gaps',
-  body: 'Receive a prioritised action plan with remediation steps ranked by severity, impact, and effort. Export board-ready PDFs for your stakeholders.',
-  detail: 'Ranked by severity',
+  title: 'Ship with evidence',
+  body:
+   'The dashboard shows live scores per environment, drift between runs, and a prioritised remediation plan. Export board-ready and auditor-ready reports on demand.',
+  detail: 'Continuous',
  },
 ];
 
@@ -32,8 +35,8 @@ export function HowItWorksSection() {
     <SectionHeader
      index='02'
      kicker='how it works'
-     title='Three steps from stack to score.'
-     intro='No forms to fill in. No consultants to brief. Just select your technologies and get a scored, actionable compliance report.'
+     title='Continuous evidence, generated wherever your code runs.'
+     intro='Drop the Wyzer agent into any environment you trust: CI, a laptop, a server, a Kubernetes job. Every run produces fresh evidence, mapped to every framework you care about.'
      className='mb-16'
     />
     <div className='grid grid-cols-1 md:grid-cols-3 gap-x-12 gap-y-10'>
@@ -65,7 +68,10 @@ export function HowItWorksSection() {
        >
         {body}
        </p>
-       <span className='font-mono text-[11px]' style={{ color: 'var(--color-muted)' }}>
+       <span
+        className='font-mono text-[11px]'
+        style={{ color: 'var(--color-muted)' }}
+       >
         → {detail}
        </span>
       </div>

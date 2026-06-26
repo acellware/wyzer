@@ -21,6 +21,8 @@ import SettingsPage from '@pages/settings';
 import BillingPage from '@pages/billing';
 import TeamsPage from '@pages/teams';
 import ProfilePage from '@pages/profile';
+import CheckPage from '@pages/check';
+import GuestReportResultPage from '@pages/check/result';
 
 export const router = createBrowserRouter([
  // ── Public routes ──────────────────────────────────────────────────────────
@@ -37,6 +39,9 @@ export const router = createBrowserRouter([
  { path: '/share/:token', element: <SharedReportPage /> },
  // T-043 — accept org invite via email link (no sidebar)
  { path: '/invitations/accept', element: <AcceptInvitePage /> },
+ // T-050 — free public stack check (guest flow, no auth)
+ { path: '/check', element: <CheckPage /> },
+ { path: '/check/:token', element: <GuestReportResultPage /> },
 
  // ── Authenticated app (sidebar layout) ────────────────────────────────────
  {

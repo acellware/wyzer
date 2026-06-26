@@ -13,6 +13,10 @@ interface Props {
  onClose: () => void;
  onDeploymentModeChange: (mode: DeploymentMode) => void;
  onAnswerChange: (signal: string, value: string) => void;
+ /** Optional injected questions (e.g. from the public /check flow). */
+ questions?: ConfigQuestion[];
+ /** Optional injected loading flag (when data is provided externally). */
+ isLoading?: boolean;
 }
 
 const DEPLOYMENT_MODES: { value: DeploymentMode; label: string }[] = [
@@ -178,11 +182,14 @@ export default function ConfigPanel({
  onClose,
  onDeploymentModeChange,
  onAnswerChange,
+ questions: questionsProp,
+ isLoading: isLoadingProp,
 }: Props) {
- const { data: questions = [], isLoading } = useTechnologyConfigQuestions(
-  technology.id,
-  deploymentMode,
- );
+ const hook = useTechnologyConfigQuestions(technology.id, deploymentMode, {
+  enabled: questionsProp === undefined,
+ });
+ const questions = questionsProp ?? hook.data ?? [];
+ const isLoading = isLoadingProp ?? hook.isLoading;
 
  const unanswered = questions.filter((q) => !answers[q.signalKey]);
 

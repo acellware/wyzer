@@ -67,6 +67,7 @@ export function useTechnology(slug: string) {
 export function useTechnologyConfigQuestions(
  technologyId: string,
  deploymentMode?: string,
+ opts: { enabled?: boolean } = {},
 ) {
  return useQuery<ConfigQuestion[]>({
   queryKey: ['technologies', technologyId, 'config-questions', deploymentMode],
@@ -76,7 +77,7 @@ export function useTechnologyConfigQuestions(
      params: deploymentMode ? { deploymentMode } : undefined,
     })
     .then((r) => r.data),
-  enabled: Boolean(technologyId),
+  enabled: (opts.enabled ?? true) && Boolean(technologyId),
   staleTime: 10 * 60 * 1000,
  });
 }

@@ -71,8 +71,8 @@ export function Footer() {
       </h2>
      </div>
      <div className='lg:col-span-4 flex flex-wrap gap-3 lg:justify-end'>
-      <Link
-       to='/register'
+      <a
+       href='#waitlist'
        className='h-12 px-5 inline-flex items-center text-[15px] font-medium rounded-[10px] text-white transition-colors'
        style={{ backgroundColor: 'var(--color-accent)' }}
        onMouseEnter={(e) =>
@@ -84,10 +84,10 @@ export function Footer() {
          'var(--color-accent)')
        }
       >
-       Get started free
-      </Link>
+       Join waitlist
+      </a>
       <Link
-       to='/login'
+       to='/check'
        className='h-12 px-5 inline-flex items-center text-[15px] rounded-[10px] border transition-colors'
        style={{ color: 'var(--color-ink)', borderColor: 'var(--color-border)' }}
        onMouseEnter={(e) => {
@@ -103,7 +103,7 @@ export function Footer() {
          'var(--color-border)';
        }}
       >
-       Sign in
+       Free check
       </Link>
      </div>
     </div>

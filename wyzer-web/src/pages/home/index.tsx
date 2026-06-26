@@ -6,7 +6,6 @@ import { HowItWorksSection } from '@components/home/HowItWorksSection';
 import { FrameworksSection } from '@components/home/FrameworksSection';
 import { FeaturesSection } from '@components/home/FeaturesSection';
 import { PricingSection } from '@components/home/PricingSection';
-import { WaitlistSection } from '@components/home/WaitlistSection';
 import { CtaSection } from '@components/home/CtaSection';
 
 export default function HomePage() {
@@ -20,7 +19,6 @@ export default function HomePage() {
     <FrameworksSection />
     <FeaturesSection />
     <PricingSection />
-    <WaitlistSection />
     <CtaSection />
    </main>
    <Footer />
