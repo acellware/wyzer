@@ -13,16 +13,18 @@ cards:
     detail: >-
       NIST CSF 2.0 Detection (DE.CM) and Analysis (RS.AN) rely on retained log
       history to investigate events.
-    source: NIST CSF 2.0 · DE.CM / RS.AN
-    sourceUrl: https://www.nist.gov/cyberframework
+    citations:
+      - label: "NIST CSF 2.0 · DE.CM / RS.AN"
+        url: https://www.nist.gov/cyberframework
   - framework: soc2
     plain: >-
       Enough log history is expected to be retained to support monitoring and to
       investigate security incidents.
     detail: >-
       Supports CC7.2 and CC7.3 (evaluating and responding to security events).
-    source: SOC 2 TSC · CC7.2 / CC7.3
-    sourceUrl: https://www.aicpa-cima.com/topic/audit-assurance/audit-and-assurance-greater-than-soc-2
+    citations:
+      - label: "SOC 2 TSC · CC7.2 / CC7.3"
+        url: https://www.aicpa-cima.com/topic/audit-assurance/audit-and-assurance-greater-than-soc-2
   - framework: iso27001
     plain: >-
       Logs are expected to be kept for an appropriate period and protected from
@@ -30,8 +32,9 @@ cards:
     detail: >-
       Annex A control A.8.15 (logging) in ISO/IEC 27001:2022 covers retention and
       protection of logs.
-    source: ISO/IEC 27001:2022 · A.8.15
-    sourceUrl: https://www.iso.org/standard/27001
+    citations:
+      - label: "ISO/IEC 27001:2022 · A.8.15"
+        url: https://www.iso.org/standard/27001
   - framework: pci-dss
     plain: >-
       Audit log history must be kept for at least 12 months, with the most recent
@@ -39,8 +42,9 @@ cards:
     detail: >-
       PCI DSS v4.0 Requirement 10.5.1 sets the 12-month retention and 3-month
       immediate-availability expectation.
-    source: PCI DSS v4.0 · Requirement 10.5.1
-    sourceUrl: https://www.pcisecuritystandards.org/
+    citations:
+      - label: "PCI DSS v4.0 · Requirement 10.5.1"
+        url: https://www.pcisecuritystandards.org/
 ---
 
 **In practice.** Keep at least a year of logs where regulated data is involved,

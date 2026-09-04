@@ -1,0 +1,133 @@
+---
+import { getCollection } from 'astro:content';
+import Layout from '@/layouts/Layout.astro';
+import Breadcrumbs from '@/components/Breadcrumbs.astro';
+import FrameworkBadge from '@/components/FrameworkBadge.astro';
+import { getFrameworkMap } from '@/lib/content';
+
+export async function getStaticPaths() {
+  const topics = await getCollection('topics');
+  return topics.flatMap((topic) =>
+    topic.data.cards.map((card) => ({
+      params: { slug: topic.slug, framework: card.framework },
+      props: { topic, card, framework: card.framework, topics },
+    })),
+  );
+}
+
+const { topic, card, framework, topics } = Astro.props;
+const fwMap = await getFrameworkMap();
+const fw = fwMap.get(framework);
+if (!fw) {
+  throw new Error(`[content] Detail page references unknown framework "${framework}".`);
+}
+
+const paragraphs = (card.detail ?? '')
+  .split('\n')
+  .map((p) => p.trim())
+  .filter(Boolean);
+
+const citations = card.citations ?? [];
+
+// Other topics that also address this framework, for onward exploration.
+const similar = topics
+  .filter((t) => t.slug !== topic.slug && t.data.cards.some((c) => c.framework === framework))
+  .slice(0, 6)
+  .map((t) => ({ t, card: t.data.cards.find((c) => c.framework === framework)! }));
+
+const title = `${fw.data.shortName}: ${topic.data.name}`;
+const description = card.plain;
+---
+
+<Layout title={title} description={description}>
+  <article class="mx-auto max-w-3xl px-4 py-10">
+    <Breadcrumbs
+      items={[
+        { label: 'Home', href: '/' },
+        { label: 'Topics' },
+        { label: topic.data.name, href: `/topic/${topic.slug}` },
+        { label: fw.data.shortName },
+      ]}
+    />
+
+    <div class="flex items-center gap-3">
+      <FrameworkBadge name={fw.data.shortName} color={fw.data.badgeColor} tier={fw.data.tier} />
+      <span class="font-mono text-2xs uppercase tracking-wide text-ink-dim">on this topic</span>
+    </div>
+
+    <h1 class="mt-3 text-3xl font-semibold tracking-tight text-ink-primary sm:text-4xl">
+      {topic.data.name}
+    </h1>
+    <p class="mt-4 text-lg leading-relaxed text-ink-secondary">{card.plain}</p>
+
+    {paragraphs.length > 0 && (
+      <div class="mt-8 space-y-4 border-t border-line-subtle pt-6 text-[15.5px] leading-relaxed text-ink-secondary">
+        <h2 class="font-mono text-2xs uppercase tracking-wide text-ink-dim">In depth</h2>
+        {paragraphs.map((p) => <p>{p}</p>)}
+      </div>
+    )}
+
+    {citations.length > 0 && (
+      <div class="mt-8 rounded-xl border border-line-subtle bg-surface p-5">
+        <h2 class="font-mono text-2xs uppercase tracking-wide text-ink-dim">
+          {citations.length === 1 ? 'Source' : 'Sources'}
+        </h2>
+        <ul class="mt-3 space-y-2">
+          {citations.map((c) => (
+            <li class="text-sm">
+              {c.url ? (
+                <a
+                  href={c.url}
+                  target="_blank"
+                  rel="noopener"
+                  class="inline-flex items-start gap-1.5 text-ink-secondary hover:text-brand"
+                >
+                  <span class="font-mono text-2xs leading-5 text-brand">↗</span>
+                  <span>{c.label}</span>
+                </a>
+              ) : (
+                <span class="inline-flex items-start gap-1.5 text-ink-secondary">
+                  <span class="font-mono text-2xs leading-5 text-ink-dim">·</span>
+                  <span>{c.label}</span>
+                </span>
+              )}
+            </li>
+          ))}
+        </ul>
+      </div>
+    )}
+
+    <p class="mt-8 rounded-lg border border-line-subtle bg-surface-raised px-4 py-3 text-2xs text-ink-dim">
+      Informational only, not legal advice. Always confirm against the official framework text.
+    </p>
+
+    <div class="mt-6">
+      <a href={`/topic/${topic.slug}`} class="group inline-flex items-center gap-1.5 text-sm font-medium text-brand">
+        <span aria-hidden="true" class="transition-transform group-hover:-translate-x-0.5">←</span>
+        <span class="group-hover:underline">All frameworks for {topic.data.name}</span>
+      </a>
+    </div>
+
+    {similar.length > 0 && (
+      <div class="mt-12 border-t border-line-subtle pt-6">
+        <h2 class="font-mono text-2xs uppercase tracking-wide text-ink-dim">
+          More {fw.data.shortName} topics
+        </h2>
+        <div class="mt-4 grid gap-3 sm:grid-cols-2">
+          {similar.map(({ t, card: sc }) => (
+            <a
+              href={`/topic/${t.slug}/${framework}`}
+              class="group flex flex-col rounded-xl border border-line-subtle bg-surface p-4 transition-colors hover:border-line"
+            >
+              <div class="flex items-start justify-between gap-3">
+                <h3 class="text-sm font-semibold text-ink-primary group-hover:text-brand">{t.data.name}</h3>
+                <span aria-hidden="true" class="text-ink-muted transition-transform group-hover:translate-x-0.5 group-hover:text-brand">→</span>
+              </div>
+              <p class="mt-1.5 line-clamp-3 text-xs leading-relaxed text-ink-muted">{sc.plain}</p>
+            </a>
+          ))}
+        </div>
+      </div>
+    )}
+  </article>
+</Layout>

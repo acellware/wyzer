@@ -37,10 +37,21 @@ const topics = defineCollection({
       .array(
         z.object({
           framework: FRAMEWORK,
+          // Short, plain-language take shown on the Topic Page card.
           plain: z.string(),
+          // In-depth reading shown on the framework detail page.
+          // Separate paragraphs with a blank line.
           detail: z.string().optional(),
-          source: z.string().optional(),
-          sourceUrl: z.string().url().optional(),
+          // One or more citations (control / article references), shown on the
+          // framework detail page.
+          citations: z
+            .array(
+              z.object({
+                label: z.string(),
+                url: z.string().url().optional(),
+              }),
+            )
+            .optional(),
         }),
       )
       .min(1),

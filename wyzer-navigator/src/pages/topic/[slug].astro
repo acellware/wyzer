@@ -65,9 +65,8 @@ const related = topics
           color={card.fw.data.badgeColor}
           tier={card.fw.data.tier}
           plain={card.plain}
-          detail={card.detail}
-          source={card.source}
-          sourceUrl={card.sourceUrl}
+          href={`/topic/${topic.slug}/${card.framework}`}
+          hasMore={Boolean(card.detail || card.citations?.length)}
         />
       ))}
     </div>

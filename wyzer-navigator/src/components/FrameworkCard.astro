@@ -6,36 +6,23 @@ interface Props {
   color: string;
   tier?: string;
   plain: string;
-  detail?: string;
-  source?: string;
-  sourceUrl?: string;
+  href: string;
+  hasMore?: boolean;
 }
-const { name, color, tier, plain, detail, source, sourceUrl } = Astro.props;
+const { name, color, tier, plain, href, hasMore = true } = Astro.props;
 ---
 
-<article class="rounded-xl border border-line bg-surface p-5">
+<article class="flex flex-col rounded-xl border border-line bg-surface p-5">
   <FrameworkBadge name={name} color={color} tier={tier} />
-  <p class="mt-3 text-sm leading-relaxed text-ink-secondary">{plain}</p>
-
-  {detail && (
-    <details class="group mt-3">
-      <summary class="inline-flex cursor-pointer list-none items-center gap-1 text-xs font-medium text-brand hover:underline">
-        Read more
-        <span class="transition-transform group-open:rotate-90" aria-hidden="true">›</span>
-      </summary>
-      <div class="mt-2 border-l-2 border-line-subtle pl-3 text-xs leading-relaxed text-ink-muted">
-        <p>{detail}</p>
-        {source && (
-          <p class="mt-2 font-mono text-2xs text-ink-dim">
-            Source:{' '}
-            {sourceUrl ? (
-              <a href={sourceUrl} target="_blank" rel="noopener" class="underline hover:text-brand">{source}</a>
-            ) : (
-              source
-            )}
-          </p>
-        )}
-      </div>
-    </details>
+  <p class="mt-3 flex-1 text-sm leading-relaxed text-ink-secondary">{plain}</p>
+  {hasMore && (
+    <a
+      href={href}
+      class="group mt-4 inline-flex items-center gap-1 text-xs font-medium text-brand"
+      aria-label={`Read more about ${name} on this topic`}
+    >
+      <span class="group-hover:underline">Read more</span>
+      <span aria-hidden="true" class="transition-transform group-hover:translate-x-0.5">→</span>
+    </a>
   )}
 </article>

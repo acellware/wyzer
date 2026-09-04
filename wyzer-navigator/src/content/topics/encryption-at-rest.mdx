@@ -16,8 +16,9 @@ cards:
       NIST CSF 2.0 Data Security (PR.DS) calls for the confidentiality, integrity,
       and availability of data-at-rest to be protected, encryption being the
       standard technical control.
-    source: NIST CSF 2.0 · PR.DS
-    sourceUrl: https://www.nist.gov/cyberframework
+    citations:
+      - label: "NIST CSF 2.0 · PR.DS"
+        url: https://www.nist.gov/cyberframework
   - framework: soc2
     plain: >-
       Encryption at rest is a common control auditors look for as part of
@@ -27,8 +28,9 @@ cards:
       Relates to CC6.1 (security measures over stored data) and the Confidentiality
       criteria (C1.1 / C1.2) where the entity commits to protecting confidential
       information throughout its lifecycle.
-    source: SOC 2 TSC · CC6.1 / C1
-    sourceUrl: https://www.aicpa-cima.com/topic/audit-assurance/audit-and-assurance-greater-than-soc-2
+    citations:
+      - label: "SOC 2 TSC · CC6.1 / C1"
+        url: https://www.aicpa-cima.com/topic/audit-assurance/audit-and-assurance-greater-than-soc-2
   - framework: iso27001
     plain: >-
       Expects cryptography to be used to protect information based on its
@@ -36,8 +38,9 @@ cards:
     detail: >-
       Annex A control A.8.24 (use of cryptography) in ISO/IEC 27001:2022 covers
       the policy on when and how encryption is applied, including data at rest.
-    source: ISO/IEC 27001:2022 · A.8.24
-    sourceUrl: https://www.iso.org/standard/27001
+    citations:
+      - label: "ISO/IEC 27001:2022 · A.8.24"
+        url: https://www.iso.org/standard/27001
   - framework: gdpr
     plain: >-
       Names encryption explicitly as an example of an appropriate measure for
@@ -45,8 +48,9 @@ cards:
     detail: >-
       Article 32(1)(a) cites encryption of personal data as an example measure for
       ensuring a level of security appropriate to the risk.
-    source: GDPR · Article 32(1)(a)
-    sourceUrl: https://eur-lex.europa.eu/eli/reg/2016/679/oj
+    citations:
+      - label: "GDPR · Article 32(1)(a)"
+        url: https://eur-lex.europa.eu/eli/reg/2016/679/oj
   - framework: hipaa
     plain: >-
       Treats encryption of stored health information as an addressable
@@ -56,8 +60,9 @@ cards:
       The HIPAA Security Rule lists encryption at rest as an addressable
       implementation specification under the technical safeguards
       (45 CFR 164.312(a)(2)(iv)).
-    source: HIPAA Security Rule · 164.312(a)(2)(iv)
-    sourceUrl: https://www.hhs.gov/hipaa/for-professionals/security/index.html
+    citations:
+      - label: "HIPAA Security Rule · 164.312(a)(2)(iv)"
+        url: https://www.hhs.gov/hipaa/for-professionals/security/index.html
   - framework: pci-dss
     plain: >-
       Requires stored cardholder data to be rendered unreadable, with strong
@@ -65,8 +70,9 @@ cards:
     detail: >-
       PCI DSS v4.0 Requirement 3 covers protecting stored account data, including
       making the primary account number unreadable using strong cryptography.
-    source: PCI DSS v4.0 · Requirement 3
-    sourceUrl: https://www.pcisecuritystandards.org/
+    citations:
+      - label: "PCI DSS v4.0 · Requirement 3"
+        url: https://www.pcisecuritystandards.org/
 ---
 
 **In practice.** Most managed storage, database, and disk services offer

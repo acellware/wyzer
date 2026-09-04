@@ -132,6 +132,25 @@
   background-size: 18px 18px;
 }
 
+/* ---- Pagefind search UI theming --------------------------------------- */
+
+:root {
+  --pagefind-ui-primary: var(--color-accent);
+  --pagefind-ui-text: var(--color-ink);
+  --pagefind-ui-background: var(--color-surface);
+  --pagefind-ui-border: var(--color-border-subtle);
+  --pagefind-ui-tag: var(--color-raised);
+  --pagefind-ui-border-width: 1px;
+  --pagefind-ui-border-radius: 10px;
+  --pagefind-ui-font: 'Inter', ui-sans-serif, system-ui, sans-serif;
+}
+.pagefind-ui mark {
+  background: var(--color-accent-soft) !important;
+  color: var(--color-accent-ink) !important;
+  border-radius: 3px;
+  padding: 0 2px;
+}
+
 /* ---- Legal / long-form prose ------------------------------------------- */
 
 .prose-legal {

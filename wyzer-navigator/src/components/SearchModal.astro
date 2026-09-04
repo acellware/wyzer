@@ -1,0 +1,93 @@
+---
+// Global search modal (⌘K). Pagefind UI is lazy-loaded on first open.
+// The index is generated at build time (postbuild), so search works on the
+// built/previewed site rather than in `astro dev`.
+---
+
+<div id="search-modal" class="fixed inset-0 z-[70] hidden" role="dialog" aria-modal="true" aria-label="Search topics">
+  <div class="absolute inset-0" style="background: rgba(20,16,12,0.45)" data-search-close></div>
+  <div
+    class="relative mx-auto mt-[12vh] w-[92%] max-w-[620px] rounded-xl border overflow-hidden"
+    style="background: var(--color-surface); border-color: var(--color-border); box-shadow: 0 24px 60px rgba(0,0,0,0.25)"
+  >
+    <div class="p-3">
+      <div id="search-modal-inner"></div>
+    </div>
+    <div
+      class="flex items-center justify-between px-4 py-2 border-t font-mono text-[11px]"
+      style="border-color: var(--color-border-subtle); color: var(--color-muted)"
+    >
+      <span>search topics</span>
+      <span>esc to close</span>
+    </div>
+  </div>
+</div>
+
+<script>
+  (() => {
+    const modal = document.getElementById('search-modal');
+    if (!modal) return;
+    let loaded = false;
+    let initing = false;
+
+    const loadPagefind = (): Promise<boolean> =>
+      new Promise((resolve) => {
+        if ((window as any).PagefindUI) return resolve(true);
+        const css = document.createElement('link');
+        css.rel = 'stylesheet';
+        css.href = '/pagefind/pagefind-ui.css';
+        document.head.appendChild(css);
+        const s = document.createElement('script');
+        s.src = '/pagefind/pagefind-ui.js';
+        s.onload = () => resolve(true);
+        s.onerror = () => resolve(false);
+        document.head.appendChild(s);
+      });
+
+    const open = async () => {
+      modal.classList.remove('hidden');
+      document.documentElement.style.overflow = 'hidden';
+      if (!loaded && !initing) {
+        initing = true;
+        const ok = await loadPagefind();
+        const inner = document.getElementById('search-modal-inner');
+        if (ok && (window as any).PagefindUI) {
+          new (window as any).PagefindUI({
+            element: '#search-modal-inner',
+            showSubResults: true,
+            showImages: false,
+            pageSize: 6,
+          });
+          loaded = true;
+        } else if (inner) {
+          inner.innerHTML =
+            '<p style="padding:12px;color:var(--color-muted);font-size:14px">Search is available on the built site. Run a production build to generate the index.</p>';
+        }
+        initing = false;
+      }
+      const input = modal.querySelector('input');
+      if (input) setTimeout(() => (input as HTMLInputElement).focus(), 40);
+    };
+
+    const close = () => {
+      modal.classList.add('hidden');
+      document.documentElement.style.overflow = '';
+    };
+
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        open();
+      } else if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+        close();
+      }
+    });
+    document.querySelectorAll('[data-search-trigger]').forEach((el) =>
+      el.addEventListener('click', (e) => {
+        e.preventDefault();
+        open();
+      }),
+    );
+    modal.querySelectorAll('[data-search-close]').forEach((el) => el.addEventListener('click', close));
+  })();
+</script>

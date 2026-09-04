@@ -14,8 +14,9 @@ cards:
     detail: >-
       NIST CSF 2.0 Access Control (PR.AA) and infrastructure resilience (PR.IR)
       cover limiting exposure of systems.
-    source: NIST CSF 2.0 · PR.AA / PR.IR
-    sourceUrl: https://www.nist.gov/cyberframework
+    citations:
+      - label: "NIST CSF 2.0 · PR.AA / PR.IR"
+        url: https://www.nist.gov/cyberframework
   - framework: soc2
     plain: >-
       Systems are expected to be protected from threats originating outside the
@@ -23,8 +24,9 @@ cards:
     detail: >-
       Maps to CC6.6 (protecting against threats from outside the system
       boundary).
-    source: SOC 2 TSC · CC6.6
-    sourceUrl: https://www.aicpa-cima.com/topic/audit-assurance/audit-and-assurance-greater-than-soc-2
+    citations:
+      - label: "SOC 2 TSC · CC6.6"
+        url: https://www.aicpa-cima.com/topic/audit-assurance/audit-and-assurance-greater-than-soc-2
   - framework: iso27001
     plain: >-
       Network access is expected to be controlled and systems securely
@@ -32,8 +34,9 @@ cards:
     detail: >-
       Annex A controls A.8.20 (networks security) and A.8.9 (configuration
       management) in ISO/IEC 27001:2022.
-    source: ISO/IEC 27001:2022 · A.8.20 / A.8.9
-    sourceUrl: https://www.iso.org/standard/27001
+    citations:
+      - label: "ISO/IEC 27001:2022 · A.8.20 / A.8.9"
+        url: https://www.iso.org/standard/27001
   - framework: pci-dss
     plain: >-
       Systems handling cardholder data must sit behind network security controls,
@@ -41,8 +44,9 @@ cards:
     detail: >-
       PCI DSS v4.0 Requirement 1 covers isolating systems behind network security
       controls.
-    source: PCI DSS v4.0 · Requirement 1
-    sourceUrl: https://www.pcisecuritystandards.org/
+    citations:
+      - label: "PCI DSS v4.0 · Requirement 1"
+        url: https://www.pcisecuritystandards.org/
 ---
 
 **In practice.** Avoid public IPs where you can. Put instances behind a load

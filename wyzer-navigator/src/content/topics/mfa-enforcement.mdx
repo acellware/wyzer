@@ -15,8 +15,9 @@ cards:
       NIST CSF 2.0 Identity Management, Authentication and Access Control (PR.AA)
       calls for users, services, and hardware to be authenticated commensurate with
       the risk of the transaction.
-    source: NIST CSF 2.0 · PR.AA
-    sourceUrl: https://www.nist.gov/cyberframework
+    citations:
+      - label: "NIST CSF 2.0 · PR.AA"
+        url: https://www.nist.gov/cyberframework
   - framework: soc2
     plain: >-
       MFA is a common control for protecting access to systems and data,
@@ -24,8 +25,9 @@ cards:
     detail: >-
       Supports the logical access criteria CC6.1 and CC6.6 (protecting against
       threats from outside the system boundary, including strong authentication).
-    source: SOC 2 TSC · CC6.1 / CC6.6
-    sourceUrl: https://www.aicpa-cima.com/topic/audit-assurance/audit-and-assurance-greater-than-soc-2
+    citations:
+      - label: "SOC 2 TSC · CC6.1 / CC6.6"
+        url: https://www.aicpa-cima.com/topic/audit-assurance/audit-and-assurance-greater-than-soc-2
   - framework: iso27001
     plain: >-
       Expects authentication to be strong enough for the sensitivity of what is
@@ -33,8 +35,9 @@ cards:
     detail: >-
       Annex A control A.8.5 (secure authentication) in ISO/IEC 27001:2022 covers
       authentication techniques appropriate to access-control requirements.
-    source: ISO/IEC 27001:2022 · A.8.5
-    sourceUrl: https://www.iso.org/standard/27001
+    citations:
+      - label: "ISO/IEC 27001:2022 · A.8.5"
+        url: https://www.iso.org/standard/27001
   - framework: pci-dss
     plain: >-
       Requires multi-factor authentication for access into the cardholder data
@@ -42,8 +45,9 @@ cards:
     detail: >-
       PCI DSS v4.0 Requirement 8 covers identifying users and authenticating
       access, including MFA for access to the cardholder data environment.
-    source: PCI DSS v4.0 · Requirement 8
-    sourceUrl: https://www.pcisecuritystandards.org/
+    citations:
+      - label: "PCI DSS v4.0 · Requirement 8"
+        url: https://www.pcisecuritystandards.org/
 ---
 
 **In practice.** This usually means enforcing MFA for every administrator and for

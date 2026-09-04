@@ -14,55 +14,96 @@ cards:
       access should be limited to the identities that genuinely need it, and
       anonymous read access to sensitive data is discouraged.
     detail: >-
-      NIST CSF organizes this under Protect, Identity Management, Authentication
-      and Access Control (PR.AA) and Data Security (PR.DS). Access permissions are
-      expected to be managed on a least-privilege basis and data-at-rest protected
-      from unauthorized disclosure.
-    source: NIST CSF 2.0 · PR.AA / PR.DS
-    sourceUrl: https://www.nist.gov/cyberframework
+      NIST's Cybersecurity Framework groups this under Protect. The Identity
+      Management, Authentication and Access Control category expects access
+      permissions to be managed on a least-privilege basis, so a bucket should not
+      be readable by anonymous users on the internet unless that is a deliberate,
+      documented decision.
+
+      The Data Security category reinforces this by expecting data at rest to be
+      protected against unauthorized access and disclosure. For object storage
+      that usually means keeping buckets private by default and sharing individual
+      objects through signed, expiring URLs rather than opening the whole bucket.
+    citations:
+      - label: "NIST CSF 2.0 · PR.AA-05 (access permissions and authorizations)"
+        url: https://www.nist.gov/cyberframework
+      - label: "NIST CSF 2.0 · PR.DS-01 (data-at-rest protection)"
+        url: https://www.nist.gov/cyberframework
   - framework: soc2
     plain: >-
       Logical access to stored data is expected to be restricted to authorized
       users. A bucket open to the public internet is hard to reconcile with that
       expectation unless the data is explicitly intended to be public.
     detail: >-
-      Maps to the Trust Services Criteria common controls for logical access , 
-      notably CC6.1 (logical access security measures) and CC6.3 (access is
-      granted based on roles and least privilege).
-    source: SOC 2 TSC · CC6.1 / CC6.3
-    sourceUrl: https://www.aicpa-cima.com/topic/audit-assurance/audit-and-assurance-greater-than-soc-2
+      The Trust Services Criteria treat this as a logical-access question. CC6.1
+      expects logical access controls over protected information assets, and a
+      storage bucket that anyone can read is difficult to reconcile with that
+      unless the data is explicitly public.
+
+      CC6.3 adds that access should be granted, modified, and removed based on
+      roles and least privilege. An auditor will typically look for evidence that
+      public access is blocked by default and only enabled through a reviewed
+      exception.
+    citations:
+      - label: "SOC 2 TSC · CC6.1 (logical access security measures)"
+        url: https://www.aicpa-cima.com/topic/audit-assurance/audit-and-assurance-greater-than-soc-2
+      - label: "SOC 2 TSC · CC6.3 (role-based, least-privilege access)"
+        url: https://www.aicpa-cima.com/topic/audit-assurance/audit-and-assurance-greater-than-soc-2
   - framework: iso27001
     plain: >-
       Expects access to information to be controlled by policy. Publicly readable
       storage of sensitive information runs against access-control and
       secure-configuration expectations.
     detail: >-
-      Annex A controls A.5.15 (access control) and A.8.9 (configuration
-      management) are the relevant references in ISO/IEC 27001:2022.
-    source: ISO/IEC 27001:2022 · A.5.15 / A.8.9
-    sourceUrl: https://www.iso.org/standard/27001
+      ISO/IEC 27001:2022 addresses this through its Annex A controls. A.5.15
+      (access control) expects rules for who may access information to be
+      established and enforced based on business and security requirements.
+
+      A.8.9 (configuration management) is also relevant, because leaving a bucket
+      public is usually a configuration state that should be defined, reviewed,
+      and monitored rather than left to chance.
+    citations:
+      - label: "ISO/IEC 27001:2022 · A.5.15 (access control)"
+        url: https://www.iso.org/standard/27001
+      - label: "ISO/IEC 27001:2022 · A.8.9 (configuration management)"
+        url: https://www.iso.org/standard/27001
   - framework: gdpr
     plain: >-
       If the bucket holds personal data, exposing it publicly is a security-of-
       processing concern. Personal data is expected to be protected against
       unauthorized access using appropriate technical measures.
     detail: >-
-      Article 32 requires security of processing appropriate to the risk. Openly
-      readable personal data would generally be considered a failure of those
-      measures and could constitute a personal-data breach under Articles 33–34.
-    source: GDPR · Article 32
-    sourceUrl: https://eur-lex.europa.eu/eli/reg/2016/679/oj
+      If the bucket holds personal data, GDPR Article 32 requires security
+      appropriate to the risk, and openly readable personal data would generally
+      be treated as a failure of those measures.
+
+      If exposed data is actually accessed by unauthorized parties, Articles 33
+      and 34 can also apply, since that may be a personal-data breach requiring
+      notification to the regulator and, in higher-risk cases, to the people
+      affected.
+    citations:
+      - label: "GDPR · Article 32 (security of processing)"
+        url: https://eur-lex.europa.eu/eli/reg/2016/679/oj
+      - label: "GDPR · Articles 33-34 (breach notification)"
+        url: https://eur-lex.europa.eu/eli/reg/2016/679/oj
   - framework: pci-dss
     plain: >-
       Storage holding cardholder data must not be openly reachable. Access is
       expected to be restricted by business need-to-know and systems shielded from
       untrusted networks.
     detail: >-
-      PCI DSS v4.0 Requirement 7 covers restricting access by business need to
-      know, and Requirement 1 covers network security controls that keep systems
-      holding cardholder data off untrusted, public paths.
-    source: PCI DSS v4.0 · Req. 1 & 7
-    sourceUrl: https://www.pcisecuritystandards.org/
+      For environments handling payment-card data, PCI DSS v4.0 Requirement 1
+      covers network security controls that keep systems holding cardholder data
+      off untrusted, public paths.
+
+      Requirement 7 adds that access to cardholder data should be restricted by
+      business need to know, defaulting to deny. A publicly readable store of
+      cardholder data would run against both.
+    citations:
+      - label: "PCI DSS v4.0 · Requirement 1 (network security controls)"
+        url: https://www.pcisecuritystandards.org/
+      - label: "PCI DSS v4.0 · Requirement 7 (need-to-know access)"
+        url: https://www.pcisecuritystandards.org/
 ---
 
 **In practice.** Public access is usually a per-bucket or per-object setting that
