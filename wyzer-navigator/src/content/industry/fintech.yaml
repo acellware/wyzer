@@ -2,10 +2,26 @@ industryName: Fintech
 blurb: Payments, banking, and financial services.
 order: 1
 functions:
+  - slug: card-payments
+    name: Card Payments
+    blurb: Handling and storing payment-card data.
+    topics:
+      - slug: card-data-retention
+        name: Card Data Retention
+        topic: card-data-retention
+      - slug: cardholder-data-encryption
+        name: Cardholder Data Encryption
+        topic: cardholder-data-encryption
+      - slug: payment-audit-logging
+        name: Payment Audit Logging
+        topic: audit-logging
   - slug: data-storage
     name: Data Storage
     blurb: How customer and financial data is stored.
     topics:
+      - slug: storing-customer-pii
+        name: Storing Customer PII
+        topic: pii-storage
       - slug: public-storage-exposure
         name: Public Storage Exposure
         topic: object-storage-public-access
@@ -22,3 +38,10 @@ functions:
       - slug: least-privilege-access
         name: Least-Privilege Access
         topic: iam-least-privilege
+  - slug: onboarding-kyc
+    name: Onboarding & KYC
+    blurb: Identity verification during onboarding.
+    topics:
+      - slug: kyc-data-retention
+        name: KYC Data Retention
+        topic: kyc-data-retention

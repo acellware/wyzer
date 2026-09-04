@@ -8,10 +8,11 @@ import Button from '@/components/Button.astro';
     <p class="font-mono text-2xs uppercase tracking-[0.2em] text-brand">404</p>
     <h1 class="mt-4 text-3xl font-semibold tracking-tight text-ink-primary">We couldn't find that page.</h1>
     <p class="mx-auto mt-3 max-w-md text-ink-muted">
-      The topic may have moved. Try starting from one of the two entry points.
+      The topic may have moved. Search for it, or start from one of the two entry points.
     </p>
     <div class="mt-8 flex flex-wrap justify-center gap-3">
-      <Button href="/cloud">Browse by Cloud</Button>
+      <Button href="/search">Search topics</Button>
+      <Button href="/cloud" variant="outline">Browse by Cloud</Button>
       <Button href="/industry" variant="outline">Browse by Industry</Button>
     </div>
   </section>

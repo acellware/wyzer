@@ -18,6 +18,26 @@ categories:
             name: Encryption at Rest
             topic: encryption-at-rest
             providerNote: Google-managed keys by default, or CMEK.
+          - slug: backup-retention
+            name: Backup & Retention
+            topic: backup-and-retention
+            providerNote: Object versioning and retention policy.
+  - slug: compute
+    name: Compute
+    blurb: Virtual machines and disks.
+    resources:
+      - slug: compute-engine
+        name: Compute Engine
+        blurb: Virtual machines.
+        configurations:
+          - slug: public-exposure
+            name: Public Exposure
+            topic: compute-public-exposure
+            providerNote: External IP plus firewall rules.
+          - slug: disk-encryption
+            name: Disk Encryption
+            topic: encryption-at-rest
+            providerNote: CMEK on persistent disks.
   - slug: database
     name: Database
     blurb: Managed databases.
@@ -26,10 +46,34 @@ categories:
         name: Cloud SQL
         blurb: Managed relational databases.
         configurations:
+          - slug: public-ip
+            name: Public IP
+            topic: database-public-access
+            providerNote: Public IP plus authorized networks.
+          - slug: encryption-at-rest
+            name: Encryption at Rest
+            topic: encryption-at-rest
+            providerNote: Google-managed keys or CMEK.
           - slug: tls-in-transit
             name: TLS in Transit
             topic: data-in-transit-encryption
             providerNote: Require SSL/TLS for connections.
+          - slug: backups-retention
+            name: Backups & Retention
+            topic: backup-and-retention
+            providerNote: Automated backups and point-in-time recovery.
+  - slug: networking
+    name: Networking
+    blurb: Network access rules.
+    resources:
+      - slug: vpc-firewall
+        name: VPC Firewall
+        blurb: Inbound and outbound rules.
+        configurations:
+          - slug: open-ingress
+            name: Open Ingress
+            topic: network-open-ingress
+            providerNote: Rules allowing 0.0.0.0/0 inbound.
   - slug: identity
     name: Identity & Access
     blurb: Cloud IAM.
@@ -42,3 +86,35 @@ categories:
             name: Least Privilege
             topic: iam-least-privilege
             providerNote: Bind narrow predefined or custom roles.
+          - slug: mfa
+            name: MFA / 2-Step
+            topic: mfa-enforcement
+            providerNote: Enforce organization 2-Step Verification.
+  - slug: logging
+    name: Logging & Monitoring
+    blurb: Recording and retaining activity.
+    resources:
+      - slug: cloud-logging
+        name: Cloud Logging
+        blurb: Platform and data-access logs.
+        configurations:
+          - slug: audit-logging
+            name: Audit Logging
+            topic: audit-logging
+            providerNote: Enable Data Access audit logs.
+          - slug: log-retention
+            name: Log Retention
+            topic: log-retention
+            providerNote: Log bucket retention settings.
+  - slug: secrets
+    name: Secrets
+    blurb: Storing credentials and keys.
+    resources:
+      - slug: secret-manager
+        name: Secret Manager
+        blurb: Managed secret storage.
+        configurations:
+          - slug: centralized-secrets
+            name: Centralized Secrets
+            topic: secrets-management
+            providerNote: Managed secrets with versioning.

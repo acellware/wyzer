@@ -9,11 +9,11 @@ export async function getStaticPaths() {
   const topics = await getCollection('topics');
   return topics.map((topic) => ({
     params: { slug: topic.slug },
-    props: { topic },
+    props: { topic, topics },
   }));
 }
 
-const { topic } = Astro.props;
+const { topic, topics } = Astro.props;
 const fwMap = await getFrameworkMap();
 const { Content } = await topic.render();
 
@@ -27,10 +27,20 @@ const cards = topic.data.cards.map((card) => {
 
 const kindLabel =
   topic.data.type === 'industry-only' ? 'Industry topic' : 'Resource topic';
+
+// Related topics: those sharing the most frameworks with this one.
+const currentFws = new Set(topic.data.cards.map((c) => c.framework));
+const related = topics
+  .filter((t) => t.slug !== topic.slug)
+  .map((t) => ({ t, shared: t.data.cards.filter((c) => currentFws.has(c.framework)).length }))
+  .filter((x) => x.shared > 0)
+  .sort((a, b) => b.shared - a.shared || a.t.data.name.localeCompare(b.t.data.name))
+  .slice(0, 4)
+  .map((x) => x.t);
 ---
 
 <Layout title={topic.data.name} description={topic.data.summary}>
-  <article class="mx-auto max-w-3xl px-4 py-10">
+  <article class="mx-auto max-w-3xl px-4 py-10" data-pagefind-body>
     <Breadcrumbs
       items={[
         { label: 'Home', href: '/' },
@@ -40,7 +50,7 @@ const kindLabel =
     />
 
     <p class="font-mono text-2xs uppercase tracking-wide text-ink-dim">{kindLabel}</p>
-    <h1 class="mt-2 text-3xl font-semibold tracking-tight text-ink-primary sm:text-4xl">
+    <h1 class="mt-2 text-3xl font-semibold tracking-tight text-ink-primary sm:text-4xl" data-pagefind-meta="title">
       {topic.data.name}
     </h1>
     <p class="mt-4 text-lg leading-relaxed text-ink-secondary">{topic.data.summary}</p>
@@ -69,5 +79,22 @@ const kindLabel =
     <p class="mt-10 rounded-lg border border-line-subtle bg-surface-raised px-4 py-3 text-2xs text-ink-dim">
       Informational only, not legal advice. Always confirm against the official framework text.
     </p>
+
+    {related.length > 0 && (
+      <div class="mt-12 border-t border-line-subtle pt-6" data-pagefind-ignore>
+        <h2 class="font-mono text-2xs uppercase tracking-wide text-ink-dim">Related topics</h2>
+        <div class="mt-4 grid gap-2 sm:grid-cols-2">
+          {related.map((r) => (
+            <a
+              href={`/topic/${r.slug}`}
+              class="group flex items-center justify-between gap-3 rounded-lg border border-line-subtle bg-surface px-4 py-3 transition-colors hover:border-line"
+            >
+              <span class="text-sm font-medium text-ink-primary group-hover:text-brand">{r.data.name}</span>
+              <span class="text-ink-muted transition-transform group-hover:translate-x-0.5 group-hover:text-brand">→</span>
+            </a>
+          ))}
+        </div>
+      </div>
+    )}
   </article>
 </Layout>

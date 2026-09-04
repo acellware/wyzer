@@ -2,6 +2,26 @@ industryName: Healthcare
 blurb: Providers, payers, and health technology.
 order: 2
 functions:
+  - slug: patient-records
+    name: Patient Records
+    blurb: Protecting and controlling access to health data.
+    topics:
+      - slug: phi-encryption
+        name: PHI Encryption
+        topic: phi-encryption
+      - slug: access-to-patient-records
+        name: Access to Patient Records
+        topic: phi-access-control
+      - slug: access-audit-logging
+        name: Access Audit Logging
+        topic: audit-logging
+  - slug: data-retention
+    name: Data Retention
+    blurb: How long health records are kept.
+    topics:
+      - slug: medical-record-retention
+        name: Medical Record Retention
+        topic: medical-record-retention
   - slug: data-sharing
     name: Data Sharing
     blurb: How patient data moves between systems.
@@ -9,13 +29,13 @@ functions:
       - slug: transmitting-phi
         name: Transmitting PHI
         topic: data-in-transit-encryption
-  - slug: access-control
-    name: Access Control
-    blurb: Who can reach patient records.
+  - slug: electronic-records
+    name: Electronic Records (FDA)
+    blurb: Trustworthy electronic records and signatures.
     topics:
-      - slug: least-privilege-access
-        name: Least-Privilege Access
-        topic: iam-least-privilege
-      - slug: mfa
-        name: Multi-Factor Authentication
-        topic: mfa-enforcement
+      - slug: electronic-records-integrity
+        name: Electronic Records Integrity
+        topic: electronic-records-integrity
+      - slug: electronic-signatures
+        name: Electronic Signatures
+        topic: electronic-signatures

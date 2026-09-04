@@ -1,0 +1,50 @@
+---
+name: Storing Personal Data (PII)
+type: resource-linked
+summary: >-
+  Storing personal data about customers or users. Frameworks expect personal data
+  to be collected minimally, kept only as long as needed, and protected
+  throughout.
+updated: 2026-09-04
+cards:
+  - framework: nist
+    plain: >-
+      Data is expected to be protected across its lifecycle, matching safeguards
+      to how sensitive it is.
+    detail: >-
+      NIST CSF 2.0 Data Security (PR.DS) covers protecting the confidentiality and
+      integrity of stored data.
+    source: NIST CSF 2.0 · PR.DS
+    sourceUrl: https://www.nist.gov/cyberframework
+  - framework: soc2
+    plain: >-
+      Personal and confidential information you commit to protect is expected to
+      be safeguarded through its lifecycle.
+    detail: >-
+      Relates to CC6.1 and the Privacy criteria covering collection, retention,
+      and disposal of personal information.
+    source: SOC 2 TSC · CC6.1 / Privacy
+    sourceUrl: https://www.aicpa-cima.com/topic/audit-assurance/audit-and-assurance-greater-than-soc-2
+  - framework: iso27001
+    plain: >-
+      Information, including personal data, is expected to be protected and its
+      leakage prevented.
+    detail: >-
+      Annex A controls A.5.34 (privacy and protection of PII) and A.8.12 (data
+      leakage prevention) in ISO/IEC 27001:2022.
+    source: ISO/IEC 27001:2022 · A.5.34 / A.8.12
+    sourceUrl: https://www.iso.org/standard/27001
+  - framework: gdpr
+    plain: >-
+      Collect only the personal data you need, keep it only as long as necessary,
+      and protect it with appropriate measures.
+    detail: >-
+      GDPR Article 5 (data minimization and storage limitation) and Article 32
+      (security of processing).
+    source: GDPR · Article 5 / Article 32
+    sourceUrl: https://eur-lex.europa.eu/eli/reg/2016/679/oj
+---
+
+**In practice.** Minimize what you store, set retention limits and delete data
+past them, restrict who can access it, and encrypt personal data at rest and in
+transit.

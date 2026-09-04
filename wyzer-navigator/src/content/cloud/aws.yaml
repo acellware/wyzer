@@ -18,6 +18,58 @@ categories:
             name: Encryption at Rest
             topic: encryption-at-rest
             providerNote: SSE-S3 or SSE-KMS bucket encryption.
+          - slug: backup-versioning
+            name: Backup & Versioning
+            topic: backup-and-retention
+            providerNote: Object versioning plus lifecycle rules.
+          - slug: access-logging
+            name: Access Logging
+            topic: audit-logging
+            providerNote: S3 server access logs or CloudTrail data events.
+      - slug: ebs
+        name: EBS
+        blurb: Block storage volumes.
+        configurations:
+          - slug: encryption-at-rest
+            name: Encryption at Rest
+            topic: encryption-at-rest
+            providerNote: KMS-based EBS volume encryption.
+          - slug: snapshots-backup
+            name: Snapshots & Backup
+            topic: backup-and-retention
+            providerNote: Scheduled EBS snapshots.
+  - slug: compute
+    name: Compute
+    blurb: Servers and serverless functions.
+    resources:
+      - slug: ec2
+        name: EC2
+        blurb: Virtual machines.
+        configurations:
+          - slug: public-exposure
+            name: Public Exposure
+            topic: compute-public-exposure
+            providerNote: Public IP plus open security-group rules.
+          - slug: patch-management
+            name: Patch Management
+            topic: patch-management
+            providerNote: SSM Patch Manager or AMI refresh.
+          - slug: disk-encryption
+            name: Disk Encryption
+            topic: encryption-at-rest
+            providerNote: Encrypted EBS-backed root volume.
+      - slug: lambda
+        name: Lambda
+        blurb: Serverless functions.
+        configurations:
+          - slug: least-privilege-role
+            name: Least-Privilege Role
+            topic: iam-least-privilege
+            providerNote: Scope the function execution role tightly.
+          - slug: secrets-in-env
+            name: Secrets in Env
+            topic: secrets-management
+            providerNote: Use Secrets Manager instead of plain env vars.
   - slug: database
     name: Database
     blurb: Managed relational and NoSQL databases.
@@ -26,14 +78,50 @@ categories:
         name: RDS
         blurb: Managed relational databases.
         configurations:
+          - slug: public-accessibility
+            name: Public Accessibility
+            topic: database-public-access
+            providerNote: The "Publicly accessible" instance flag.
           - slug: encryption-at-rest
             name: Encryption at Rest
             topic: encryption-at-rest
-            providerNote: KMS-based storage encryption, set at creation.
+            providerNote: KMS storage encryption, set at creation.
           - slug: tls-in-transit
             name: TLS in Transit
             topic: data-in-transit-encryption
             providerNote: Enforce with the rds.force_ssl parameter.
+          - slug: backups-retention
+            name: Backups & Retention
+            topic: backup-and-retention
+            providerNote: Automated backups and retention window.
+      - slug: dynamodb
+        name: DynamoDB
+        blurb: Managed NoSQL database.
+        configurations:
+          - slug: encryption-at-rest
+            name: Encryption at Rest
+            topic: encryption-at-rest
+            providerNote: Encryption on by default (KMS).
+  - slug: networking
+    name: Networking
+    blurb: Network access and delivery.
+    resources:
+      - slug: security-groups
+        name: VPC & Security Groups
+        blurb: Network access rules.
+        configurations:
+          - slug: open-ingress
+            name: Open Ingress
+            topic: network-open-ingress
+            providerNote: Rules allowing 0.0.0.0/0 inbound.
+      - slug: cloudfront-elb
+        name: CloudFront / ELB
+        blurb: Content delivery and load balancing.
+        configurations:
+          - slug: tls-enforcement
+            name: HTTPS / TLS Enforcement
+            topic: data-in-transit-encryption
+            providerNote: Redirect-to-HTTPS and a modern TLS policy.
   - slug: identity
     name: Identity & Access
     blurb: Who can do what across the account.
@@ -50,3 +138,35 @@ categories:
             name: MFA for Privileged Users
             topic: mfa-enforcement
             providerNote: Enforce MFA on the root user and IAM administrators.
+          - slug: access-key-rotation
+            name: Access Key Rotation
+            topic: credential-rotation
+            providerNote: Rotate or retire long-lived access keys.
+  - slug: logging
+    name: Logging & Monitoring
+    blurb: Recording and retaining activity.
+    resources:
+      - slug: cloudtrail
+        name: CloudTrail
+        blurb: Account activity logging.
+        configurations:
+          - slug: audit-logging
+            name: Audit Logging Enabled
+            topic: audit-logging
+            providerNote: A multi-region trail across the account.
+          - slug: log-retention
+            name: Log Retention
+            topic: log-retention
+            providerNote: CloudWatch Logs retention settings.
+  - slug: secrets
+    name: Secrets
+    blurb: Storing credentials and keys.
+    resources:
+      - slug: secrets-manager
+        name: Secrets Manager
+        blurb: Managed secret storage.
+        configurations:
+          - slug: centralized-secrets
+            name: Centralized Secrets
+            topic: secrets-management
+            providerNote: Managed storage with rotation.

@@ -1,0 +1,49 @@
+---
+name: Patch Management
+type: resource-linked
+summary: >-
+  Whether systems are kept up to date with security patches. Frameworks expect
+  known vulnerabilities to be identified and fixed in a timely way.
+updated: 2026-09-04
+cards:
+  - framework: nist
+    plain: >-
+      Vulnerabilities are expected to be identified and platforms kept current so
+      known weaknesses are not left exposed.
+    detail: >-
+      NIST CSF 2.0 Risk Assessment (ID.RA) and Platform Security (PR.PS) cover
+      identifying and remediating vulnerabilities.
+    source: NIST CSF 2.0 · ID.RA / PR.PS
+    sourceUrl: https://www.nist.gov/cyberframework
+  - framework: soc2
+    plain: >-
+      Vulnerabilities are expected to be identified and remediated, and changes
+      managed, to keep systems secure.
+    detail: >-
+      Maps to CC7.1 (identifying vulnerabilities) and CC8.1 (managing changes,
+      including patches).
+    source: SOC 2 TSC · CC7.1 / CC8.1
+    sourceUrl: https://www.aicpa-cima.com/topic/audit-assurance/audit-and-assurance-greater-than-soc-2
+  - framework: iso27001
+    plain: >-
+      Technical vulnerabilities are expected to be identified and addressed in a
+      timely manner.
+    detail: >-
+      Annex A control A.8.8 (management of technical vulnerabilities) in ISO/IEC
+      27001:2022.
+    source: ISO/IEC 27001:2022 · A.8.8
+    sourceUrl: https://www.iso.org/standard/27001
+  - framework: pci-dss
+    plain: >-
+      Systems and software must be protected from known vulnerabilities by
+      installing applicable security patches.
+    detail: >-
+      PCI DSS v4.0 Requirement 6 covers developing and maintaining secure systems,
+      including timely patching.
+    source: PCI DSS v4.0 · Requirement 6
+    sourceUrl: https://www.pcisecuritystandards.org/
+---
+
+**In practice.** Keep an inventory of your components, watch for security
+advisories, and apply critical patches on a defined timeline, prioritizing
+anything internet-facing or handling sensitive data.
