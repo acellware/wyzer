@@ -6,9 +6,27 @@ import HowItWorksSection from '@/components/home/HowItWorksSection.astro';
 import FrameworksSection from '@/components/home/FrameworksSection.astro';
 import FeaturesSection from '@/components/home/FeaturesSection.astro';
 import PopularTopicsSection from '@/components/home/PopularTopicsSection.astro';
+
+const origin = (Astro.site?.toString() ?? 'https://navigator.wyzer.io/').replace(/\/$/, '');
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: 'Compliance Navigator',
+  url: `${origin}/`,
+  description:
+    'A plain-language reference for what NIST, SOC 2, ISO 27001, GDPR, HIPAA, PCI DSS, and FDA say about cloud resources and industry topics.',
+  potentialAction: {
+    '@type': 'SearchAction',
+    target: {
+      '@type': 'EntryPoint',
+      urlTemplate: `${origin}/search?q={search_term_string}`,
+    },
+    'query-input': 'required name=search_term_string',
+  },
+};
 ---
 
-<Layout title="Compliance Navigator">
+<Layout title="Compliance Navigator" jsonLd={jsonLd}>
   <HeroSection />
   <ProblemSection />
   <HowItWorksSection />
