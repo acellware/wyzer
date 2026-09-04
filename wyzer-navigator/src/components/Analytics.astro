@@ -1,46 +1,76 @@
 ---
-// Google Analytics 4. Custom events map to the PRD's success metrics:
-//   - topic_reached → time from landing to first Topic Page (bucketed)
-//   - topic_view    → topics viewed per session (bucketed count)
-//   - topic_scroll  → max scroll depth on a Topic Page (bucketed %)
-// Returning-visitor / session data comes from GA natively.
-//
-// Measurement ID defaults to the production tag but can be overridden with
-// PUBLIC_GA_ID. Set PUBLIC_ANALYTICS_DEBUG=true to log events to the console.
+// Google Analytics 4 with a prior-consent gate.
+// GA is NOT loaded until the visitor accepts. Custom events map to the PRD
+// success metrics: topic_reached, topic_view, topic_scroll.
+// Measurement ID via PUBLIC_GA_ID (defaults to the production tag).
+// PUBLIC_ANALYTICS_DEBUG=true logs events to the console.
 const GA_ID = import.meta.env.PUBLIC_GA_ID ?? 'G-QQKWMXNVSH';
 const debug = import.meta.env.PUBLIC_ANALYTICS_DEBUG === 'true';
 ---
 
-{GA_ID && (
-  <>
-    <script is:inline async src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}></script>
-    <script is:inline define:vars={{ GA_ID }}>
-      window.dataLayer = window.dataLayer || [];
-      function gtag() { dataLayer.push(arguments); }
-      window.gtag = gtag;
-      gtag('js', new Date());
-      // Don't pollute the property with local dev/preview traffic.
-      var isLocal = ['localhost', '127.0.0.1', '0.0.0.0'].indexOf(location.hostname) !== -1;
-      if (!isLocal) gtag('config', GA_ID);
-    </script>
-  </>
-)}
+<!-- Cookie consent banner (hidden until we know there's no stored choice) -->
+<div
+  id="consent-banner"
+  class="hidden fixed inset-x-0 bottom-0 z-[75] border-t"
+  style="background: var(--color-surface); border-color: var(--color-border); box-shadow: 0 -8px 30px rgba(0,0,0,0.06)"
+  role="region"
+  aria-label="Cookie consent"
+>
+  <div class="mx-auto max-w-[1240px] px-6 py-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <p class="text-[13.5px] leading-[1.5] max-w-2xl" style="color: var(--color-body)">
+      We use Google Analytics to understand, in aggregate, how this site is used.
+      No advertising or cross-site tracking. See our
+      <a href="/cookies" class="underline" style="color: var(--color-accent-ink)">Cookie Policy</a>.
+    </p>
+    <div class="flex gap-2 shrink-0">
+      <button
+        id="consent-decline"
+        type="button"
+        class="h-9 px-4 inline-flex items-center text-[13px] rounded-lg border transition-colors hover:[background-color:var(--color-raised)]"
+        style="color: var(--color-ink); border-color: var(--color-border)"
+      >
+        Decline
+      </button>
+      <button
+        id="consent-accept"
+        type="button"
+        class="h-9 px-4 inline-flex items-center text-[13px] font-medium rounded-lg text-white transition-colors hover:[background-color:var(--color-accent-ink)]"
+        style="background-color: var(--color-accent)"
+      >
+        Accept
+      </button>
+    </div>
+  </div>
+</div>
 
-<script is:inline define:vars={{ debug }}>
+<script is:inline define:vars={{ GA_ID, debug }}>
   (function () {
-    function track(name, params) {
-      try { if (window.gtag) window.gtag('event', name, params || {}); } catch (e) {}
-      if (debug) console.log('[analytics]', name, params || {});
-    }
-    var path = location.pathname;
-    var isHome = path === '/';
-    var isTopic = /^\/topic\/[^/]+\/?$/.test(path); // topic page, not the framework detail page
+    var KEY = 'wyzer-consent';
+    var isLocal = ['localhost', '127.0.0.1', '0.0.0.0'].indexOf(location.hostname) !== -1;
+    var gaLoaded = false;
+    var topicInit = false;
 
-    try {
-      if (isHome && !sessionStorage.getItem('nav_landing_ts')) {
-        sessionStorage.setItem('nav_landing_ts', String(Date.now()));
-      }
-    } catch (e) {}
+    function getConsent() { try { return localStorage.getItem(KEY); } catch (e) { return null; } }
+    function setConsent(v) { try { localStorage.setItem(KEY, v); } catch (e) {} }
+
+    function loadGA() {
+      if (gaLoaded || !GA_ID) return;
+      gaLoaded = true;
+      window.dataLayer = window.dataLayer || [];
+      window.gtag = function () { window.dataLayer.push(arguments); };
+      var s = document.createElement('script');
+      s.async = true;
+      s.src = 'https://www.googletagmanager.com/gtag/js?id=' + GA_ID;
+      document.head.appendChild(s);
+      window.gtag('js', new Date());
+      // Skip the real config on local dev/preview so we don't pollute the property.
+      if (!isLocal) window.gtag('config', GA_ID);
+    }
+
+    function track(name, params) {
+      if (debug) console.log('[analytics]', name, params || {});
+      if (gaLoaded && window.gtag) window.gtag('event', name, params || {});
+    }
 
     function bucketSeconds(s) {
       if (s < 10) return '0-10s';
@@ -64,18 +94,26 @@ const debug = import.meta.env.PUBLIC_ANALYTICS_DEBUG === 'true';
       return '95-100';
     }
 
-    if (isTopic) {
-      // Time to first Topic Page from the landing page.
+    // A local timestamp (not tracking) so we can measure time-to-topic once consented.
+    try {
+      if (location.pathname === '/' && !sessionStorage.getItem('nav_landing_ts')) {
+        sessionStorage.setItem('nav_landing_ts', String(Date.now()));
+      }
+    } catch (e) {}
+
+    function initTopicTracking() {
+      if (topicInit) return;
+      if (!/^\/topic\/[^/]+\/?$/.test(location.pathname)) return; // topic page, not the framework detail page
+      topicInit = true;
+
       try {
         var ts = sessionStorage.getItem('nav_landing_ts');
         if (ts && !sessionStorage.getItem('nav_topic_timed')) {
-          var secs = Math.round((Date.now() - Number(ts)) / 1000);
-          track('topic_reached', { time_bucket: bucketSeconds(secs) });
+          track('topic_reached', { time_bucket: bucketSeconds(Math.round((Date.now() - Number(ts)) / 1000)) });
           sessionStorage.setItem('nav_topic_timed', '1');
         }
       } catch (e) {}
 
-      // Topics viewed per session.
       var n = 1;
       try {
         n = Number(sessionStorage.getItem('nav_topic_views') || '0') + 1;
@@ -83,11 +121,9 @@ const debug = import.meta.env.PUBLIC_ANALYTICS_DEBUG === 'true';
       } catch (e) {}
       track('topic_view', { session_index: bucketCount(n) });
 
-      // Max scroll depth (a proxy for the "one view" goal — heavy scroll is bad).
       var maxDepth = 0;
       function onScroll() {
-        var doc = document.documentElement;
-        var scrollable = doc.scrollHeight - window.innerHeight;
+        var scrollable = document.documentElement.scrollHeight - window.innerHeight;
         var pct = scrollable > 0 ? Math.round((window.scrollY / scrollable) * 100) : 100;
         if (pct > maxDepth) maxDepth = Math.min(100, pct);
       }
@@ -99,10 +135,25 @@ const debug = import.meta.env.PUBLIC_ANALYTICS_DEBUG === 'true';
         reported = true;
         track('topic_scroll', { depth_bucket: bucketDepth(maxDepth) });
       }
-      document.addEventListener('visibilitychange', function () {
-        if (document.visibilityState === 'hidden') report();
-      });
+      document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') report(); });
       window.addEventListener('pagehide', report);
     }
+
+    // Banner wiring
+    var banner = document.getElementById('consent-banner');
+    function hideBanner() { if (banner) banner.classList.add('hidden'); }
+    function showBanner() { if (banner) banner.classList.remove('hidden'); }
+    function accept() { setConsent('granted'); hideBanner(); loadGA(); initTopicTracking(); }
+    function decline() { setConsent('denied'); hideBanner(); }
+
+    var acceptBtn = document.getElementById('consent-accept');
+    var declineBtn = document.getElementById('consent-decline');
+    if (acceptBtn) acceptBtn.addEventListener('click', accept);
+    if (declineBtn) declineBtn.addEventListener('click', decline);
+    window.__wyzerConsent = { open: showBanner, accept: accept, decline: decline };
+
+    var choice = getConsent();
+    if (choice === 'granted') { loadGA(); initTopicTracking(); }
+    else if (choice !== 'denied') { showBanner(); }
   })();
 </script>

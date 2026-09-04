@@ -110,7 +110,17 @@ const year = new Date().getFullYear();
         <p class="font-mono text-[11px]" style="color: var(--color-muted)">
           © {year} Wyzer · Informational only, not legal advice
         </p>
-        <p class="font-mono text-[11px]" style="color: var(--color-muted)">plain-language compliance</p>
+        <div class="flex items-center gap-4">
+          <button
+            type="button"
+            class="font-mono text-[11px] transition-colors hover:[color:var(--color-ink)]"
+            style="color: var(--color-muted)"
+            onclick="window.__wyzerConsent && window.__wyzerConsent.open()"
+          >
+            Cookie settings
+          </button>
+          <p class="font-mono text-[11px]" style="color: var(--color-muted)">plain-language compliance</p>
+        </div>
       </div>
     </div>
   </div>
