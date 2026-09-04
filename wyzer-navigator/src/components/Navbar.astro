@@ -1,0 +1,60 @@
+---
+const navLinks = [
+  { label: 'Why', href: '/#why' },
+  { label: 'How it works', href: '/#how' },
+  { label: 'Frameworks', href: '/#frameworks' },
+];
+---
+
+<header
+  class="sticky top-0 z-40 border-b border-transparent transition-colors"
+  style="backdrop-filter: blur(6px); background-color: color-mix(in srgb, var(--color-page) 88%, transparent);"
+>
+  <div class="max-w-[1240px] mx-auto px-6 h-16 flex items-center justify-between">
+    <!-- Logo -->
+    <a href="/" class="flex items-center gap-2 group">
+      <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" fill="none">
+        <rect x="0.5" y="0.5" width="23" height="23" rx="6" fill="var(--color-accent)" />
+        <path d="M6 17L9.5 7H11.5L14 13.2L16.5 7H18.5L22 17H19.8L17.5 10.8L15 17H13L10.5 10.8L8.2 17H6Z" fill="white" />
+      </svg>
+      <span class="text-[15px] font-semibold tracking-[-0.01em]" style="color: var(--color-ink)">wyzer</span>
+      <span
+        class="hidden sm:block font-mono text-[11px] px-1.5 py-0.5 rounded border"
+        style="color: var(--color-accent-ink); border-color: var(--color-accent-soft); background-color: var(--color-accent-soft);"
+      >
+        navigator
+      </span>
+    </a>
+
+    <!-- Desktop nav -->
+    <nav class="hidden md:flex items-center gap-1">
+      {navLinks.map((it) => (
+        <a
+          href={it.href}
+          class="px-3 h-9 inline-flex items-center text-[14px] rounded-md transition-colors hover:[color:var(--color-ink)]"
+          style="color: var(--color-muted)"
+        >
+          {it.label}
+        </a>
+      ))}
+    </nav>
+
+    <!-- Right side -->
+    <div class="flex items-center gap-1.5">
+      <a
+        href="/industry"
+        class="hidden sm:inline-flex items-center h-8 px-3 text-[13px] rounded-md transition-colors hover:[color:var(--color-ink)] hover:[background-color:var(--color-surface)]"
+        style="color: var(--color-muted)"
+      >
+        By Industry
+      </a>
+      <a
+        href="/cloud"
+        class="h-9 px-4 inline-flex items-center text-[13px] font-medium rounded-[8px] transition-colors text-white hover:[background-color:var(--color-accent-ink)]"
+        style="background-color: var(--color-accent)"
+      >
+        Browse by Cloud
+      </a>
+    </div>
+  </div>
+</header>

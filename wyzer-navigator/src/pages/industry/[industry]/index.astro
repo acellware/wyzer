@@ -1,0 +1,44 @@
+---
+import { getCollection } from 'astro:content';
+import Layout from '@/layouts/Layout.astro';
+import Breadcrumbs from '@/components/Breadcrumbs.astro';
+import NavCard from '@/components/NavCard.astro';
+
+export async function getStaticPaths() {
+  const industries = await getCollection('industry');
+  return industries.map((industry) => ({
+    params: { industry: industry.id },
+    props: { industry },
+  }));
+}
+
+const { industry } = Astro.props;
+---
+
+<Layout
+  title={`${industry.data.industryName} · Compliance Topics`}
+  description={`Browse the compliance functions and topics that matter to ${industry.data.industryName}.`}
+>
+  <div class="mx-auto max-w-content px-4 py-10">
+    <Breadcrumbs
+      items={[
+        { label: 'Home', href: '/' },
+        { label: 'Industry', href: '/industry' },
+        { label: industry.data.industryName },
+      ]}
+    />
+    <h1 class="text-3xl font-semibold tracking-tight text-ink-primary">{industry.data.industryName}</h1>
+    <p class="mt-3 max-w-2xl text-ink-muted">Pick a function to see its topics.</p>
+
+    <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {industry.data.functions.map((fn) => (
+        <NavCard
+          href={`/industry/${industry.id}/${fn.slug}`}
+          title={fn.name}
+          blurb={fn.blurb}
+          meta={`${fn.topics.length} topics`}
+        />
+      ))}
+    </div>
+  </div>
+</Layout>

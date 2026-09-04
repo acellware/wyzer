@@ -1,0 +1,72 @@
+---
+name: Object Storage Public Access
+type: resource-linked
+summary: >-
+  Whether a storage bucket can be read by anyone on the internet. Frameworks
+  generally expect buckets that hold personal, financial, or otherwise sensitive
+  data to be private by default, with public access treated as a deliberate
+  exception.
+updated: 2026-09-04
+cards:
+  - framework: nist
+    plain: >-
+      Treats broad public access to data stores as a least-privilege problem:
+      access should be limited to the identities that genuinely need it, and
+      anonymous read access to sensitive data is discouraged.
+    detail: >-
+      NIST CSF organizes this under Protect, Identity Management, Authentication
+      and Access Control (PR.AA) and Data Security (PR.DS). Access permissions are
+      expected to be managed on a least-privilege basis and data-at-rest protected
+      from unauthorized disclosure.
+    source: NIST CSF 2.0 · PR.AA / PR.DS
+    sourceUrl: https://www.nist.gov/cyberframework
+  - framework: soc2
+    plain: >-
+      Logical access to stored data is expected to be restricted to authorized
+      users. A bucket open to the public internet is hard to reconcile with that
+      expectation unless the data is explicitly intended to be public.
+    detail: >-
+      Maps to the Trust Services Criteria common controls for logical access , 
+      notably CC6.1 (logical access security measures) and CC6.3 (access is
+      granted based on roles and least privilege).
+    source: SOC 2 TSC · CC6.1 / CC6.3
+    sourceUrl: https://www.aicpa-cima.com/topic/audit-assurance/audit-and-assurance-greater-than-soc-2
+  - framework: iso27001
+    plain: >-
+      Expects access to information to be controlled by policy. Publicly readable
+      storage of sensitive information runs against access-control and
+      secure-configuration expectations.
+    detail: >-
+      Annex A controls A.5.15 (access control) and A.8.9 (configuration
+      management) are the relevant references in ISO/IEC 27001:2022.
+    source: ISO/IEC 27001:2022 · A.5.15 / A.8.9
+    sourceUrl: https://www.iso.org/standard/27001
+  - framework: gdpr
+    plain: >-
+      If the bucket holds personal data, exposing it publicly is a security-of-
+      processing concern. Personal data is expected to be protected against
+      unauthorized access using appropriate technical measures.
+    detail: >-
+      Article 32 requires security of processing appropriate to the risk. Openly
+      readable personal data would generally be considered a failure of those
+      measures and could constitute a personal-data breach under Articles 33–34.
+    source: GDPR · Article 32
+    sourceUrl: https://eur-lex.europa.eu/eli/reg/2016/679/oj
+  - framework: pci-dss
+    plain: >-
+      Storage holding cardholder data must not be openly reachable. Access is
+      expected to be restricted by business need-to-know and systems shielded from
+      untrusted networks.
+    detail: >-
+      PCI DSS v4.0 Requirement 7 covers restricting access by business need to
+      know, and Requirement 1 covers network security controls that keep systems
+      holding cardholder data off untrusted, public paths.
+    source: PCI DSS v4.0 · Req. 1 & 7
+    sourceUrl: https://www.pcisecuritystandards.org/
+---
+
+**In practice.** Public access is usually a per-bucket or per-object setting that
+defaults to "blocked," plus account-wide guardrails that stop anyone from turning
+it on by accident. The safest posture is to keep buckets private and share data
+through signed, time-limited URLs or a controlled front-end instead of opening the
+bucket itself.

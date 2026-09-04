@@ -1,0 +1,24 @@
+industryName: Fintech
+blurb: Payments, banking, and financial services.
+order: 1
+functions:
+  - slug: data-storage
+    name: Data Storage
+    blurb: How customer and financial data is stored.
+    topics:
+      - slug: public-storage-exposure
+        name: Public Storage Exposure
+        topic: object-storage-public-access
+      - slug: encryption-at-rest
+        name: Encryption at Rest
+        topic: encryption-at-rest
+  - slug: identity-access
+    name: Identity & Access
+    blurb: Who can reach financial systems and data.
+    topics:
+      - slug: mfa-for-admins
+        name: MFA for Admins
+        topic: mfa-enforcement
+      - slug: least-privilege-access
+        name: Least-Privilege Access
+        topic: iam-least-privilege

@@ -1,0 +1,21 @@
+industryName: Healthcare
+blurb: Providers, payers, and health technology.
+order: 2
+functions:
+  - slug: data-sharing
+    name: Data Sharing
+    blurb: How patient data moves between systems.
+    topics:
+      - slug: transmitting-phi
+        name: Transmitting PHI
+        topic: data-in-transit-encryption
+  - slug: access-control
+    name: Access Control
+    blurb: Who can reach patient records.
+    topics:
+      - slug: least-privilege-access
+        name: Least-Privilege Access
+        topic: iam-least-privilege
+      - slug: mfa
+        name: Multi-Factor Authentication
+        topic: mfa-enforcement

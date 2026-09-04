@@ -1,0 +1,69 @@
+---
+name: Data in Transit (TLS)
+type: resource-linked
+summary: >-
+  Whether data is encrypted while moving across a network, between clients,
+  services, and databases. Frameworks broadly expect sensitive data to travel
+  over encrypted channels such as TLS rather than in the clear.
+updated: 2026-09-04
+cards:
+  - framework: nist
+    plain: >-
+      Expects data in transit to be protected, typically by encrypting network
+      communications that carry sensitive information.
+    detail: >-
+      NIST CSF 2.0 Data Security (PR.DS) includes protecting the confidentiality
+      and integrity of data-in-transit, generally through transport encryption.
+    source: NIST CSF 2.0 · PR.DS
+    sourceUrl: https://www.nist.gov/cyberframework
+  - framework: soc2
+    plain: >-
+      Encrypted transport is a standard control for protecting data as it moves
+      between users and systems.
+    detail: >-
+      Maps to CC6.7 (restricting the transmission of information and using
+      encryption to protect it in transit).
+    source: SOC 2 TSC · CC6.7
+    sourceUrl: https://www.aicpa-cima.com/topic/audit-assurance/audit-and-assurance-greater-than-soc-2
+  - framework: iso27001
+    plain: >-
+      Expects information in transit, including across public networks, to be
+      protected, in practice through transport-layer encryption.
+    detail: >-
+      Relevant Annex A controls in ISO/IEC 27001:2022 include A.8.24 (use of
+      cryptography) and A.8.20 (networks security).
+    source: ISO/IEC 27001:2022 · A.8.20 / A.8.24
+    sourceUrl: https://www.iso.org/standard/27001
+  - framework: gdpr
+    plain: >-
+      Where personal data is transmitted, encryption in transit is a common
+      measure for keeping the transfer secure and appropriate to the risk.
+    detail: >-
+      Article 32 requires appropriate technical measures for security of
+      processing; encrypted transport is a widely used measure for data in
+      transit.
+    source: GDPR · Article 32
+    sourceUrl: https://eur-lex.europa.eu/eli/reg/2016/679/oj
+  - framework: hipaa
+    plain: >-
+      Treats encryption of health information sent over networks as an addressable
+      safeguard, expected wherever transmission could expose the data.
+    detail: >-
+      The HIPAA Security Rule transmission-security standard includes encryption
+      as an addressable specification (45 CFR 164.312(e)(2)(ii)).
+    source: HIPAA Security Rule · 164.312(e)
+    sourceUrl: https://www.hhs.gov/hipaa/for-professionals/security/index.html
+  - framework: pci-dss
+    plain: >-
+      Requires strong cryptography whenever cardholder data crosses open or public
+      networks.
+    detail: >-
+      PCI DSS v4.0 Requirement 4 covers protecting cardholder data with strong
+      cryptography during transmission over open, public networks.
+    source: PCI DSS v4.0 · Requirement 4
+    sourceUrl: https://www.pcisecuritystandards.org/
+---
+
+**In practice.** This usually means enforcing TLS (HTTPS) on every endpoint,
+requiring encrypted connections to databases and caches, and redirecting or
+rejecting plain-text traffic rather than allowing it as a fallback.

@@ -1,0 +1,7 @@
+name: NIST Cybersecurity Framework
+shortName: NIST
+tier: CSF 2.0
+badgeColor: "#3B5B8C"
+sourceUrl: https://www.nist.gov/cyberframework
+blurb: US framework of cybersecurity best practices across Identify, Protect, Detect, Respond, and Recover.
+order: 1

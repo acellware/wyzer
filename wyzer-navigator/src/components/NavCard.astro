@@ -1,0 +1,23 @@
+---
+interface Props {
+  href: string;
+  title: string;
+  blurb?: string;
+  meta?: string;
+  note?: string;
+}
+const { href, title, blurb, meta, note } = Astro.props;
+---
+
+<a
+  href={href}
+  class="group flex flex-col rounded-xl border border-line bg-surface p-5 transition-colors hover:border-brand/50 hover:bg-surface-raised"
+>
+  <div class="flex items-start justify-between gap-3">
+    <h3 class="font-semibold text-ink-primary group-hover:text-brand">{title}</h3>
+    <span aria-hidden="true" class="text-ink-muted transition-transform group-hover:translate-x-0.5 group-hover:text-brand">→</span>
+  </div>
+  {blurb && <p class="mt-1.5 text-sm text-ink-muted">{blurb}</p>}
+  {note && <p class="mt-2 font-mono text-2xs text-ink-dim">{note}</p>}
+  {meta && <p class="mt-3 font-mono text-2xs uppercase tracking-wide text-ink-dim">{meta}</p>}
+</a>

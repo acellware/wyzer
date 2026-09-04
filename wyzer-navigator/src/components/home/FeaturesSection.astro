@@ -1,0 +1,60 @@
+---
+import SectionHeader from '../SectionHeader.astro';
+import Icon from '../Icon.astro';
+
+const FEATURES = [
+  {
+    icon: 'route',
+    title: 'Two ways in',
+    body: 'Browse by cloud resource or by industry topic, whichever matches how you think about the problem.',
+  },
+  {
+    icon: 'book',
+    title: 'Plain-language first',
+    body: 'Every topic opens with a one- or two-sentence summary in everyday words, before any framework detail.',
+  },
+  {
+    icon: 'columns',
+    title: 'One view, side by side',
+    body: 'See what each relevant framework says on a single screen, no tab-switching, no cross-referencing.',
+  },
+  {
+    icon: 'file',
+    title: 'Cited sources',
+    body: 'Every explanation points to the exact control or article it came from, tucked inside the "read more".',
+  },
+  {
+    icon: 'search',
+    title: 'Get there fast',
+    body: 'Jump straight to the topic you need in a few clicks, instead of scrolling through hundreds of pages.',
+  },
+  {
+    icon: 'gift',
+    title: 'Free, no account',
+    body: 'The whole reference is public and free. No sign-up, no paywall, no compliance status or scores.',
+  },
+];
+---
+
+<section id="features" class="py-[var(--section-gap)]">
+  <div class="max-w-[1240px] mx-auto px-6">
+    <SectionHeader
+      index="04"
+      kicker="features"
+      title="Built to be understood."
+      intro="No scores, no jargon, no sign-up. Just a clear answer to “what do the rules say?”"
+      class="mb-16"
+    />
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-10">
+      {FEATURES.map((f) => (
+        <div>
+          <div class="w-9 h-9 rounded-md flex items-center justify-center mb-5" style="background: var(--color-accent-soft)">
+            <Icon name={f.icon} class="[color:var(--color-accent-ink)]" />
+          </div>
+          <h3 class="text-[15px] font-semibold mb-2" style="color: var(--color-ink)">{f.title}</h3>
+          <p class="text-[14.5px] leading-[1.65]" style="color: var(--color-body)">{f.body}</p>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>

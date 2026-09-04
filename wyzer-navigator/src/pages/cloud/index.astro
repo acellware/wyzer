@@ -1,0 +1,32 @@
+---
+import { getCollection } from 'astro:content';
+import Layout from '@/layouts/Layout.astro';
+import Breadcrumbs from '@/components/Breadcrumbs.astro';
+import NavCard from '@/components/NavCard.astro';
+
+const providers = (await getCollection('cloud')).sort(
+  (a, b) => a.data.order - b.data.order,
+);
+---
+
+<Layout title="Browse by Cloud" description="Pick a cloud provider to see what compliance frameworks say about its services and configurations.">
+  <div class="mx-auto max-w-content px-4 py-10">
+    <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Cloud' }]} />
+    <h1 class="text-3xl font-semibold tracking-tight text-ink-primary">Browse by Cloud</h1>
+    <p class="mt-3 max-w-2xl text-ink-muted">
+      Start with your cloud provider, then drill into a service and configuration to
+      see what each framework says.
+    </p>
+
+    <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {providers.map((p) => (
+        <NavCard
+          href={`/cloud/${p.id}`}
+          title={p.data.providerName}
+          blurb={p.data.blurb}
+          meta={`${p.data.categories.length} categories`}
+        />
+      ))}
+    </div>
+  </div>
+</Layout>

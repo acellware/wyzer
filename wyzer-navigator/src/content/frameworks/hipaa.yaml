@@ -1,0 +1,6 @@
+name: HIPAA Security Rule
+shortName: HIPAA
+badgeColor: "#319795"
+sourceUrl: https://www.hhs.gov/hipaa/for-professionals/security/index.html
+blurb: US rules protecting the privacy and security of health information (PHI).
+order: 5

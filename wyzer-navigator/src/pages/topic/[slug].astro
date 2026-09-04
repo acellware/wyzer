@@ -1,0 +1,73 @@
+---
+import { getCollection } from 'astro:content';
+import Layout from '@/layouts/Layout.astro';
+import Breadcrumbs from '@/components/Breadcrumbs.astro';
+import FrameworkCard from '@/components/FrameworkCard.astro';
+import { getFrameworkMap } from '@/lib/content';
+
+export async function getStaticPaths() {
+  const topics = await getCollection('topics');
+  return topics.map((topic) => ({
+    params: { slug: topic.slug },
+    props: { topic },
+  }));
+}
+
+const { topic } = Astro.props;
+const fwMap = await getFrameworkMap();
+const { Content } = await topic.render();
+
+const cards = topic.data.cards.map((card) => {
+  const fw = fwMap.get(card.framework);
+  if (!fw) {
+    throw new Error(`[content] Topic "${topic.slug}" references unknown framework "${card.framework}".`);
+  }
+  return { ...card, fw };
+});
+
+const kindLabel =
+  topic.data.type === 'industry-only' ? 'Industry topic' : 'Resource topic';
+---
+
+<Layout title={topic.data.name} description={topic.data.summary}>
+  <article class="mx-auto max-w-3xl px-4 py-10">
+    <Breadcrumbs
+      items={[
+        { label: 'Home', href: '/' },
+        { label: 'Topics' },
+        { label: topic.data.name },
+      ]}
+    />
+
+    <p class="font-mono text-2xs uppercase tracking-wide text-ink-dim">{kindLabel}</p>
+    <h1 class="mt-2 text-3xl font-semibold tracking-tight text-ink-primary sm:text-4xl">
+      {topic.data.name}
+    </h1>
+    <p class="mt-4 text-lg leading-relaxed text-ink-secondary">{topic.data.summary}</p>
+
+    <h2 class="mt-10 font-mono text-2xs uppercase tracking-wide text-ink-dim">
+      What each framework says
+    </h2>
+    <div class="mt-4 grid gap-4 sm:grid-cols-2">
+      {cards.map((card) => (
+        <FrameworkCard
+          name={card.fw.data.shortName}
+          color={card.fw.data.badgeColor}
+          tier={card.fw.data.tier}
+          plain={card.plain}
+          detail={card.detail}
+          source={card.source}
+          sourceUrl={card.sourceUrl}
+        />
+      ))}
+    </div>
+
+    <div class="prose-notes mt-10 border-t border-line-subtle pt-6 text-sm leading-relaxed text-ink-secondary">
+      <Content />
+    </div>
+
+    <p class="mt-10 rounded-lg border border-line-subtle bg-surface-raised px-4 py-3 text-2xs text-ink-dim">
+      Informational only, not legal advice. Always confirm against the official framework text.
+    </p>
+  </article>
+</Layout>

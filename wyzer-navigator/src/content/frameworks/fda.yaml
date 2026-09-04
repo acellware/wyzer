@@ -1,0 +1,7 @@
+name: FDA 21 CFR Part 11
+shortName: FDA
+tier: 21 CFR Part 11
+badgeColor: "#9B2C2C"
+sourceUrl: https://www.ecfr.gov/current/title-21/chapter-I/subchapter-A/part-11
+blurb: US FDA rules for trustworthy electronic records and electronic signatures in regulated industries.
+order: 7

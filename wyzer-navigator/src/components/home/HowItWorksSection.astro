@@ -1,0 +1,50 @@
+---
+import SectionHeader from '../SectionHeader.astro';
+
+const STEPS = [
+  {
+    num: '01',
+    title: 'Pick your entry point',
+    body: 'Start from a cloud provider and drill into a service, or start from your industry and pick a business function, whichever matches how you think.',
+    detail: 'Two ways in',
+  },
+  {
+    num: '02',
+    title: 'Drill down to the exact topic',
+    body: 'Narrow to the specific configuration or topic you care about, like public storage access, encryption at rest, or card data retention.',
+    detail: 'A few clicks',
+  },
+  {
+    num: '03',
+    title: 'Read it in one view',
+    body: 'See a plain-language summary plus a card for every relevant framework, each with a "read more" for the exact wording and its source.',
+    detail: 'One screen',
+  },
+];
+---
+
+<section id="how" class="py-[var(--section-gap)]" style="background: var(--color-surface)">
+  <div class="max-w-[1240px] mx-auto px-6">
+    <SectionHeader
+      index="02"
+      kicker="how it works"
+      title="From question to answer in a few clicks."
+      intro="Start how you think, by cloud resource or by industry topic, and read what every relevant framework says, side by side."
+      class="mb-14"
+    />
+    <div>
+      {STEPS.map((s, i) => (
+        <div class:list={['grid grid-cols-1 md:grid-cols-12 gap-x-10 gap-y-4 py-10', i > 0 && 'border-t']} style="border-color: var(--color-border-subtle)">
+          <div class="md:col-span-4 flex items-baseline gap-4">
+            <span class="font-mono text-[56px] leading-none font-semibold tabular-nums tracking-tight" style="color: var(--color-accent); opacity: 0.9">{s.num}</span>
+            <h3 class="text-[19px] font-semibold" style="color: var(--color-ink)">{s.title}</h3>
+          </div>
+          <div class="md:col-span-8 md:pt-2 md:pl-6 md:border-l" style="border-color: var(--color-border-subtle)">
+            <p class="text-[16px] leading-[1.7] max-w-[560px]" style="color: var(--color-body)">{s.body}</p>
+            <span class="mt-4 inline-block font-mono text-[11px]" style="color: var(--color-muted)">→ {s.detail}</span>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>

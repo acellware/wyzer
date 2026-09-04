@@ -1,0 +1,44 @@
+providerName: Google Cloud
+blurb: Google's cloud platform.
+order: 3
+categories:
+  - slug: storage
+    name: Storage
+    blurb: Object storage and disks.
+    resources:
+      - slug: cloud-storage
+        name: Cloud Storage
+        blurb: Object storage buckets.
+        configurations:
+          - slug: public-access
+            name: Public Access
+            topic: object-storage-public-access
+            providerNote: Controlled by Public Access Prevention.
+          - slug: encryption-at-rest
+            name: Encryption at Rest
+            topic: encryption-at-rest
+            providerNote: Google-managed keys by default, or CMEK.
+  - slug: database
+    name: Database
+    blurb: Managed databases.
+    resources:
+      - slug: cloud-sql
+        name: Cloud SQL
+        blurb: Managed relational databases.
+        configurations:
+          - slug: tls-in-transit
+            name: TLS in Transit
+            topic: data-in-transit-encryption
+            providerNote: Require SSL/TLS for connections.
+  - slug: identity
+    name: Identity & Access
+    blurb: Cloud IAM.
+    resources:
+      - slug: cloud-iam
+        name: Cloud IAM
+        blurb: Identity and access management.
+        configurations:
+          - slug: least-privilege
+            name: Least Privilege
+            topic: iam-least-privilege
+            providerNote: Bind narrow predefined or custom roles.

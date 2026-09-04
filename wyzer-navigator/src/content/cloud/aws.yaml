@@ -1,0 +1,52 @@
+providerName: Amazon Web Services
+blurb: The most widely used cloud platform.
+order: 1
+categories:
+  - slug: storage
+    name: Storage
+    blurb: Object and block storage services.
+    resources:
+      - slug: s3
+        name: S3
+        blurb: Object storage buckets.
+        configurations:
+          - slug: public-access
+            name: Public Access
+            topic: object-storage-public-access
+            providerNote: Controlled by S3 Block Public Access (account and bucket level).
+          - slug: encryption-at-rest
+            name: Encryption at Rest
+            topic: encryption-at-rest
+            providerNote: SSE-S3 or SSE-KMS bucket encryption.
+  - slug: database
+    name: Database
+    blurb: Managed relational and NoSQL databases.
+    resources:
+      - slug: rds
+        name: RDS
+        blurb: Managed relational databases.
+        configurations:
+          - slug: encryption-at-rest
+            name: Encryption at Rest
+            topic: encryption-at-rest
+            providerNote: KMS-based storage encryption, set at creation.
+          - slug: tls-in-transit
+            name: TLS in Transit
+            topic: data-in-transit-encryption
+            providerNote: Enforce with the rds.force_ssl parameter.
+  - slug: identity
+    name: Identity & Access
+    blurb: Who can do what across the account.
+    resources:
+      - slug: iam
+        name: IAM
+        blurb: Identity and access management.
+        configurations:
+          - slug: least-privilege
+            name: Least Privilege
+            topic: iam-least-privilege
+            providerNote: Scope IAM policies to specific actions and resources.
+          - slug: mfa
+            name: MFA for Privileged Users
+            topic: mfa-enforcement
+            providerNote: Enforce MFA on the root user and IAM administrators.
