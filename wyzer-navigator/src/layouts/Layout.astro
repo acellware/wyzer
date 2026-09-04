@@ -1,5 +1,6 @@
 ---
 import '@/styles/global.css';
+import { ViewTransitions } from 'astro:transitions';
 import Header from '@/components/Header.astro';
 import LegalStrip from '@/components/LegalStrip.astro';
 import SearchModal from '@/components/SearchModal.astro';
@@ -60,6 +61,7 @@ const jsonLdItems = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
     {jsonLdItems.map((item) => (
       <script type="application/ld+json" is:inline set:html={JSON.stringify(item)} />
     ))}
+    <ViewTransitions />
   </head>
   <body class="flex min-h-screen flex-col">
     <a

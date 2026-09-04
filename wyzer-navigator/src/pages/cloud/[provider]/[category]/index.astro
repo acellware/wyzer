@@ -33,7 +33,7 @@ const { provider, category } = Astro.props;
     <h1 class="text-3xl font-semibold tracking-tight text-ink-primary">{category.name}</h1>
     {category.blurb && <p class="mt-3 max-w-2xl text-ink-muted">{category.blurb}</p>}
 
-    <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3" data-reveal>
       {category.resources.map((r) => (
         <NavCard
           href={`/cloud/${provider.id}/${category.slug}/${r.slug}`}

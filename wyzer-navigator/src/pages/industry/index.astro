@@ -18,7 +18,7 @@ const industries = (await getCollection('industry')).sort(
       matter most, including ones that do not map to a specific cloud service.
     </p>
 
-    <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3" data-reveal>
       {industries.map((i) => (
         <NavCard
           href={`/industry/${i.id}`}

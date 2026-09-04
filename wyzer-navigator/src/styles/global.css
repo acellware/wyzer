@@ -191,3 +191,76 @@
     transition-duration: 0.001ms !important;
   }
 }
+
+/* ---- Cinematic "reveal" motion ----------------------------------------- */
+/* All motion is transform-only on real elements (text never sits at opacity 0,
+   so contrast audits stay clean); the page-level fade is on the view-transition
+   snapshot pseudo-elements, not the live DOM. Everything is gated on
+   prefers-reduced-motion. */
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Page-to-page reveal (Astro View Transitions) */
+  ::view-transition-old(root) {
+    animation: navOut 180ms ease both;
+  }
+  ::view-transition-new(root) {
+    animation: navIn 340ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+  @keyframes navOut {
+    to {
+      opacity: 0;
+    }
+  }
+  @keyframes navIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px) scale(0.992);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /* Staggered element reveal on arrival (transform only) */
+  [data-reveal] > * {
+    animation: revealUp 460ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+  [data-reveal] > *:nth-child(2) {
+    animation-delay: 55ms;
+  }
+  [data-reveal] > *:nth-child(3) {
+    animation-delay: 110ms;
+  }
+  [data-reveal] > *:nth-child(4) {
+    animation-delay: 165ms;
+  }
+  [data-reveal] > *:nth-child(5) {
+    animation-delay: 220ms;
+  }
+  [data-reveal] > *:nth-child(6) {
+    animation-delay: 275ms;
+  }
+  [data-reveal] > *:nth-child(n + 7) {
+    animation-delay: 320ms;
+  }
+  @keyframes revealUp {
+    from {
+      transform: translateY(14px) scale(0.98);
+    }
+    to {
+      transform: none;
+    }
+  }
+}
+
+/* Interactive "alive" cards — subtle accent glow + lift on hover. */
+.nav-glow {
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.nav-glow:hover {
+  transform: translateY(-2px);
+  border-color: hsl(var(--ch-accent) / 0.35);
+  box-shadow: 0 12px 34px hsl(var(--ch-accent) / 0.1), 0 0 0 1px hsl(var(--ch-accent) / 0.18);
+}
+

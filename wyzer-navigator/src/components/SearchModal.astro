@@ -1,10 +1,17 @@
 ---
-// Global search modal (⌘K). Pagefind UI is lazy-loaded on first open.
-// The index is generated at build time (postbuild), so search works on the
-// built/previewed site rather than in `astro dev`.
+// Global ⌘K search modal, adapted for Astro View Transitions.
+// The modal + its lazily-loaded Pagefind UI persist across navigations, and all
+// wiring is one-time + delegated so it survives DOM swaps.
 ---
 
-<div id="search-modal" class="fixed inset-0 z-[70] hidden" role="dialog" aria-modal="true" aria-label="Search topics">
+<div
+  id="search-modal"
+  class="hidden fixed inset-0 z-[70]"
+  role="dialog"
+  aria-modal="true"
+  aria-label="Search topics"
+  transition:persist
+>
   <div class="absolute inset-0" style="background: rgba(20,16,12,0.45)" data-search-close></div>
   <div
     class="relative mx-auto mt-[12vh] w-[92%] max-w-[620px] rounded-xl border overflow-hidden"
@@ -25,10 +32,13 @@
 
 <script>
   (() => {
-    const modal = document.getElementById('search-modal');
-    if (!modal) return;
+    if ((window as any).__navSearch) return;
+    (window as any).__navSearch = true;
+
     let loaded = false;
     let initing = false;
+
+    const modal = () => document.getElementById('search-modal');
 
     const loadPagefind = (): Promise<boolean> =>
       new Promise((resolve) => {
@@ -45,19 +55,16 @@
       });
 
     const open = async () => {
-      modal.classList.remove('hidden');
+      const m = modal();
+      if (!m) return;
+      m.classList.remove('hidden');
       document.documentElement.style.overflow = 'hidden';
       if (!loaded && !initing) {
         initing = true;
         const ok = await loadPagefind();
         const inner = document.getElementById('search-modal-inner');
         if (ok && (window as any).PagefindUI) {
-          new (window as any).PagefindUI({
-            element: '#search-modal-inner',
-            showSubResults: true,
-            showImages: false,
-            pageSize: 6,
-          });
+          new (window as any).PagefindUI({ element: '#search-modal-inner', showSubResults: true, showImages: false, pageSize: 6 });
           loaded = true;
         } else if (inner) {
           inner.innerHTML =
@@ -65,12 +72,13 @@
         }
         initing = false;
       }
-      const input = modal.querySelector('input');
+      const input = m.querySelector('input');
       if (input) setTimeout(() => (input as HTMLInputElement).focus(), 40);
     };
 
     const close = () => {
-      modal.classList.add('hidden');
+      const m = modal();
+      if (m) m.classList.add('hidden');
       document.documentElement.style.overflow = '';
     };
 
@@ -78,16 +86,21 @@
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
         open();
-      } else if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+      } else if (e.key === 'Escape') {
+        const m = modal();
+        if (m && !m.classList.contains('hidden')) close();
+      }
+    });
+
+    document.addEventListener('click', (e) => {
+      const t = e.target as HTMLElement;
+      if (!t || !t.closest) return;
+      if (t.closest('[data-search-trigger]')) {
+        e.preventDefault();
+        open();
+      } else if (t.closest('[data-search-close]')) {
         close();
       }
     });
-    document.querySelectorAll('[data-search-trigger]').forEach((el) =>
-      el.addEventListener('click', (e) => {
-        e.preventDefault();
-        open();
-      }),
-    );
-    modal.querySelectorAll('[data-search-close]').forEach((el) => el.addEventListener('click', close));
   })();
 </script>

@@ -18,7 +18,7 @@ const providers = (await getCollection('cloud')).sort(
       see what each framework says.
     </p>
 
-    <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3" data-reveal>
       {providers.map((p) => (
         <NavCard
           href={`/cloud/${p.id}`}

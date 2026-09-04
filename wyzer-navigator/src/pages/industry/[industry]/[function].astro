@@ -47,7 +47,7 @@ const topics = fn.topics.map((node) => {
     </h1>
     {fn.blurb && <p class="mt-3 max-w-2xl text-ink-muted">{fn.blurb}</p>}
 
-    <div class="mt-8 grid gap-4 sm:grid-cols-2">
+    <div class="mt-8 grid gap-4 sm:grid-cols-2" data-reveal>
       {topics.map(({ node, topic }) => (
         <NavCard
           href={`/topic/${topic.slug}`}

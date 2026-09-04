@@ -1,14 +1,13 @@
 ---
-// Google Analytics 4 with a prior-consent gate.
-// GA is NOT loaded until the visitor accepts. Custom events map to the PRD
-// success metrics: topic_reached, topic_view, topic_scroll.
-// Measurement ID via PUBLIC_GA_ID (defaults to the production tag).
-// PUBLIC_ANALYTICS_DEBUG=true logs events to the console.
+// Google Analytics 4 with a prior-consent gate, adapted for Astro View
+// Transitions (all wiring is one-time + delegated + astro lifecycle events).
+// GA does NOT load until the visitor accepts. Custom events map to the PRD
+// metrics: topic_reached, topic_view, topic_scroll.
 const GA_ID = import.meta.env.PUBLIC_GA_ID ?? 'G-QQKWMXNVSH';
 const debug = import.meta.env.PUBLIC_ANALYTICS_DEBUG === 'true';
 ---
 
-<!-- Cookie consent banner (hidden until we know there's no stored choice) -->
+<!-- Cookie consent banner -->
 <div
   id="consent-banner"
   class="hidden fixed inset-x-0 bottom-0 z-[75] border-t"
@@ -45,10 +44,12 @@ const debug = import.meta.env.PUBLIC_ANALYTICS_DEBUG === 'true';
 
 <script is:inline define:vars={{ GA_ID, debug }}>
   (function () {
+    if (window.__navAnalytics) return;
+    window.__navAnalytics = true;
+
     var KEY = 'wyzer-consent';
     var isLocal = ['localhost', '127.0.0.1', '0.0.0.0'].indexOf(location.hostname) !== -1;
     var gaLoaded = false;
-    var topicInit = false;
 
     function getConsent() { try { return localStorage.getItem(KEY); } catch (e) { return null; } }
     function setConsent(v) { try { localStorage.setItem(KEY, v); } catch (e) {} }
@@ -63,8 +64,7 @@ const debug = import.meta.env.PUBLIC_ANALYTICS_DEBUG === 'true';
       s.src = 'https://www.googletagmanager.com/gtag/js?id=' + GA_ID;
       document.head.appendChild(s);
       window.gtag('js', new Date());
-      // Skip the real config on local dev/preview so we don't pollute the property.
-      if (!isLocal) window.gtag('config', GA_ID);
+      if (!isLocal) window.gtag('config', GA_ID); // GA4 enhanced measurement tracks soft-nav page_views
     }
 
     function track(name, params) {
@@ -72,40 +72,37 @@ const debug = import.meta.env.PUBLIC_ANALYTICS_DEBUG === 'true';
       if (gaLoaded && window.gtag) window.gtag('event', name, params || {});
     }
 
-    function bucketSeconds(s) {
-      if (s < 10) return '0-10s';
-      if (s < 30) return '10-30s';
-      if (s < 60) return '30-60s';
-      if (s < 180) return '1-3m';
-      return '3m+';
-    }
-    function bucketCount(n) {
-      if (n <= 1) return '1';
-      if (n === 2) return '2';
-      if (n === 3) return '3';
-      if (n <= 5) return '4-5';
-      return '6+';
-    }
-    function bucketDepth(p) {
-      if (p < 25) return '0-25';
-      if (p < 50) return '25-50';
-      if (p < 75) return '50-75';
-      if (p < 95) return '75-95';
-      return '95-100';
-    }
+    function bucketSeconds(x) { return x < 10 ? '0-10s' : x < 30 ? '10-30s' : x < 60 ? '30-60s' : x < 180 ? '1-3m' : '3m+'; }
+    function bucketCount(n) { return n <= 1 ? '1' : n === 2 ? '2' : n === 3 ? '3' : n <= 5 ? '4-5' : '6+'; }
+    function bucketDepth(p) { return p < 25 ? '0-25' : p < 50 ? '25-50' : p < 75 ? '50-75' : p < 95 ? '75-95' : '95-100'; }
 
-    // A local timestamp (not tracking) so we can measure time-to-topic once consented.
-    try {
-      if (location.pathname === '/' && !sessionStorage.getItem('nav_landing_ts')) {
-        sessionStorage.setItem('nav_landing_ts', String(Date.now()));
-      }
-    } catch (e) {}
+    function banner() { return document.getElementById('consent-banner'); }
+    function showBanner() { var b = banner(); if (b) b.classList.remove('hidden'); }
+    function hideBanner() { var b = banner(); if (b) b.classList.add('hidden'); }
+    function syncBanner() { if (getConsent()) hideBanner(); else showBanner(); }
+    window.__wyzerConsent = { open: showBanner };
 
-    function initTopicTracking() {
-      if (topicInit) return;
-      if (!/^\/topic\/[^/]+\/?$/.test(location.pathname)) return; // topic page, not the framework detail page
-      topicInit = true;
+    function isTopic() { return /^\/topic\/[^/]+\/?$/.test(location.pathname); }
 
+    // ---- Scroll depth (single listener; per-topic max, reported on leave) ----
+    var maxDepth = 0, scrollTopicActive = false, scrollReported = false;
+    window.addEventListener('scroll', function () {
+      if (!scrollTopicActive) return;
+      var scrollable = document.documentElement.scrollHeight - window.innerHeight;
+      var pct = scrollable > 0 ? Math.round((window.scrollY / scrollable) * 100) : 100;
+      if (pct > maxDepth) maxDepth = Math.min(100, pct);
+    }, { passive: true });
+    function reportScroll() {
+      if (scrollReported || !scrollTopicActive) return;
+      scrollReported = true;
+      track('topic_scroll', { depth_bucket: bucketDepth(maxDepth) });
+    }
+    document.addEventListener('astro:before-swap', reportScroll);
+    window.addEventListener('pagehide', reportScroll);
+
+    function trackTopic() {
+      if (!isTopic()) { scrollTopicActive = false; return; }
+      scrollTopicActive = true; maxDepth = 0; scrollReported = false;
       try {
         var ts = sessionStorage.getItem('nav_landing_ts');
         if (ts && !sessionStorage.getItem('nav_topic_timed')) {
@@ -113,47 +110,40 @@ const debug = import.meta.env.PUBLIC_ANALYTICS_DEBUG === 'true';
           sessionStorage.setItem('nav_topic_timed', '1');
         }
       } catch (e) {}
-
       var n = 1;
-      try {
-        n = Number(sessionStorage.getItem('nav_topic_views') || '0') + 1;
-        sessionStorage.setItem('nav_topic_views', String(n));
-      } catch (e) {}
+      try { n = Number(sessionStorage.getItem('nav_topic_views') || '0') + 1; sessionStorage.setItem('nav_topic_views', String(n)); } catch (e) {}
       track('topic_view', { session_index: bucketCount(n) });
-
-      var maxDepth = 0;
-      function onScroll() {
-        var scrollable = document.documentElement.scrollHeight - window.innerHeight;
-        var pct = scrollable > 0 ? Math.round((window.scrollY / scrollable) * 100) : 100;
-        if (pct > maxDepth) maxDepth = Math.min(100, pct);
-      }
-      window.addEventListener('scroll', onScroll, { passive: true });
-      onScroll();
-      var reported = false;
-      function report() {
-        if (reported) return;
-        reported = true;
-        track('topic_scroll', { depth_bucket: bucketDepth(maxDepth) });
-      }
-      document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') report(); });
-      window.addEventListener('pagehide', report);
     }
 
-    // Banner wiring
-    var banner = document.getElementById('consent-banner');
-    function hideBanner() { if (banner) banner.classList.add('hidden'); }
-    function showBanner() { if (banner) banner.classList.remove('hidden'); }
-    function accept() { setConsent('granted'); hideBanner(); loadGA(); initTopicTracking(); }
-    function decline() { setConsent('denied'); hideBanner(); }
+    function markLanding() {
+      try { if (location.pathname === '/' && !sessionStorage.getItem('nav_landing_ts')) sessionStorage.setItem('nav_landing_ts', String(Date.now())); } catch (e) {}
+    }
 
-    var acceptBtn = document.getElementById('consent-accept');
-    var declineBtn = document.getElementById('consent-decline');
-    if (acceptBtn) acceptBtn.addEventListener('click', accept);
-    if (declineBtn) declineBtn.addEventListener('click', decline);
-    window.__wyzerConsent = { open: showBanner, accept: accept, decline: decline };
+    // ---- Delegated clicks (survive DOM swaps) ----
+    document.addEventListener('click', function (e) {
+      var t = e.target;
+      if (!t || !t.closest) return;
+      if (t.closest('#consent-accept')) { setConsent('granted'); hideBanner(); loadGA(); if (getConsent() === 'granted') trackTopic(); return; }
+      if (t.closest('#consent-decline')) { setConsent('denied'); hideBanner(); return; }
+      var s = t.closest('#surprise');
+      if (s) {
+        e.preventDefault();
+        try {
+          var slugs = JSON.parse(s.getAttribute('data-slugs') || '[]');
+          if (slugs.length) window.location.href = '/topic/' + slugs[Math.floor(Math.random() * slugs.length)];
+        } catch (err) {}
+      }
+    });
 
-    var choice = getConsent();
-    if (choice === 'granted') { loadGA(); initTopicTracking(); }
-    else if (choice !== 'denied') { showBanner(); }
+    // ---- Astro lifecycle ----
+    // Set banner + landing ASAP (first load) and before each paint (no flash).
+    markLanding();
+    syncBanner();
+    document.addEventListener('astro:after-swap', function () { markLanding(); syncBanner(); });
+    // Tracking runs once per page via page-load (fires on initial load + each nav).
+    document.addEventListener('astro:page-load', function () {
+      if (getConsent() === 'granted') { loadGA(); trackTopic(); }
+      else { scrollTopicActive = false; }
+    });
   })();
 </script>

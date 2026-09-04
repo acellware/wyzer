@@ -30,7 +30,7 @@ const { industry } = Astro.props;
     <h1 class="text-3xl font-semibold tracking-tight text-ink-primary">{industry.data.industryName}</h1>
     <p class="mt-3 max-w-2xl text-ink-muted">Pick a function to see its topics.</p>
 
-    <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3" data-reveal>
       {industry.data.functions.map((fn) => (
         <NavCard
           href={`/industry/${industry.id}/${fn.slug}`}
