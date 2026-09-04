@@ -1,0 +1,76 @@
+---
+// A breadcrumb that upgrades into the full "trail back" path when the page was
+// reached from the Explorer (which passes ?p=id~Label/id~Label/...). Each crumb
+// links back into the Explorer at that level (/#id/id/...). Runs on
+// astro:page-load so it works across view transitions.
+interface Props {
+  current: string;
+}
+const { current } = Astro.props;
+---
+
+<nav id="trail-menu" aria-label="Path" class="mb-6" data-current={current}>
+  <ol class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
+    <li><a href="/" class="crumb-link">Home</a></li>
+    <li><span class="crumb-sep" aria-hidden="true">/</span></li>
+    <li><span class="crumb-current" aria-current="page">{current}</span></li>
+  </ol>
+</nav>
+
+<script>
+  (() => {
+    if ((window as any).__navTrail) return;
+    (window as any).__navTrail = true;
+
+    const esc = (s: string) =>
+      s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+    function rawParam(name: string): string | null {
+      const m = location.search.match(new RegExp('[?&]' + name + '=([^&]*)'));
+      return m ? m[1] : null;
+    }
+
+    function build() {
+      const nav = document.getElementById('trail-menu');
+      if (!nav) return;
+      const pRaw = rawParam('p');
+
+      // Carry the trail onto onward links (e.g. framework detail pages).
+      if (pRaw) {
+        document.querySelectorAll('a[data-carry-trail]').forEach((a) => {
+          const href = a.getAttribute('href');
+          if (href && href.indexOf('?') === -1) a.setAttribute('href', href + '?p=' + pRaw);
+        });
+      }
+
+      if (!pRaw) return; // no trail info -> keep the default Home / current
+      const segs = pRaw
+        .split('/')
+        .filter(Boolean)
+        .map((s) => {
+          const [id, label] = s.split('~');
+          return { id: decodeURIComponent(id || ''), label: decodeURIComponent(label || id || '') };
+        });
+      if (!segs.length) return;
+
+      const ol = nav.querySelector('ol');
+      if (!ol) return;
+      let html = '<li><a href="/" class="crumb-link">Home</a></li>';
+      const cum: string[] = [];
+      segs.forEach((s, i) => {
+        cum.push(s.id);
+        const last = i === segs.length - 1;
+        html += '<li><span class="crumb-sep" aria-hidden="true">/</span></li>';
+        if (last) {
+          html += '<li><span class="crumb-current" aria-current="page">' + esc(s.label) + '</span></li>';
+        } else {
+          const hash = '/#' + cum.map(encodeURIComponent).join('/');
+          html += '<li><a class="crumb-link" href="' + hash + '">' + esc(s.label) + '</a></li>';
+        }
+      });
+      ol.innerHTML = html;
+    }
+
+    document.addEventListener('astro:page-load', build);
+  })();
+</script>

@@ -18,6 +18,7 @@ const { name, color, tier, plain, href, hasMore = true } = Astro.props;
   {hasMore && (
     <a
       href={href}
+      data-carry-trail
       class="group mt-4 inline-flex items-center gap-1 text-xs font-medium text-brand"
       aria-label={`Read more about ${name} on this topic`}
     >

@@ -1,7 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
 import Layout from '@/layouts/Layout.astro';
-import Breadcrumbs from '@/components/Breadcrumbs.astro';
+import TrailMenu from '@/components/TrailMenu.astro';
 import FrameworkCard from '@/components/FrameworkCard.astro';
 import { getFrameworkMap } from '@/lib/content';
 
@@ -61,12 +61,7 @@ const jsonLd = [
 
 <Layout title={topic.data.name} description={topic.data.summary} jsonLd={jsonLd}>
   <article class="mx-auto max-w-3xl px-4 py-10" data-pagefind-body>
-    <Breadcrumbs
-      items={[
-        { label: 'Home', href: '/' },
-        { label: topic.data.name },
-      ]}
-    />
+    <TrailMenu current={topic.data.name} />
 
     <p class="font-mono text-2xs uppercase tracking-wide text-ink-dim">{kindLabel}</p>
     <h1 class="mt-2 text-3xl font-semibold tracking-tight text-ink-primary sm:text-4xl" data-pagefind-meta="title">

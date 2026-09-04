@@ -265,15 +265,53 @@
       transform: none;
     }
   }
+
+  /* Cascade columns slide in from the side as the tree builds. */
+  .explorer-col {
+    animation: colIn 420ms cubic-bezier(0.2, 0.9, 0.3, 1) both;
+  }
+  @keyframes colIn {
+    from {
+      transform: translateX(20px);
+    }
+    to {
+      transform: none;
+    }
+  }
 }
 
-/* Interactive "alive" cards — subtle accent glow + lift on hover. */
-.nav-glow {
+/* Interactive "alive" cards — subtle accent glow + lift on hover. */.nav-glow {
   transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 .nav-glow:hover {
   transform: translateY(-2px);
   border-color: hsl(var(--ch-accent) / 0.35);
   box-shadow: 0 12px 34px hsl(var(--ch-accent) / 0.1), 0 0 0 1px hsl(var(--ch-accent) / 0.18);
+}
+
+/* Trail / breadcrumb crumbs (also injected client-side on detail pages). */
+.crumb-link {
+  color: var(--color-muted);
+  text-underline-offset: 2px;
+  transition: color 0.15s ease;
+}
+.crumb-link:hover {
+  color: var(--color-accent-ink);
+  text-decoration: underline;
+}
+.crumb-current {
+  color: var(--color-body);
+  font-weight: 500;
+}
+.crumb-sep {
+  color: var(--color-border);
+}
+
+/* Cascade horizontal scroll — thin, unobtrusive. */
+.explorer-cascade {
+  scrollbar-width: thin;
+}
+.explorer-cascade::-webkit-scrollbar {
+  height: 6px;
 }
 
