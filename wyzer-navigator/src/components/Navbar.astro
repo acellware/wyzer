@@ -1,4 +1,7 @@
 ---
+// The marketing anchors only make sense on the landing page.
+// On content pages they'd jump back to the home sections, so we hide them.
+const isHome = Astro.url.pathname === '/';
 const navLinks = [
   { label: 'Why', href: '/#why' },
   { label: 'How it works', href: '/#how' },
@@ -26,18 +29,20 @@ const navLinks = [
       </span>
     </a>
 
-    <!-- Desktop nav -->
-    <nav class="hidden md:flex items-center gap-1">
-      {navLinks.map((it) => (
-        <a
-          href={it.href}
-          class="px-3 h-9 inline-flex items-center text-[14px] rounded-md transition-colors hover:[color:var(--color-ink)]"
-          style="color: var(--color-muted)"
-        >
-          {it.label}
-        </a>
-      ))}
-    </nav>
+    <!-- Desktop nav (home only) -->
+    {isHome && (
+      <nav class="hidden md:flex items-center gap-1">
+        {navLinks.map((it) => (
+          <a
+            href={it.href}
+            class="px-3 h-9 inline-flex items-center text-[14px] rounded-md transition-colors hover:[color:var(--color-ink)]"
+            style="color: var(--color-muted)"
+          >
+            {it.label}
+          </a>
+        ))}
+      </nav>
+    )}
 
     <!-- Right side -->
     <div class="flex items-center gap-1.5">
