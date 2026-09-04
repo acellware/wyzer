@@ -1,0 +1,40 @@
+---
+const WYZER_URL = 'https://wyzer.acellhq.com';
+---
+
+<header
+  class="sticky top-0 z-40 border-b"
+  style="border-color: var(--color-border-subtle); background-color: color-mix(in srgb, var(--color-page) 86%, transparent); backdrop-filter: blur(6px);"
+>
+  <div class="max-w-[1240px] mx-auto px-6 h-14 flex items-center justify-between">
+    <a href="/" class="flex items-center gap-2 group" aria-label="Compliance Navigator — start over">
+      <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" fill="none">
+        <rect x="0.5" y="0.5" width="23" height="23" rx="6" fill="var(--color-accent)" />
+        <path d="M6 17L9.5 7H11.5L14 13.2L16.5 7H18.5L22 17H19.8L17.5 10.8L15 17H13L10.5 10.8L8.2 17H6Z" fill="white" />
+      </svg>
+      <span class="text-[14px] font-semibold tracking-[-0.01em]" style="color: var(--color-ink)">Navigator</span>
+      <span class="hidden sm:inline font-mono text-[10px] uppercase tracking-wide" style="color: var(--color-muted)">by Wyzer</span>
+    </a>
+
+    <div class="flex items-center gap-1.5">
+      <button
+        data-search-trigger
+        type="button"
+        aria-label="Search topics (⌘K)"
+        title="Search (⌘K)"
+        class="inline-flex h-9 w-9 items-center justify-center rounded-md transition-colors hover:[color:var(--color-ink)] hover:[background-color:var(--color-surface)]"
+        style="color: var(--color-muted)"
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>
+      </button>
+      <a
+        href={WYZER_URL}
+        class="inline-flex items-center gap-1.5 h-8 px-3 text-[13px] rounded-md border transition-colors hover:[background-color:var(--color-surface)]"
+        style="color: var(--color-ink); border-color: var(--color-border-subtle)"
+      >
+        Wyzer
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7" /><path d="M7 7h10v10" /></svg>
+      </a>
+    </div>
+  </div>
+</header>

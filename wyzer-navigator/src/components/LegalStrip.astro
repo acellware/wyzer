@@ -1,0 +1,26 @@
+---
+const year = new Date().getFullYear();
+---
+
+<footer class="mt-16 border-t" style="border-color: var(--color-border-subtle)">
+  <div
+    class="max-w-[1240px] mx-auto px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-3 font-mono text-[11px]"
+    style="color: var(--color-muted)"
+  >
+    <p>Informational only, not legal advice.</p>
+    <nav class="flex items-center gap-4 flex-wrap justify-center" aria-label="Legal">
+      <a href="/privacy" class="transition-colors hover:[color:var(--color-ink)]">Privacy</a>
+      <a href="/terms" class="transition-colors hover:[color:var(--color-ink)]">Terms</a>
+      <a href="/cookies" class="transition-colors hover:[color:var(--color-ink)]">Cookies</a>
+      <button
+        type="button"
+        class="transition-colors hover:[color:var(--color-ink)]"
+        onclick="window.__wyzerConsent && window.__wyzerConsent.open()"
+      >
+        Cookie settings
+      </button>
+      <span aria-hidden="true">·</span>
+      <span>© {year} Wyzer</span>
+    </nav>
+  </div>
+</footer>
