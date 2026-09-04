@@ -3,6 +3,7 @@ import '@/styles/global.css';
 import Navbar from '@/components/Navbar.astro';
 import Footer from '@/components/Footer.astro';
 import SearchModal from '@/components/SearchModal.astro';
+import Analytics from '@/components/Analytics.astro';
 
 interface Props {
   title: string;
@@ -59,10 +60,17 @@ const jsonLdItems = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
     {jsonLdItems.map((item) => (
       <script type="application/ld+json" is:inline set:html={JSON.stringify(item)} />
     ))}
+    <Analytics />
   </head>
   <body class="flex min-h-screen flex-col">
+    <a
+      href="#main-content"
+      class="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-[80] focus:rounded-md focus:border focus:border-line focus:bg-surface focus:px-3 focus:py-2 focus:text-sm focus:font-medium focus:text-ink-primary"
+    >
+      Skip to content
+    </a>
     <Navbar />
-    <main class="flex-1">
+    <main id="main-content" class="flex-1">
       <slot />
     </main>
     <Footer />

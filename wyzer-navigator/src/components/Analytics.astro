@@ -1,0 +1,108 @@
+---
+// Google Analytics 4. Custom events map to the PRD's success metrics:
+//   - topic_reached → time from landing to first Topic Page (bucketed)
+//   - topic_view    → topics viewed per session (bucketed count)
+//   - topic_scroll  → max scroll depth on a Topic Page (bucketed %)
+// Returning-visitor / session data comes from GA natively.
+//
+// Measurement ID defaults to the production tag but can be overridden with
+// PUBLIC_GA_ID. Set PUBLIC_ANALYTICS_DEBUG=true to log events to the console.
+const GA_ID = import.meta.env.PUBLIC_GA_ID ?? 'G-QQKWMXNVSH';
+const debug = import.meta.env.PUBLIC_ANALYTICS_DEBUG === 'true';
+---
+
+{GA_ID && (
+  <>
+    <script is:inline async src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}></script>
+    <script is:inline define:vars={{ GA_ID }}>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() { dataLayer.push(arguments); }
+      window.gtag = gtag;
+      gtag('js', new Date());
+      // Don't pollute the property with local dev/preview traffic.
+      var isLocal = ['localhost', '127.0.0.1', '0.0.0.0'].indexOf(location.hostname) !== -1;
+      if (!isLocal) gtag('config', GA_ID);
+    </script>
+  </>
+)}
+
+<script is:inline define:vars={{ debug }}>
+  (function () {
+    function track(name, params) {
+      try { if (window.gtag) window.gtag('event', name, params || {}); } catch (e) {}
+      if (debug) console.log('[analytics]', name, params || {});
+    }
+    var path = location.pathname;
+    var isHome = path === '/';
+    var isTopic = /^\/topic\/[^/]+\/?$/.test(path); // topic page, not the framework detail page
+
+    try {
+      if (isHome && !sessionStorage.getItem('nav_landing_ts')) {
+        sessionStorage.setItem('nav_landing_ts', String(Date.now()));
+      }
+    } catch (e) {}
+
+    function bucketSeconds(s) {
+      if (s < 10) return '0-10s';
+      if (s < 30) return '10-30s';
+      if (s < 60) return '30-60s';
+      if (s < 180) return '1-3m';
+      return '3m+';
+    }
+    function bucketCount(n) {
+      if (n <= 1) return '1';
+      if (n === 2) return '2';
+      if (n === 3) return '3';
+      if (n <= 5) return '4-5';
+      return '6+';
+    }
+    function bucketDepth(p) {
+      if (p < 25) return '0-25';
+      if (p < 50) return '25-50';
+      if (p < 75) return '50-75';
+      if (p < 95) return '75-95';
+      return '95-100';
+    }
+
+    if (isTopic) {
+      // Time to first Topic Page from the landing page.
+      try {
+        var ts = sessionStorage.getItem('nav_landing_ts');
+        if (ts && !sessionStorage.getItem('nav_topic_timed')) {
+          var secs = Math.round((Date.now() - Number(ts)) / 1000);
+          track('topic_reached', { time_bucket: bucketSeconds(secs) });
+          sessionStorage.setItem('nav_topic_timed', '1');
+        }
+      } catch (e) {}
+
+      // Topics viewed per session.
+      var n = 1;
+      try {
+        n = Number(sessionStorage.getItem('nav_topic_views') || '0') + 1;
+        sessionStorage.setItem('nav_topic_views', String(n));
+      } catch (e) {}
+      track('topic_view', { session_index: bucketCount(n) });
+
+      // Max scroll depth (a proxy for the "one view" goal — heavy scroll is bad).
+      var maxDepth = 0;
+      function onScroll() {
+        var doc = document.documentElement;
+        var scrollable = doc.scrollHeight - window.innerHeight;
+        var pct = scrollable > 0 ? Math.round((window.scrollY / scrollable) * 100) : 100;
+        if (pct > maxDepth) maxDepth = Math.min(100, pct);
+      }
+      window.addEventListener('scroll', onScroll, { passive: true });
+      onScroll();
+      var reported = false;
+      function report() {
+        if (reported) return;
+        reported = true;
+        track('topic_scroll', { depth_bucket: bucketDepth(maxDepth) });
+      }
+      document.addEventListener('visibilitychange', function () {
+        if (document.visibilityState === 'hidden') report();
+      });
+      window.addEventListener('pagehide', report);
+    }
+  })();
+</script>

@@ -15,7 +15,7 @@ const { index, kicker, title, intro, align = 'left', class: className = '' } = A
     <span aria-hidden class="h-px w-8" style="background: var(--color-accent)"></span>
     <span class="font-mono text-[12px] tracking-tight lowercase" style="color: var(--color-muted)">
       <span style="color: var(--color-accent-ink)">{index}</span>
-      {kicker && <span class="opacity-60">{' / '}{kicker}</span>}
+      {kicker && <span>{' / '}{kicker}</span>}
     </span>
   </div>
   <h2 class="text-display-3 balance" style="color: var(--color-ink)">{title}</h2>

@@ -14,7 +14,7 @@
   /* Text */
   --color-ink: hsl(30 22% 10%);
   --color-body: hsl(30 14% 18%);
-  --color-muted: hsl(30 8% 40%);
+  --color-muted: hsl(30 9% 34%);
 
   /* Borders */
   --color-border: hsl(34 10% 70%);
@@ -36,7 +36,7 @@
   --ch-raised: 38 18% 89%;
   --ch-ink: 30 22% 10%;
   --ch-body: 30 14% 18%;
-  --ch-muted: 30 8% 40%;
+  --ch-muted: 30 9% 34%;
   --ch-border: 34 10% 70%;
   --ch-border-subtle: 36 14% 84%;
   --ch-accent: 234 62% 50%;

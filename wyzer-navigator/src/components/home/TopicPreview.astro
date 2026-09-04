@@ -42,9 +42,10 @@ const cards = [
       {cards.map((c) => (
         <div class="rounded-lg border p-3" style="background: var(--color-surface); border-color: var(--color-border-subtle)">
           <span
-            class="inline-flex items-center rounded-md px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wide"
-            style={`background:${c.color}1f; color:${c.color}; border:1px solid ${c.color}40;`}
+            class="inline-flex items-center gap-1 rounded-md px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wide"
+            style={`background:${c.color}12; color: var(--color-ink); border:1px solid ${c.color}40;`}
           >
+            <span class="h-1 w-1 rounded-full" style={`background:${c.color}`} aria-hidden="true"></span>
             {c.name}
           </span>
           <p class="mt-2 text-[11.5px] leading-[1.5]" style="color: var(--color-body)">{c.text}</p>

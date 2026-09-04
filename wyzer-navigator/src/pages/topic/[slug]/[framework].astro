@@ -70,9 +70,9 @@ const jsonLd = {
     <div class="mt-6 flex flex-wrap items-center gap-2.5">
       <span
         class="inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-semibold"
-        style={`background:${color}14; color:${color}; border:1px solid ${color}33;`}
+        style={`background:${color}14; color: var(--color-ink); border:1px solid ${color}33;`}
       >
-        <span class="h-2 w-2 rounded-full" style={`background:${color}`}></span>
+        <span class="h-2 w-2 rounded-full" style={`background:${color}`} aria-hidden="true"></span>
         {fw.data.name}
       </span>
       {fw.data.tier && <span class="font-mono text-2xs uppercase tracking-wide text-ink-dim">{fw.data.tier}</span>}
@@ -89,9 +89,10 @@ const jsonLd = {
       {lenses.map((l) =>
         l.active ? (
           <span
-            class="inline-flex items-center rounded-md px-2.5 py-1 text-xs font-semibold"
-            style={`background:${l.fw.data.badgeColor}1f; color:${l.fw.data.badgeColor}; border:1px solid ${l.fw.data.badgeColor}55;`}
+            class="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-semibold"
+            style={`background:${l.fw.data.badgeColor}14; color: var(--color-ink); border:1px solid ${l.fw.data.badgeColor}66;`}
           >
+            <span class="h-1.5 w-1.5 rounded-full" style={`background:${l.fw.data.badgeColor}`} aria-hidden="true"></span>
             {l.fw.data.shortName}
           </span>
         ) : (
