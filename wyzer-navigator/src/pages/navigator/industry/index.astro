@@ -11,7 +11,7 @@ const industries = (await getCollection('industry')).sort(
 
 <Layout title="Browse by Industry" description="Pick an industry to see the compliance topics that matter to it.">
   <div class="mx-auto max-w-content px-4 py-10">
-    <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Industry' }]} />
+    <Breadcrumbs items={[{ label: 'Home', href: '/navigator' }, { label: 'Industry' }]} />
     <h1 class="text-3xl font-semibold tracking-tight text-ink-primary">Browse by Industry</h1>
     <p class="mt-3 max-w-2xl text-ink-muted">
       Start with your industry, then pick a business function to see the topics that
@@ -21,7 +21,7 @@ const industries = (await getCollection('industry')).sort(
     <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3" data-reveal>
       {industries.map((i) => (
         <NavCard
-          href={`/industry/${i.id}`}
+          href={`/navigator/industry/${i.id}`}
           title={i.data.industryName}
           blurb={i.data.blurb}
           meta={`${i.data.functions.length} functions`}

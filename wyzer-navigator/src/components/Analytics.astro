@@ -82,7 +82,7 @@ const debug = import.meta.env.PUBLIC_ANALYTICS_DEBUG === 'true';
     function syncBanner() { if (getConsent()) hideBanner(); else showBanner(); }
     window.__wyzerConsent = { open: showBanner };
 
-    function isTopic() { return /^\/topic\/[^/]+\/?$/.test(location.pathname); }
+    function isTopic() { return /^\/navigator\/topic\/[^/]+\/?$/.test(location.pathname); }
 
     // ---- Scroll depth (single listener; per-topic max, reported on leave) ----
     var maxDepth = 0, scrollTopicActive = false, scrollReported = false;
@@ -116,7 +116,7 @@ const debug = import.meta.env.PUBLIC_ANALYTICS_DEBUG === 'true';
     }
 
     function markLanding() {
-      try { if (location.pathname === '/' && !sessionStorage.getItem('nav_landing_ts')) sessionStorage.setItem('nav_landing_ts', String(Date.now())); } catch (e) {}
+      try { if (location.pathname === '/navigator' && !sessionStorage.getItem('nav_landing_ts')) sessionStorage.setItem('nav_landing_ts', String(Date.now())); } catch (e) {}
     }
 
     // ---- Delegated clicks (survive DOM swaps) ----
@@ -130,7 +130,7 @@ const debug = import.meta.env.PUBLIC_ANALYTICS_DEBUG === 'true';
         e.preventDefault();
         try {
           var slugs = JSON.parse(s.getAttribute('data-slugs') || '[]');
-          if (slugs.length) window.location.href = '/topic/' + slugs[Math.floor(Math.random() * slugs.length)];
+          if (slugs.length) window.location.href = '/navigator/topic/' + slugs[Math.floor(Math.random() * slugs.length)];
         } catch (err) {}
       }
     });

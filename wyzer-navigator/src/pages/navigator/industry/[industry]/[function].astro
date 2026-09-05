@@ -35,9 +35,9 @@ const topics = fn.topics.map((node) => {
   <div class="mx-auto max-w-content px-4 py-10">
     <Breadcrumbs
       items={[
-        { label: 'Home', href: '/' },
-        { label: 'Industry', href: '/industry' },
-        { label: industry.data.industryName, href: `/industry/${industry.id}` },
+        { label: 'Home', href: '/navigator' },
+        { label: 'Industry', href: '/navigator/industry' },
+        { label: industry.data.industryName, href: `/navigator/industry/${industry.id}` },
         { label: fn.name },
       ]}
     />
@@ -50,7 +50,7 @@ const topics = fn.topics.map((node) => {
     <div class="mt-8 grid gap-4 sm:grid-cols-2" data-reveal>
       {topics.map(({ node, topic }) => (
         <NavCard
-          href={`/topic/${topic.slug}`}
+          href={`/navigator/topic/${topic.slug}`}
           title={node.name}
           blurb={topic.data.summary}
           note={topic.data.type === 'industry-only' ? 'Industry-only topic' : undefined}

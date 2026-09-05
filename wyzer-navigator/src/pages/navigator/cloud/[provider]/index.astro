@@ -23,8 +23,8 @@ const categories = provider.data.categories;
   <div class="mx-auto max-w-content px-4 py-10">
     <Breadcrumbs
       items={[
-        { label: 'Home', href: '/' },
-        { label: 'Cloud', href: '/cloud' },
+        { label: 'Home', href: '/navigator' },
+        { label: 'Cloud', href: '/navigator/cloud' },
         { label: provider.data.providerName },
       ]}
     />
@@ -34,7 +34,7 @@ const categories = provider.data.categories;
     <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3" data-reveal>
       {categories.map((c) => (
         <NavCard
-          href={`/cloud/${provider.id}/${c.slug}`}
+          href={`/navigator/cloud/${provider.id}/${c.slug}`}
           title={c.name}
           blurb={c.blurb}
           meta={`${c.resources.length} services`}

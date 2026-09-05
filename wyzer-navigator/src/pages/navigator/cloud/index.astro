@@ -11,7 +11,7 @@ const providers = (await getCollection('cloud')).sort(
 
 <Layout title="Browse by Cloud" description="Pick a cloud provider to see what compliance frameworks say about its services and configurations.">
   <div class="mx-auto max-w-content px-4 py-10">
-    <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Cloud' }]} />
+    <Breadcrumbs items={[{ label: 'Home', href: '/navigator' }, { label: 'Cloud' }]} />
     <h1 class="text-3xl font-semibold tracking-tight text-ink-primary">Browse by Cloud</h1>
     <p class="mt-3 max-w-2xl text-ink-muted">
       Start with your cloud provider, then drill into a service and configuration to
@@ -21,7 +21,7 @@ const providers = (await getCollection('cloud')).sort(
     <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3" data-reveal>
       {providers.map((p) => (
         <NavCard
-          href={`/cloud/${p.id}`}
+          href={`/navigator/cloud/${p.id}`}
           title={p.data.providerName}
           blurb={p.data.blurb}
           meta={`${p.data.categories.length} categories`}

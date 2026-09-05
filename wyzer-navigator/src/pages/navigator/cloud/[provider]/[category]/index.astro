@@ -24,9 +24,9 @@ const { provider, category } = Astro.props;
   <div class="mx-auto max-w-content px-4 py-10">
     <Breadcrumbs
       items={[
-        { label: 'Home', href: '/' },
-        { label: 'Cloud', href: '/cloud' },
-        { label: provider.data.providerName, href: `/cloud/${provider.id}` },
+        { label: 'Home', href: '/navigator' },
+        { label: 'Cloud', href: '/navigator/cloud' },
+        { label: provider.data.providerName, href: `/navigator/cloud/${provider.id}` },
         { label: category.name },
       ]}
     />
@@ -36,7 +36,7 @@ const { provider, category } = Astro.props;
     <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3" data-reveal>
       {category.resources.map((r) => (
         <NavCard
-          href={`/cloud/${provider.id}/${category.slug}/${r.slug}`}
+          href={`/navigator/cloud/${provider.id}/${category.slug}/${r.slug}`}
           title={r.name}
           blurb={r.blurb}
           meta={`${r.configurations.length} topics`}

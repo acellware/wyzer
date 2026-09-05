@@ -22,8 +22,8 @@ const { industry } = Astro.props;
   <div class="mx-auto max-w-content px-4 py-10">
     <Breadcrumbs
       items={[
-        { label: 'Home', href: '/' },
-        { label: 'Industry', href: '/industry' },
+        { label: 'Home', href: '/navigator' },
+        { label: 'Industry', href: '/navigator/industry' },
         { label: industry.data.industryName },
       ]}
     />
@@ -33,7 +33,7 @@ const { industry } = Astro.props;
     <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3" data-reveal>
       {industry.data.functions.map((fn) => (
         <NavCard
-          href={`/industry/${industry.id}/${fn.slug}`}
+          href={`/navigator/industry/${industry.id}/${fn.slug}`}
           title={fn.name}
           blurb={fn.blurb}
           meta={`${fn.topics.length} topics`}

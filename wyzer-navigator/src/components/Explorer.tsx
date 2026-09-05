@@ -110,7 +110,7 @@ export default function Explorer({ tree }: { tree: ExplorerNode[] }) {
     if (isTerminal(node) && node.topic) {
       const trailIds = ids.slice(0, depth).concat(node.id);
       const trailNodes = chosen.slice(0, depth).concat(node);
-      window.location.href = `/topic/${node.topic.slug}?p=${encodeTrail(trailIds, trailNodes)}`;
+      window.location.href = `/navigator/topic/${node.topic.slug}?p=${encodeTrail(trailIds, trailNodes)}`;
       return;
     }
     const next = ids.slice(0, depth).concat(node.id);

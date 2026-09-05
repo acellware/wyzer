@@ -11,7 +11,7 @@ const { current } = Astro.props;
 
 <nav id="trail-menu" aria-label="Path" class="mb-6" data-current={current}>
   <ol class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
-    <li><a href="/" class="crumb-link">Home</a></li>
+    <li><a href="/navigator" class="crumb-link">Home</a></li>
     <li><span class="crumb-sep" aria-hidden="true">/</span></li>
     <li><span class="crumb-current" aria-current="page">{current}</span></li>
   </ol>
@@ -55,7 +55,7 @@ const { current } = Astro.props;
 
       const ol = nav.querySelector('ol');
       if (!ol) return;
-      let html = '<li><a href="/" class="crumb-link">Home</a></li>';
+      let html = '<li><a href="/navigator" class="crumb-link">Home</a></li>';
       const cum: string[] = [];
       segs.forEach((s, i) => {
         cum.push(s.id);
@@ -64,7 +64,7 @@ const { current } = Astro.props;
         if (last) {
           html += '<li><span class="crumb-current" aria-current="page">' + esc(s.label) + '</span></li>';
         } else {
-          const hash = '/#' + cum.map(encodeURIComponent).join('/');
+          const hash = '/navigator#' + cum.map(encodeURIComponent).join('/');
           html += '<li><a class="crumb-link" href="' + hash + '">' + esc(s.label) + '</a></li>';
         }
       });

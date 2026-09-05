@@ -41,10 +41,10 @@ const configs = resource.configurations.map((config) => {
   <div class="mx-auto max-w-content px-4 py-10">
     <Breadcrumbs
       items={[
-        { label: 'Home', href: '/' },
-        { label: 'Cloud', href: '/cloud' },
-        { label: provider.data.providerName, href: `/cloud/${provider.id}` },
-        { label: category.name, href: `/cloud/${provider.id}/${category.slug}` },
+        { label: 'Home', href: '/navigator' },
+        { label: 'Cloud', href: '/navigator/cloud' },
+        { label: provider.data.providerName, href: `/navigator/cloud/${provider.id}` },
+        { label: category.name, href: `/navigator/cloud/${provider.id}/${category.slug}` },
         { label: resource.name },
       ]}
     />
@@ -59,7 +59,7 @@ const configs = resource.configurations.map((config) => {
     <div class="mt-8 grid gap-4 sm:grid-cols-2" data-reveal>
       {configs.map(({ config, topic }) => (
         <NavCard
-          href={`/topic/${topic.slug}`}
+          href={`/navigator/topic/${topic.slug}`}
           title={config.name}
           blurb={topic.data.summary}
           note={config.providerNote}
