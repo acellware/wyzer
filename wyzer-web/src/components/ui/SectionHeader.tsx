@@ -25,12 +25,12 @@ export function SectionHeader({
     <span aria-hidden className='h-px w-8 bg-[var(--color-accent)]' />
     <span className='font-mono text-[12px] tracking-tight text-[var(--color-muted)] lowercase'>
      <span className='text-[var(--color-accent-ink)]'>{index}</span>
-     {kicker ? (
-      <span className='opacity-60'>
-       {' / '}
-       {kicker}
-      </span>
-     ) : null}
+      {kicker ? (
+       <span>
+        {' / '}
+        {kicker}
+       </span>
+      ) : null}
     </span>
    </div>
    <h2 className='text-display-3 text-[var(--color-ink)] balance'>{title}</h2>

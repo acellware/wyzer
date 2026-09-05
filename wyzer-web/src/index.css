@@ -15,7 +15,7 @@
  /* Text */
  --color-ink: hsl(30 22% 10%);
  --color-body: hsl(30 14% 18%);
- --color-muted: hsl(30 8% 40%);
+  --color-muted: hsl(30 8% 35%);
 
  /* Borders */
  --color-border: hsl(34 10% 70%);
@@ -27,7 +27,7 @@
  --color-accent-ink: hsl(234 65% 28%);
 
  /* Semantic */
- --color-positive: hsl(145 55% 32%);
+  --color-positive: hsl(145 58% 28%);
  --color-danger: hsl(358 70% 42%);
  --color-warn: hsl(30 90% 38%);
 
@@ -37,7 +37,7 @@
  --ch-raised: 38 18% 89%;
  --ch-ink: 30 22% 10%;
  --ch-body: 30 14% 18%;
- --ch-muted: 30 8% 40%;
+  --ch-muted: 30 8% 35%;
  --ch-border: 34 10% 70%;
  --ch-border-subtle: 36 14% 84%;
  --ch-accent: 234 62% 50%;
@@ -69,9 +69,12 @@
  --color-muted: hsl(220 9% 58%);
  --color-border: hsl(222 11% 28%);
  --color-border-subtle: hsl(222 11% 18%);
- --color-accent: hsl(234 80% 65%);
+ --color-accent: hsl(234 82% 62%);
  --color-accent-soft: hsl(234 40% 18%);
- --color-accent-ink: hsl(234 80% 75%);
+ --color-accent-ink: hsl(234 90% 80%);
+ --color-positive: hsl(145 52% 55%);
+ --color-danger: hsl(358 80% 68%);
+ --color-warn: hsl(38 90% 60%);
 
  /* HSL channel vars — dark mode overrides */
  --ch-page: 222 14% 7%;
@@ -82,8 +85,8 @@
  --ch-muted: 220 9% 58%;
  --ch-border: 222 11% 28%;
  --ch-border-subtle: 222 11% 18%;
- --ch-accent: 234 80% 65%;
- --ch-accent-ink: 234 80% 75%;
+ --ch-accent: 234 82% 62%;
+ --ch-accent-ink: 234 90% 80%;
 }
 
 @layer base {

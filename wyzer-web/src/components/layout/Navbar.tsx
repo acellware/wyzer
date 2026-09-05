@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, ArrowUpRight } from 'lucide-react';
 import { ThemeToggle } from '@components/ui/ThemeToggle';
+import { NAVIGATOR_URL } from '../../lib/site';
 
 const navLinks = [
  { label: 'Why', href: '#why' },
@@ -21,18 +22,30 @@ export function Navbar() {
   return () => window.removeEventListener('scroll', onScroll);
  }, []);
 
- return (
-  <header
-   className={`sticky top-0 z-40 border-b transition-colors ${
-    scrolled ? 'border-[var(--color-border-subtle)]' : 'border-transparent'
-   }`}
-   style={{
-    backgroundColor: scrolled
-     ? 'color-mix(in srgb, var(--color-page) 88%, transparent)'
-     : 'transparent',
-    backdropFilter: scrolled ? 'blur(6px)' : 'none',
-   }}
-  >
+  return (
+   <>
+    <a
+     href='#main-content'
+     className='sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-3 focus:z-[80] focus:rounded-md focus:px-3 focus:py-2 focus:text-[13px] focus:font-medium'
+     style={{
+      background: 'var(--color-surface)',
+      color: 'var(--color-ink)',
+      border: '1px solid var(--color-border)',
+     }}
+    >
+     Skip to content
+    </a>
+    <header
+     className={`sticky top-0 z-40 border-b transition-colors ${
+      scrolled ? 'border-[var(--color-border-subtle)]' : 'border-transparent'
+     }`}
+     style={{
+      backgroundColor: scrolled
+       ? 'color-mix(in srgb, var(--color-page) 88%, transparent)'
+       : 'transparent',
+      backdropFilter: scrolled ? 'blur(6px)' : 'none',
+     }}
+    >
    <div className='max-w-[1240px] mx-auto px-6 h-16 flex items-center justify-between'>
     {/* Logo */}
     <Link to='/' className='flex items-center gap-2 group'>
@@ -76,12 +89,29 @@ export function Navbar() {
         {it.label}
         <span
          aria-hidden
-         className='pointer-events-none absolute left-0 right-0 -bottom-1 h-px origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-200 ease-out'
+         className='pointer-events-none absolute left-0 right-0 -bottom-1 h-px origin-left scale-x-0 group-hover:scale-x-100 group-focus:scale-x-100 transition-transform duration-200 ease-out'
          style={{ backgroundColor: 'var(--color-accent)' }}
         />
        </span>
       </a>
      ))}
+     <a
+      href={NAVIGATOR_URL}
+      target='_blank'
+      rel='noopener noreferrer'
+      className='group relative px-3 h-9 inline-flex items-center gap-1 text-[14px] rounded-md transition-colors'
+      style={{ color: 'var(--color-muted)' }}
+      onMouseEnter={(e) =>
+       ((e.currentTarget as HTMLAnchorElement).style.color = 'var(--color-ink)')
+      }
+      onMouseLeave={(e) =>
+       ((e.currentTarget as HTMLAnchorElement).style.color =
+        'var(--color-muted)')
+      }
+     >
+      Navigator
+      <ArrowUpRight size={13} className='opacity-70' />
+     </a>
     </nav>
 
     {/* Right side */}
@@ -152,6 +182,17 @@ export function Navbar() {
         {l.label}
        </a>
       ))}
+      <a
+       href={NAVIGATOR_URL}
+       target='_blank'
+       rel='noopener noreferrer'
+       onClick={() => setMobileOpen(false)}
+       className='py-2.5 text-[14px] inline-flex items-center gap-1 transition-colors'
+       style={{ color: 'var(--color-body)' }}
+      >
+       Compliance Navigator
+       <ArrowUpRight size={14} className='opacity-70' />
+      </a>
      </nav>
      <div
       className='pt-4 flex flex-col gap-2 border-t'
@@ -174,10 +215,11 @@ export function Navbar() {
        Join waitlist
       </a>
      </div>
-    </div>
-   )}
-  </header>
- );
+     </div>
+    )}
+   </header>
+   </>
+  );
 }
 
 function WyzerMark() {

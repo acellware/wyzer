@@ -51,7 +51,7 @@ export function HowItWorksSection() {
         </div>
         <span
          className='font-mono text-[13px]'
-         style={{ color: 'var(--color-accent)' }}
+         style={{ color: 'var(--color-accent-ink)' }}
         >
          {num}
         </span>

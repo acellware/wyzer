@@ -7,9 +7,14 @@ import { authStore } from '../store/auth';
  * Runs a silent POST /auth/refresh on app mount.
  * - If the HttpOnly refresh cookie is valid → stores the new access token.
  * - If not → clears the token (user is unauthenticated).
- * Shows a full-screen spinner until the check completes so no child component
- * ever fires a data request before we know the auth state.
+ *
+ * Only the authenticated app routes block on this check (so a data request
+ * never fires before we know the auth state). Marketing, legal, auth, and the
+ * public tool render immediately while the refresh completes in the background,
+ * so first paint is never gated on an API round-trip.
  */
+const APP_ROUTE = /^\/(dashboard|stacks|reports|settings|billing|teams|profile)(\/|$)/;
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
  const [ready, setReady] = useState(false);
 
@@ -29,7 +34,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
  }, []);
 
- if (!ready) {
+ const gateThisRoute =
+  typeof window !== 'undefined' && APP_ROUTE.test(window.location.pathname);
+
+ if (!ready && gateThisRoute) {
   return (
    <div
     className='min-h-screen flex items-center justify-center'

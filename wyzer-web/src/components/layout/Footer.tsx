@@ -1,6 +1,16 @@
 import { Link } from 'react-router-dom';
+import { ArrowUpRight } from 'lucide-react';
+import { NAVIGATOR_URL } from '../../lib/site';
+import { analyticsConfigured, openConsentBanner } from '../../lib/analytics';
 
-const cols = [
+type FooterLink = {
+ label: string;
+ href?: string;
+ external?: boolean;
+ action?: 'cookie-settings';
+};
+
+const cols: { heading: string; links: FooterLink[] }[] = [
  {
   heading: 'Product',
   links: [
@@ -11,22 +21,10 @@ const cols = [
   ],
  },
  {
-  heading: 'Frameworks',
+  heading: 'Learn',
   links: [
-   { label: 'SOC 2 Type II', href: '#' },
-   { label: 'ISO 27001', href: '#' },
-   { label: 'GDPR', href: '#' },
-   { label: 'PCI-DSS 4.0', href: '#' },
-   { label: 'HIPAA', href: '#' },
-   { label: 'NDPR', href: '#' },
-  ],
- },
- {
-  heading: 'Open Spec',
-  links: [
-   { label: 'Overview', href: '#' },
-   { label: 'GitHub', href: '#' },
-   { label: 'Roadmap', href: '#' },
+   { label: 'Compliance Navigator', href: NAVIGATOR_URL, external: true },
+   { label: 'Free check', href: '/check' },
   ],
  },
  {
@@ -35,6 +33,9 @@ const cols = [
    { label: 'Privacy', href: '/privacy' },
    { label: 'Terms', href: '/terms' },
    { label: 'Cookie policy', href: '/cookies' },
+   ...(analyticsConfigured()
+    ? [{ label: 'Cookie settings', action: 'cookie-settings' } as FooterLink]
+    : []),
   ],
  },
 ];
@@ -115,7 +116,7 @@ export function Footer() {
     style={{ borderColor: 'var(--color-border-subtle)' }}
    >
     <div className='max-w-[1240px] mx-auto px-6 py-14'>
-     <div className='grid grid-cols-2 md:grid-cols-5 gap-10'>
+     <div className='grid grid-cols-2 md:grid-cols-4 gap-10'>
       <div className='col-span-2 md:col-span-1'>
        <Link to='/' className='flex items-center gap-2 mb-3'>
         <WyzerMark />
@@ -142,51 +143,76 @@ export function Footer() {
          {col.heading}
         </p>
         <ul className='space-y-2.5'>
-         {col.links.map((l) => (
-          <li key={l.label}>
-           {l.href.startsWith('/') ? (
+         {col.links.map((l) => {
+          const cls =
+           'text-[13.5px] transition-colors inline-flex items-center gap-1';
+          const onEnter = (e: React.MouseEvent<HTMLElement>) =>
+           Object.assign(e.currentTarget.style, linkHover);
+          const onLeave = (e: React.MouseEvent<HTMLElement>) =>
+           Object.assign(e.currentTarget.style, linkBase);
+          let node: React.ReactNode;
+          if (l.action === 'cookie-settings') {
+           node = (
+            <button
+             type='button'
+             onClick={() => openConsentBanner()}
+             className={cls}
+             style={{
+              ...linkBase,
+              background: 'none',
+              border: 'none',
+              padding: 0,
+              font: 'inherit',
+              cursor: 'pointer',
+             }}
+             onMouseEnter={onEnter}
+             onMouseLeave={onLeave}
+            >
+             {l.label}
+            </button>
+           );
+          } else if (l.external && l.href) {
+           node = (
+            <a
+             href={l.href}
+             target='_blank'
+             rel='noopener noreferrer'
+             className={cls}
+             style={linkBase}
+             onMouseEnter={onEnter}
+             onMouseLeave={onLeave}
+            >
+             {l.label}
+             <ArrowUpRight size={12} className='opacity-70' />
+            </a>
+           );
+          } else if (l.href && l.href.startsWith('/')) {
+           node = (
             <Link
              to={l.href}
-             className='text-[13.5px] transition-colors'
+             className={cls}
              style={linkBase}
-             onMouseEnter={(e) =>
-              Object.assign(
-               (e.currentTarget as HTMLAnchorElement).style,
-               linkHover,
-              )
-             }
-             onMouseLeave={(e) =>
-              Object.assign(
-               (e.currentTarget as HTMLAnchorElement).style,
-               linkBase,
-              )
-             }
+             onMouseEnter={onEnter}
+             onMouseLeave={onLeave}
             >
              {l.label}
             </Link>
-           ) : (
+           );
+          } else {
+           node = (
             <a
              href={l.href}
-             className='text-[13.5px] transition-colors'
+             className={cls}
              style={linkBase}
-             onMouseEnter={(e) =>
-              Object.assign(
-               (e.currentTarget as HTMLAnchorElement).style,
-               linkHover,
-              )
-             }
-             onMouseLeave={(e) =>
-              Object.assign(
-               (e.currentTarget as HTMLAnchorElement).style,
-               linkBase,
-              )
-             }
+             onMouseEnter={onEnter}
+             onMouseLeave={onLeave}
             >
              {l.label}
             </a>
-           )}
-          </li>
-         ))}
+           );
+          }
+          return <li key={l.label}>{node}</li>;
+         })}
         </ul>
        </div>
       ))}
@@ -199,7 +225,7 @@ export function Footer() {
        className='font-mono text-[11px]'
        style={{ color: 'var(--color-muted)' }}
       >
-       © {new Date().getFullYear()} Wyzer · Wyzer Open Spec is Apache-2.0
+       © {new Date().getFullYear()} Wyzer · All rights reserved
       </p>
       <p
        className='font-mono text-[11px]'
