@@ -35,6 +35,29 @@ function fanAngles(n: number, baseDeg: number, isCore: boolean): number[] {
 
 const isTerminal = (n: ExplorerNode) => Boolean(n.topic) && (!n.children || n.children.length === 0);
 
+type Role = 'core' | 'active' | 'trail' | 'option';
+function halfDims(node: ExplorerNode, role: Role) {
+  if (role === 'core' || role === 'active') return { w: 66, h: 66, circle: true };
+  if (role === 'option') return { w: 107, h: 27, circle: false };
+  return { w: Math.min(110, node.label.length * 3.6 + 16), h: 16, circle: false };
+}
+// Point on a node's edge in the direction `dir` (a unit vector) from its center.
+function edgePoint(node: ExplorerNode, role: Role, center: Pt, dir: Pt): Pt {
+  const d = halfDims(node, role);
+  if (d.circle) return { x: center.x + dir.x * d.w, y: center.y + dir.y * d.h };
+  const tx = dir.x !== 0 ? d.w / Math.abs(dir.x) : Infinity;
+  const ty = dir.y !== 0 ? d.h / Math.abs(dir.y) : Infinity;
+  const t = Math.min(tx, ty);
+  return { x: center.x + dir.x * t, y: center.y + dir.y * t };
+}
+// Edge-to-edge segment between two nodes, leaving a small gap before the target.
+function segment(from: { node: ExplorerNode; role: Role; pos: Pt }, to: { node: ExplorerNode; role: Role; pos: Pt }, gap = 8) {
+  const dir = unit({ x: to.pos.x - from.pos.x, y: to.pos.y - from.pos.y });
+  const a = edgePoint(from.node, from.role, from.pos, dir);
+  const b0 = edgePoint(to.node, to.role, to.pos, { x: -dir.x, y: -dir.y });
+  return { a, b: { x: b0.x - dir.x * gap, y: b0.y - dir.y * gap } };
+}
+
 export default function Explorer({ tree }: { tree: ExplorerNode[] }) {
   const core = useMemo(() => ({ ...CORE, children: tree }), [tree]);
   const [path, setPath] = useState<ExplorerNode[]>([]);
@@ -80,9 +103,13 @@ export default function Explorer({ tree }: { tree: ExplorerNode[] }) {
     const options = active.children ?? [];
     const baseDeg = parentDir ? Math.atan2(parentDir.y, parentDir.x) / DEG : 0;
     const optAngles = fanAngles(options.length, baseDeg, path.length === 0);
+    // Widen the option ring when there are many children so pills never collide;
+    // fitView zooms out to keep the wider fan in frame.
+    const stepDeg = optAngles.length > 1 ? Math.abs(optAngles[1] - optAngles[0]) : 0;
+    const optR = stepDeg > 0 ? clamp(232 / (stepDeg * DEG), R, 660) : R;
     const optPositions = options.map((node, i) => {
       const ang = (optAngles[i] ?? 0) * DEG;
-      return { node, pos: { x: activePos.x + R * Math.cos(ang), y: activePos.y + R * Math.sin(ang) } };
+      return { node, pos: { x: activePos.x + optR * Math.cos(ang), y: activePos.y + optR * Math.sin(ang) } };
     });
     const placed = [core, ...path].map((n) => ({ node: n, pos: pos[n.id] }));
     return { pos, placed, options: optPositions, activePos, active };
@@ -155,12 +182,29 @@ export default function Explorer({ tree }: { tree: ExplorerNode[] }) {
     [path, navigate],
   );
 
-  // Re-center the active node into view whenever the path changes.
+  // Fit the whole graph into view while keeping Start (world origin) centered.
+  const fitView = useCallback(() => {
+    const pad = 64;
+    let maxX = 90;
+    let maxY = 90;
+    const consider = (p: Pt, d: { w: number; h: number }) => {
+      maxX = Math.max(maxX, Math.abs(p.x) + d.w);
+      maxY = Math.max(maxY, Math.abs(p.y) + d.h);
+    };
+    layout.placed.forEach((pl, i) =>
+      consider(pl.pos, halfDims(pl.node, i === 0 ? 'core' : pl.node.id === layout.active.id ? 'active' : 'trail')),
+    );
+    layout.options.forEach((o) => consider(o.pos, halfDims(o.node, 'option')));
+    const s = clamp(Math.min((size.w / 2 - pad) / maxX, (size.h / 2 - pad) / maxY), 0.4, 1.45);
+    setScale(s);
+    setPan({ x: size.w / 2, y: size.h / 2 });
+  }, [layout, size.w, size.h]);
+
+  // Re-fit whenever the drilled path or the viewport changes.
   useEffect(() => {
     setAnimatePan(true);
-    const s = scaleRef.current;
-    setPan({ x: size.w / 2 - layout.activePos.x * s, y: size.h / 2 - layout.activePos.y * s });
-  }, [path, size.w, size.h]); // eslint-disable-line react-hooks/exhaustive-deps
+    fitView();
+  }, [path, size.w, size.h, fitView]);
 
   // Drag to pan.
   useEffect(() => {
@@ -231,8 +275,7 @@ export default function Explorer({ tree }: { tree: ExplorerNode[] }) {
   };
   const recenter = () => {
     setAnimatePan(true);
-    setScale(1);
-    setPan({ x: size.w / 2 - layout.activePos.x, y: size.h / 2 - layout.activePos.y });
+    fitView();
   };
 
   const activeId = layout.active.id;
@@ -258,27 +301,46 @@ export default function Explorer({ tree }: { tree: ExplorerNode[] }) {
           <defs>
             <linearGradient id="cx-line" x1="0" y1="0" x2="1" y2="0">
               <stop offset="0%" stopColor="rgba(120,150,255,0.5)" />
-              <stop offset="100%" stopColor="rgba(120,150,255,0.12)" />
+              <stop offset="100%" stopColor="rgba(120,150,255,0.16)" />
             </linearGradient>
+            <marker id="cx-arrow" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="8" markerHeight="8" orient="auto" markerUnits="userSpaceOnUse">
+              <path d="M0.5 1 L9 5 L0.5 9 Z" fill="rgba(150,172,236,0.62)" />
+            </marker>
+            <marker id="cx-arrow-lit" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="8.5" markerHeight="8.5" orient="auto" markerUnits="userSpaceOnUse">
+              <path d="M0.5 1 L9 5 L0.5 9 Z" fill="rgba(140,175,255,0.85)" />
+            </marker>
           </defs>
           {layout.placed.slice(1).map((pl, i) => {
-            const from = layout.placed[i].pos;
-            return <line key={`t${i}`} x1={from.x} y1={from.y} x2={pl.pos.x} y2={pl.pos.y} stroke="rgba(140,160,220,0.35)" strokeWidth={1.5} />;
+            const fromPl = layout.placed[i];
+            const seg = segment(
+              { node: fromPl.node, role: i === 0 ? 'core' : 'trail', pos: fromPl.pos },
+              { node: pl.node, role: pl.node.id === layout.active.id ? 'active' : 'trail', pos: pl.pos },
+            );
+            return (
+              <line key={`t${i}`} x1={seg.a.x} y1={seg.a.y} x2={seg.b.x} y2={seg.b.y} stroke="rgba(140,160,220,0.4)" strokeWidth={1.5} markerEnd="url(#cx-arrow)" />
+            );
           })}
-          {layout.options.map((o, i) => (
-            <line
-              key={`o${o.node.id}`}
-              className="cx-line-draw"
-              x1={layout.activePos.x}
-              y1={layout.activePos.y}
-              x2={o.pos.x}
-              y2={o.pos.y}
-              stroke="url(#cx-line)"
-              strokeWidth={1.5}
-              pathLength={1}
-              style={{ animationDelay: `${i * 300}ms` }}
-            />
-          ))}
+          {layout.options.map((o, i) => {
+            const seg = segment(
+              { node: layout.active, role: 'active', pos: layout.activePos },
+              { node: o.node, role: 'option', pos: o.pos },
+            );
+            return (
+              <line
+                key={`o${o.node.id}`}
+                className="cx-line-draw"
+                x1={seg.a.x}
+                y1={seg.a.y}
+                x2={seg.b.x}
+                y2={seg.b.y}
+                stroke="url(#cx-line)"
+                strokeWidth={1.5}
+                pathLength={1}
+                markerEnd="url(#cx-arrow-lit)"
+                style={{ animationDelay: `${i * 300}ms` }}
+              />
+            );
+          })}
         </svg>
 
         {layout.placed.map(({ node, pos }, i) => {
