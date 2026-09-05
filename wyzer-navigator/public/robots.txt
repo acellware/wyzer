@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://wyzernavigator.acellhq.com/sitemap.xml
+Sitemap: https://wyzer.acellhq.com/sitemap.xml
