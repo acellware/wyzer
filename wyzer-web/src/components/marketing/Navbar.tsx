@@ -194,9 +194,9 @@ function WyzerMark() {
     y='0.5'
     width='23'
     height='23'
-    rx='6'
-    fill='var(--color-accent)'
-   />
+     rx='6'
+     fill='var(--color-brand)'
+    />
    <path
     d='M6 17L9.5 7H11.5L14 13.2L16.5 7H18.5L22 17H19.8L17.5 10.8L15 17H13L10.5 10.8L8.2 17H6Z'
     fill='white'

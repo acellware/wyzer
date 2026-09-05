@@ -26,6 +26,9 @@
  --color-accent-soft: hsl(234 70% 93%);
  --color-accent-ink: hsl(234 65% 28%);
 
+ /* Brand logo mark — fixed blue, identical on every page and theme */
+ --color-brand: hsl(234 80% 60%);
+
  /* Semantic */
   --color-positive: hsl(145 58% 28%);
  --color-danger: hsl(358 70% 42%);
