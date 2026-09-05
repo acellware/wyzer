@@ -49,27 +49,44 @@ const debug = import.meta.env.PUBLIC_ANALYTICS_DEBUG === 'true';
 
     var KEY = 'wyzer-consent';
     var isLocal = ['localhost', '127.0.0.1', '0.0.0.0'].indexOf(location.hostname) !== -1;
-    var gaLoaded = false;
 
     function getConsent() { try { return localStorage.getItem(KEY); } catch (e) { return null; } }
     function setConsent(v) { try { localStorage.setItem(KEY, v); } catch (e) {} }
 
-    function loadGA() {
-      if (gaLoaded || !GA_ID) return;
-      gaLoaded = true;
-      window.dataLayer = window.dataLayer || [];
-      window.gtag = function () { window.dataLayer.push(arguments); };
+    // ── Google Consent Mode v2 ────────────────────────────────────────────────
+    // The tag loads on every page (so it is detectable and can send anonymous,
+    // cookieless signals), but analytics_storage stays DENIED until the visitor
+    // accepts — no analytics cookies or client id before then. Ad signals are
+    // always denied (this is an analytics-only site).
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = function () { window.dataLayer.push(arguments); };
+    var booted = false;
+    function bootGA() {
+      if (booted) return;
+      booted = true;
+      window.gtag('consent', 'default', {
+        ad_storage: 'denied',
+        ad_user_data: 'denied',
+        ad_personalization: 'denied',
+        analytics_storage: getConsent() === 'granted' ? 'granted' : 'denied',
+        wait_for_update: 500,
+      });
+      window.gtag('set', 'ads_data_redaction', true);
+      window.gtag('js', new Date());
+      if (isLocal || !GA_ID) return; // never ship the real tag or data from local dev
       var s = document.createElement('script');
       s.async = true;
       s.src = 'https://www.googletagmanager.com/gtag/js?id=' + GA_ID;
       document.head.appendChild(s);
-      window.gtag('js', new Date());
-      if (!isLocal) window.gtag('config', GA_ID); // GA4 enhanced measurement tracks soft-nav page_views
+      window.gtag('config', GA_ID); // GA4 enhanced measurement tracks soft-nav page_views
+    }
+    function updateConsent(granted) {
+      window.gtag('consent', 'update', { analytics_storage: granted ? 'granted' : 'denied' });
     }
 
     function track(name, params) {
       if (debug) console.log('[analytics]', name, params || {});
-      if (gaLoaded && window.gtag) window.gtag('event', name, params || {});
+      if (window.gtag) window.gtag('event', name, params || {});
     }
 
     function bucketSeconds(x) { return x < 10 ? '0-10s' : x < 30 ? '10-30s' : x < 60 ? '30-60s' : x < 180 ? '1-3m' : '3m+'; }
@@ -125,8 +142,8 @@ const debug = import.meta.env.PUBLIC_ANALYTICS_DEBUG === 'true';
     document.addEventListener('click', function (e) {
       var t = e.target;
       if (!t || !t.closest) return;
-      if (t.closest('#consent-accept')) { setConsent('granted'); hideBanner(); loadGA(); if (getConsent() === 'granted') trackTopic(); return; }
-      if (t.closest('#consent-decline')) { setConsent('denied'); hideBanner(); return; }
+      if (t.closest('#consent-accept')) { setConsent('granted'); hideBanner(); updateConsent(true); trackTopic(); return; }
+      if (t.closest('#consent-decline')) { setConsent('denied'); hideBanner(); updateConsent(false); return; }
       var s = t.closest('#surprise');
       if (s) {
         e.preventDefault();
@@ -138,14 +155,14 @@ const debug = import.meta.env.PUBLIC_ANALYTICS_DEBUG === 'true';
     });
 
     // ---- Astro lifecycle ----
-    // Set banner + landing ASAP (first load) and before each paint (no flash).
+    // Load the consent-gated tag immediately (present on every page for
+    // detection + cookieless signals); set banner + landing before each paint.
+    bootGA();
     markLanding();
     syncBanner();
     document.addEventListener('astro:after-swap', function () { markLanding(); syncBanner(); });
-    // Tracking runs once per page via page-load (fires on initial load + each nav).
-    document.addEventListener('astro:page-load', function () {
-      if (getConsent() === 'granted') { loadGA(); trackTopic(); }
-      else { scrollTopicActive = false; }
-    });
+    // Custom topic events run per page (initial load + each nav); consent mode
+    // decides whether they carry cookies.
+    document.addEventListener('astro:page-load', function () { trackTopic(); });
   })();
 </script>

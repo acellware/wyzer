@@ -12,8 +12,7 @@ This repository holds Wyzer's web presence and its backend API.
 wyzer/
 ├── wyzer-web/        # Astro 4 site — marketing landing + the Compliance Navigator
 ├── wyzer-api/        # NestJS 10 backend (Prisma, PostgreSQL, Redis/BullMQ)
-├── docker-compose.yml
-└── .github/workflows/deploy-api.yml   # Fly.io CI/CD for the API
+└── docker-compose.yml
 ```
 
 ---
@@ -123,6 +122,6 @@ npm run test:e2e    # integration tests (needs postgres + redis)
 ## Deployment
 
 - **wyzer-web** → Cloudflare Pages (static build; `wyzer.acellhq.com`).
-- **wyzer-api** → Fly.io via `.github/workflows/deploy-api.yml` (`main` → prod, `staging` → staging). Requires the `FLY_API_TOKEN` GitHub secret.
+- **wyzer-api** → Fly.io, deployed manually with `flyctl deploy` (`fly.staging.toml` / `fly.toml`).
 </content>
 </invoke>
