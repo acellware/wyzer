@@ -1,4 +1,39 @@
 ---
-// Temporary: the marketing landing replaces this in the next step.
-return Astro.redirect('/navigator');
+import MarketingLayout from '@/layouts/MarketingLayout.astro';
+import { HeroSection } from '@/components/marketing/HeroSection';
+import { ProblemSection } from '@/components/marketing/ProblemSection';
+import { HowItWorksSection } from '@/components/marketing/HowItWorksSection';
+import { FrameworksSection } from '@/components/marketing/FrameworksSection';
+import { FeaturesSection } from '@/components/marketing/FeaturesSection';
+import { PricingSection } from '@/components/marketing/PricingSection';
+import { CtaSection } from '@/components/marketing/CtaSection';
+
+const origin = (Astro.site?.toString() ?? 'https://wyzer.acellhq.com/').replace(/\/$/, '');
+const description =
+  'Wyzer scores your infrastructure stack against SOC 2, ISO 27001, GDPR, PCI DSS, HIPAA, and NDPR in seconds, with plain-language fixes.';
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'Wyzer',
+    url: origin,
+    description,
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'Wyzer',
+    url: origin,
+  },
+];
 ---
+
+<MarketingLayout jsonLd={jsonLd}>
+  <HeroSection client:load />
+  <ProblemSection client:visible />
+  <HowItWorksSection client:visible />
+  <FrameworksSection client:visible />
+  <FeaturesSection client:visible />
+  <PricingSection client:visible />
+  <CtaSection client:visible />
+</MarketingLayout>
