@@ -81,6 +81,8 @@ const debug = import.meta.env.PUBLIC_ANALYTICS_DEBUG === 'true';
     function hideBanner() { var b = banner(); if (b) b.classList.add('hidden'); }
     function syncBanner() { if (getConsent()) hideBanner(); else showBanner(); }
     window.__wyzerConsent = { open: showBanner };
+    // Let islands (e.g. the waitlist form) report conversions; respects consent.
+    window.__wyzerTrack = track;
 
     function isTopic() { return /^\/navigator\/topic\/[^/]+\/?$/.test(location.pathname); }
 

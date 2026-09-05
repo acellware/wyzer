@@ -43,6 +43,11 @@ export function WaitlistForm({ size = 'md', variant = 'on-canvas' }: Props) {
     throw new Error(msg);
    }
    setDone(true);
+   (
+    window as unknown as {
+     __wyzerTrack?: (name: string, params?: Record<string, unknown>) => void;
+    }
+   ).__wyzerTrack?.('waitlist_signup', { placement: variant });
   } catch (err) {
    setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
   } finally {
