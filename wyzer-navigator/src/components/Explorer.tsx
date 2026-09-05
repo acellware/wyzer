@@ -198,7 +198,7 @@ export default function Explorer({ tree }: { tree: ExplorerNode[] }) {
                   type="button"
                   onClick={() => pick(n, path.length)}
                   className={`hud-node hud-node-anim stacked flex items-center justify-between gap-2 rounded-lg px-3.5 py-3 text-left ${terminal ? 'is-terminal' : ''}`}
-                  style={{ animationDelay: `${i * 70}ms` }}
+                  style={{ animationDelay: `${i * 95}ms` }}
                 >
                   <span className="min-w-0">
                     <span className="block truncate text-[14px] font-medium">{n.label}</span>
@@ -233,7 +233,7 @@ export default function Explorer({ tree }: { tree: ExplorerNode[] }) {
                   className="hud-line-draw"
                   stroke="url(#hudSpoke)"
                   strokeWidth={1.5}
-                  style={{ animationDelay: `${i * 80}ms` }}
+                  style={{ animationDelay: `${i * 130}ms` }}
                 />
               ))}
             </svg>
@@ -266,7 +266,7 @@ export default function Explorer({ tree }: { tree: ExplorerNode[] }) {
                       transform: 'translate(-50%, -50%)',
                       ['--fx' as any]: `${cx - p.x}px`,
                       ['--fy' as any]: `${cy - p.y}px`,
-                      animationDelay: `${i * 80}ms`,
+                      animationDelay: `${i * 130}ms`,
                     }}
                   >
                     <span className="min-w-0">
