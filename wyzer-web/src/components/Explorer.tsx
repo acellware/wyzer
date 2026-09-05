@@ -1,24 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import FrameworkDrawer from './FrameworkDrawer';
+import { DrawerPanel, type FrameworkDetail } from './FrameworkDrawer';
 
-type Citation = { label: string; url: string | null };
-type FrameworkDetail = {
-  slug: string;
-  name: string;
-  shortName: string;
-  tier: string | null;
-  color: string;
-  plain: string;
-  detail: string[];
-  citations: Citation[];
-  href: string;
-};
-type TopicDetail = {
-  slug: string;
-  name: string;
-  summary: string;
-  frameworks: FrameworkDetail[];
-};
+type TopicDetail = { slug: string; name: string; summary: string; frameworks: FrameworkDetail[] };
 export type ExplorerNode = {
   id: string;
   label: string;
@@ -29,8 +12,9 @@ export type ExplorerNode = {
 };
 
 const CORE: ExplorerNode = { id: '__core__', label: 'Start', kind: 'core' };
-const R = 300; // radius between a node and its options
+const R = 300;
 const DEG = Math.PI / 180;
+const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 
 type Pt = { x: number; y: number };
 const unit = (p: Pt): Pt => {
@@ -56,25 +40,25 @@ export default function Explorer({ tree }: { tree: ExplorerNode[] }) {
   const [path, setPath] = useState<ExplorerNode[]>([]);
   const [size, setSize] = useState({ w: 1200, h: 700 });
   const [pan, setPan] = useState<Pt>({ x: 600, y: 350 });
+  const [scale, setScale] = useState(1);
   const [animatePan, setAnimatePan] = useState(true);
   const [revealed, setRevealed] = useState<TopicDetail | null>(null);
+  const [drawerSlug, setDrawerSlug] = useState<string | null>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
-  const drag = useRef<{ active: boolean; sx: number; sy: number; px: number; py: number; moved: boolean }>({
-    active: false, sx: 0, sy: 0, px: 0, py: 0, moved: false,
-  });
+  const drag = useRef({ active: false, sx: 0, sy: 0, px: 0, py: 0, moved: false });
+  const panRef = useRef(pan);
+  panRef.current = pan;
+  const scaleRef = useRef(scale);
+  scaleRef.current = scale;
 
   useEffect(() => {
     const el = wrapRef.current;
     if (!el) return;
-    const ro = new ResizeObserver((e) => {
-      const r = e[0].contentRect;
-      setSize({ w: r.width, h: r.height });
-    });
+    const ro = new ResizeObserver((e) => setSize({ w: e[0].contentRect.width, h: e[0].contentRect.height }));
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
 
-  // Deterministic layout for the chosen path + the current options.
   const layout = useMemo(() => {
     const pos: Record<string, Pt> = { [core.id]: { x: 0, y: 0 } };
     let parentPos: Pt = { x: 0, y: 0 };
@@ -104,23 +88,81 @@ export default function Explorer({ tree }: { tree: ExplorerNode[] }) {
     return { pos, placed, options: optPositions, activePos, active };
   }, [path, tree, core]);
 
-  // Re-center the active node when the path changes (animated).
+  // ── Hash sync: the URL fragment is the source of truth for the drilled path ──
+  const pathFromIds = useCallback(
+    (ids: string[]) => {
+      const out: ExplorerNode[] = [];
+      let lvl = tree;
+      for (const id of ids) {
+        const n = lvl.find((x) => x.id === id);
+        if (!n) break;
+        out.push(n);
+        lvl = n.children ?? [];
+      }
+      return out;
+    },
+    [tree],
+  );
+  const parseHash = () => {
+    const h = location.hash.replace(/^#\/?/, '');
+    return h ? h.split('/').filter(Boolean) : [];
+  };
+  const applyPath = useCallback(
+    (ids: string[]) => {
+      setPath(pathFromIds(ids));
+      setRevealed(null);
+      setDrawerSlug(null);
+    },
+    [pathFromIds],
+  );
+  useEffect(() => {
+    applyPath(parseHash());
+    const onPop = () => applyPath(parseHash());
+    window.addEventListener('popstate', onPop);
+    window.addEventListener('hashchange', onPop);
+    return () => {
+      window.removeEventListener('popstate', onPop);
+      window.removeEventListener('hashchange', onPop);
+    };
+  }, [applyPath]);
+
+  const navigate = useCallback(
+    (ids: string[]) => {
+      const url = ids.length ? `#${ids.join('/')}` : location.pathname + location.search;
+      history.pushState(null, '', url);
+      applyPath(ids);
+    },
+    [applyPath],
+  );
+
+  const pick = useCallback(
+    (node: ExplorerNode) => {
+      if (drag.current.moved) return;
+      if (isTerminal(node) && node.topic) {
+        setRevealed(node.topic);
+        setDrawerSlug(null);
+        return;
+      }
+      navigate([...path.map((n) => n.id), node.id]);
+    },
+    [path, navigate],
+  );
+  const goTo = useCallback(
+    (depth: number) => {
+      if (drag.current.moved) return;
+      navigate(path.map((n) => n.id).slice(0, depth));
+    },
+    [path, navigate],
+  );
+
+  // Re-center the active node into view whenever the path changes.
   useEffect(() => {
     setAnimatePan(true);
-    setPan({ x: size.w / 2 - layout.activePos.x, y: size.h / 2 - layout.activePos.y });
+    const s = scaleRef.current;
+    setPan({ x: size.w / 2 - layout.activePos.x * s, y: size.h / 2 - layout.activePos.y * s });
   }, [path, size.w, size.h]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const pick = useCallback((node: ExplorerNode) => {
-    if (isTerminal(node) && node.topic) {
-      setRevealed(node.topic);
-      return;
-    }
-    setPath((p) => [...p, node]);
-  }, []);
-
-  const goTo = useCallback((depth: number) => setPath((p) => p.slice(0, depth)), []);
-
-  // Panning by dragging the background.
+  // Drag to pan.
   useEffect(() => {
     const el = wrapRef.current;
     if (!el) return;
@@ -129,7 +171,7 @@ export default function Explorer({ tree }: { tree: ExplorerNode[] }) {
         drag.current.moved = false;
         return;
       }
-      drag.current = { active: true, sx: e.clientX, sy: e.clientY, px: pan.x, py: pan.y, moved: false };
+      drag.current = { active: true, sx: e.clientX, sy: e.clientY, px: panRef.current.x, py: panRef.current.y, moved: false };
       setAnimatePan(false);
       el.setPointerCapture?.(e.pointerId);
     };
@@ -140,7 +182,9 @@ export default function Explorer({ tree }: { tree: ExplorerNode[] }) {
       if (Math.abs(dx) + Math.abs(dy) > 3) drag.current.moved = true;
       setPan({ x: drag.current.px + dx, y: drag.current.py + dy });
     };
-    const onUp = () => { drag.current.active = false; };
+    const onUp = () => {
+      drag.current.active = false;
+    };
     el.addEventListener('pointerdown', onDown);
     window.addEventListener('pointermove', onMove);
     window.addEventListener('pointerup', onUp);
@@ -149,7 +193,47 @@ export default function Explorer({ tree }: { tree: ExplorerNode[] }) {
       window.removeEventListener('pointermove', onMove);
       window.removeEventListener('pointerup', onUp);
     };
-  }, [pan.x, pan.y]);
+  }, []);
+
+  // Wheel to zoom (around the cursor).
+  useEffect(() => {
+    const el = wrapRef.current;
+    if (!el) return;
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      setAnimatePan(false);
+      const rect = el.getBoundingClientRect();
+      const cx = e.clientX - rect.left;
+      const cy = e.clientY - rect.top;
+      const prev = scaleRef.current;
+      const next = clamp(prev * Math.exp(-e.deltaY * 0.0015), 0.4, 1.85);
+      const pp = panRef.current;
+      const wx = (cx - pp.x) / prev;
+      const wy = (cy - pp.y) / prev;
+      setScale(next);
+      setPan({ x: cx - wx * next, y: cy - wy * next });
+    };
+    el.addEventListener('wheel', onWheel, { passive: false });
+    return () => el.removeEventListener('wheel', onWheel);
+  }, []);
+
+  const zoomBy = (factor: number) => {
+    setAnimatePan(true);
+    const prev = scaleRef.current;
+    const next = clamp(prev * factor, 0.4, 1.85);
+    const cx = size.w / 2;
+    const cy = size.h / 2;
+    const pp = panRef.current;
+    const wx = (cx - pp.x) / prev;
+    const wy = (cy - pp.y) / prev;
+    setScale(next);
+    setPan({ x: cx - wx * next, y: cy - wy * next });
+  };
+  const recenter = () => {
+    setAnimatePan(true);
+    setScale(1);
+    setPan({ x: size.w / 2 - layout.activePos.x, y: size.h / 2 - layout.activePos.y });
+  };
 
   const activeId = layout.active.id;
 
@@ -162,15 +246,14 @@ export default function Explorer({ tree }: { tree: ExplorerNode[] }) {
     >
       <div className="canvas-vignette" aria-hidden="true" />
 
-      {/* World layer (panned) */}
       <div
         className="absolute left-0 top-0"
         style={{
-          transform: `translate3d(${pan.x}px, ${pan.y}px, 0)`,
+          transformOrigin: '0 0',
+          transform: `translate3d(${pan.x}px, ${pan.y}px, 0) scale(${scale})`,
           transition: animatePan ? 'transform 600ms cubic-bezier(0.22, 0.8, 0.2, 1)' : 'none',
         }}
       >
-        {/* connective lines */}
         <svg style={{ position: 'absolute', left: 0, top: 0, width: 1, height: 1, overflow: 'visible', pointerEvents: 'none' }} aria-hidden="true">
           <defs>
             <linearGradient id="cx-line" x1="0" y1="0" x2="1" y2="0">
@@ -178,24 +261,26 @@ export default function Explorer({ tree }: { tree: ExplorerNode[] }) {
               <stop offset="100%" stopColor="rgba(120,150,255,0.12)" />
             </linearGradient>
           </defs>
-          {/* trail: consecutive placed nodes */}
           {layout.placed.slice(1).map((pl, i) => {
             const from = layout.placed[i].pos;
             return <line key={`t${i}`} x1={from.x} y1={from.y} x2={pl.pos.x} y2={pl.pos.y} stroke="rgba(140,160,220,0.35)" strokeWidth={1.5} />;
           })}
-          {/* active → options */}
           {layout.options.map((o, i) => (
             <line
               key={`o${o.node.id}`}
               className="cx-line-draw"
-              x1={layout.activePos.x} y1={layout.activePos.y} x2={o.pos.x} y2={o.pos.y}
-              stroke="url(#cx-line)" strokeWidth={1.5} pathLength={1}
+              x1={layout.activePos.x}
+              y1={layout.activePos.y}
+              x2={o.pos.x}
+              y2={o.pos.y}
+              stroke="url(#cx-line)"
+              strokeWidth={1.5}
+              pathLength={1}
               style={{ animationDelay: `${i * 300}ms` }}
             />
           ))}
         </svg>
 
-        {/* placed nodes (core + trail path) */}
         {layout.placed.map(({ node, pos }, i) => {
           const isActive = node.id === activeId;
           const isCoreNode = node.id === core.id;
@@ -203,12 +288,12 @@ export default function Explorer({ tree }: { tree: ExplorerNode[] }) {
             <button
               key={node.id}
               type="button"
-              onClick={() => (drag.current.moved ? null : isCoreNode ? goTo(0) : goTo(i))}
+              onClick={() => (isCoreNode ? goTo(0) : goTo(i))}
               className={`cx-node absolute ${isCoreNode || isActive ? 'cx-core' : 'cx-trail'}`}
               style={{ left: pos.x, top: pos.y, transform: 'translate(-50%, -50%)' }}
               aria-current={isActive ? 'true' : undefined}
             >
-              {(isCoreNode || isActive) ? (
+              {isCoreNode || isActive ? (
                 <span className="cx-core-inner">
                   <span className="cx-kicker">{isCoreNode ? 'compliance' : node.kind}</span>
                   <span className="cx-core-label">{node.label}</span>
@@ -220,14 +305,13 @@ export default function Explorer({ tree }: { tree: ExplorerNode[] }) {
           );
         })}
 
-        {/* current options */}
         {layout.options.map((o, i) => {
           const terminal = isTerminal(o.node);
           return (
             <button
               key={o.node.id}
               type="button"
-              onClick={() => (drag.current.moved ? null : pick(o.node))}
+              onClick={() => pick(o.node)}
               className={`cx-node cx-option cx-anim absolute ${terminal ? 'is-terminal' : ''}`}
               style={{
                 left: o.pos.x,
@@ -248,7 +332,6 @@ export default function Explorer({ tree }: { tree: ExplorerNode[] }) {
         })}
       </div>
 
-      {/* HUD path readout */}
       <nav className="canvas-path" aria-label="Path">
         <span className="cx-path-key">PATH</span>
         <button type="button" className={`cx-crumb ${path.length ? '' : 'active'}`} onClick={() => goTo(0)}>start</button>
@@ -261,20 +344,36 @@ export default function Explorer({ tree }: { tree: ExplorerNode[] }) {
           </span>
         ))}
       </nav>
-      <p className="canvas-hint" aria-hidden="true">drag to pan · click to explore</p>
 
-      {/* Topic reveal panel */}
-      {revealed && (
-        <TopicReveal topic={revealed} onClose={() => setRevealed(null)} />
+      <div className="canvas-controls">
+        <button type="button" onClick={() => zoomBy(1 / 1.25)} aria-label="Zoom out">−</button>
+        <button type="button" onClick={recenter} aria-label="Recenter" title="Recenter">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><circle cx="12" cy="12" r="3" /><path d="M12 2v3M12 19v3M2 12h3M19 12h3" /></svg>
+        </button>
+        <button type="button" onClick={() => zoomBy(1.25)} aria-label="Zoom in">+</button>
+      </div>
+
+      <p className="canvas-hint" aria-hidden="true">drag to pan · scroll to zoom · click to explore</p>
+
+      {revealed && <TopicReveal topic={revealed} onClose={() => setRevealed(null)} onReadMore={setDrawerSlug} />}
+      {revealed && drawerSlug && (
+        <DrawerPanel
+          frameworks={revealed.frameworks}
+          activeSlug={drawerSlug}
+          topicName={revealed.name}
+          onClose={() => setDrawerSlug(null)}
+          onSelect={setDrawerSlug}
+        />
       )}
-      {revealed && <FrameworkDrawer frameworks={revealed.frameworks} topicName={revealed.name} />}
     </div>
   );
 }
 
-function TopicReveal({ topic, onClose }: { topic: TopicDetail; onClose: () => void }) {
+function TopicReveal({ topic, onClose, onReadMore }: { topic: TopicDetail; onClose: () => void; onReadMore: (slug: string) => void }) {
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
   }, [onClose]);
@@ -303,9 +402,9 @@ function TopicReveal({ topic, onClose }: { topic: TopicDetail; onClose: () => vo
               </span>
               <p className="cx-fw-plain">{f.plain}</p>
               {(f.detail.length > 0 || f.citations.length > 0) && (
-                <a href={f.href} data-open-framework={f.slug} className="cx-fw-more">
+                <button type="button" className="cx-fw-more" onClick={() => onReadMore(f.slug)}>
                   Read more <span aria-hidden="true">→</span>
-                </a>
+                </button>
               )}
             </div>
           ))}
