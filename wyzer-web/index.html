@@ -17,13 +17,21 @@
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:image" content="https://wyzer.acellhq.com/og.png" />
 
-  <!-- Fonts -->
+  <!-- Fonts (loaded async so they don't block first paint; display=swap avoids FOIT) -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
+   rel="preload"
+   as="style"
    href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300..700;1,14..32,300..400&family=JetBrains+Mono:wght@400;500&display=swap"
-   rel="stylesheet"
+   onload="this.onload=null;this.rel='stylesheet'"
   />
+  <noscript>
+   <link
+    href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300..700;1,14..32,300..400&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet"
+   />
+  </noscript>
  </head>
  <body>
   <div id="root"></div>

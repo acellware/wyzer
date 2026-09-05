@@ -1,11 +1,12 @@
-import { useEffect } from 'react';
+import { useEffect, Suspense } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { ConsentBanner } from '../ConsentBanner';
 import { trackPageview } from '../../lib/analytics';
 
 /**
  * App-wide shell mounted above every route: records SPA page views on
- * navigation (consent-gated) and hosts the cookie consent banner.
+ * navigation (consent-gated), hosts the cookie consent banner, and provides
+ * the Suspense boundary for lazily-loaded route chunks.
  */
 export function RootLayout() {
   const location = useLocation();
@@ -19,7 +20,11 @@ export function RootLayout() {
 
   return (
     <>
-      <Outlet />
+      <Suspense
+        fallback={<div style={{ minHeight: '100vh', background: 'var(--color-page)' }} />}
+      >
+        <Outlet />
+      </Suspense>
       <ConsentBanner />
     </>
   );

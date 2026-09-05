@@ -1,31 +1,35 @@
+import { lazy } from 'react';
 import { createBrowserRouter } from 'react-router-dom';
 import { DashboardLayout } from '../components/layout/DashboardLayout';
 import { RootLayout } from '../components/layout/RootLayout';
 import { NotFoundPage, RouteErrorPage } from '@pages/error';
 import { Seo } from '@components/Seo';
-import HomePage from '@pages/home';
-import LoginPage from '@pages/auth/login';
-import RegisterPage from '@pages/auth/register';
-import VerifyEmailPage from '@pages/auth/verify-email';
-import VerifyPage from '@pages/auth/verify';
-import DashboardPage from '@pages/dashboard';
-import PrivacyPage from '@pages/privacy';
-import TermsPage from '@pages/terms';
-import CookiesPage from '@pages/cookies';
-import StacksPage from '@pages/stacks';
-import NewStackPage from '@pages/stacks/new';
-import StackDetailPage from '@pages/stacks/detail';
-import ReportsListPage from '@pages/reports';
-import ReportPage from '@pages/reports/detail';
-import SharedReportPage from '@pages/share';
-import AcceptInvitePage from '@pages/invitations/accept';
-import PricingPage from '@pages/pricing';
-import SettingsPage from '@pages/settings';
-import BillingPage from '@pages/billing';
-import TeamsPage from '@pages/teams';
-import ProfilePage from '@pages/profile';
-import CheckPage from '@pages/check';
-import GuestReportResultPage from '@pages/check/result';
+
+// Route components are code-split so the marketing/landing bundle stays small
+// (heavy deps like recharts and the whole authed app load only when needed).
+const HomePage = lazy(() => import('@pages/home'));
+const LoginPage = lazy(() => import('@pages/auth/login'));
+const RegisterPage = lazy(() => import('@pages/auth/register'));
+const VerifyEmailPage = lazy(() => import('@pages/auth/verify-email'));
+const VerifyPage = lazy(() => import('@pages/auth/verify'));
+const DashboardPage = lazy(() => import('@pages/dashboard'));
+const PrivacyPage = lazy(() => import('@pages/privacy'));
+const TermsPage = lazy(() => import('@pages/terms'));
+const CookiesPage = lazy(() => import('@pages/cookies'));
+const StacksPage = lazy(() => import('@pages/stacks'));
+const NewStackPage = lazy(() => import('@pages/stacks/new'));
+const StackDetailPage = lazy(() => import('@pages/stacks/detail'));
+const ReportsListPage = lazy(() => import('@pages/reports'));
+const ReportPage = lazy(() => import('@pages/reports/detail'));
+const SharedReportPage = lazy(() => import('@pages/share'));
+const AcceptInvitePage = lazy(() => import('@pages/invitations/accept'));
+const PricingPage = lazy(() => import('@pages/pricing'));
+const SettingsPage = lazy(() => import('@pages/settings'));
+const BillingPage = lazy(() => import('@pages/billing'));
+const TeamsPage = lazy(() => import('@pages/teams'));
+const ProfilePage = lazy(() => import('@pages/profile'));
+const CheckPage = lazy(() => import('@pages/check'));
+const GuestReportResultPage = lazy(() => import('@pages/check/result'));
 
 type SeoProps = Parameters<typeof Seo>[0];
 /** Prefix a route element with page-level SEO tags (rendered into <head>). */
