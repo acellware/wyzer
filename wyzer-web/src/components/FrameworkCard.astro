@@ -7,9 +7,10 @@ interface Props {
   tier?: string;
   plain: string;
   href: string;
+  slug?: string;
   hasMore?: boolean;
 }
-const { name, color, tier, plain, href, hasMore = true } = Astro.props;
+const { name, color, tier, plain, href, slug, hasMore = true } = Astro.props;
 ---
 
 <article class="flex flex-col rounded-xl border border-line bg-surface p-5">
@@ -19,6 +20,7 @@ const { name, color, tier, plain, href, hasMore = true } = Astro.props;
     <a
       href={href}
       data-carry-trail
+      data-open-framework={slug}
       class="group mt-4 inline-flex items-center gap-1 text-xs font-medium text-brand"
       aria-label={`Read more about ${name} on this topic`}
     >

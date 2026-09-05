@@ -3,6 +3,7 @@ import { getCollection } from 'astro:content';
 import Layout from '@/layouts/Layout.astro';
 import TrailMenu from '@/components/TrailMenu.astro';
 import FrameworkCard from '@/components/FrameworkCard.astro';
+import FrameworkDrawer from '@/components/FrameworkDrawer.tsx';
 import { getFrameworkMap } from '@/lib/content';
 
 export async function getStaticPaths() {
@@ -27,6 +28,24 @@ const cards = topic.data.cards.map((card) => {
 
 const kindLabel =
   topic.data.type === 'industry-only' ? 'Industry topic' : 'Resource topic';
+
+// Data for the "Read more" pop-out drawer (only frameworks that have depth).
+const drawerFrameworks = cards
+  .filter((c) => Boolean(c.detail) || (c.citations?.length ?? 0) > 0)
+  .map((c) => ({
+    slug: c.framework,
+    name: c.fw.data.name,
+    shortName: c.fw.data.shortName,
+    tier: c.fw.data.tier ?? null,
+    color: c.fw.data.badgeColor,
+    plain: c.plain,
+    detail: (c.detail ?? '')
+      .split('\n')
+      .map((s) => s.trim())
+      .filter(Boolean),
+    citations: (c.citations ?? []).map((ci) => ({ label: ci.label, url: ci.url ?? null })),
+    href: `/navigator/topic/${topic.slug}/${c.framework}`,
+  }));
 
 // Related topics: those sharing the most frameworks with this one.
 const currentFws = new Set(topic.data.cards.map((c) => c.framework));
@@ -80,6 +99,7 @@ const jsonLd = [
           tier={card.fw.data.tier}
           plain={card.plain}
           href={`/navigator/topic/${topic.slug}/${card.framework}`}
+          slug={card.framework}
           hasMore={Boolean(card.detail || card.citations?.length)}
         />
       ))}
@@ -110,4 +130,5 @@ const jsonLd = [
       </div>
     )}
   </article>
+  <FrameworkDrawer client:load frameworks={drawerFrameworks} topicName={topic.data.name} />
 </Layout>
