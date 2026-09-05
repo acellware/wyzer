@@ -1,0 +1,54 @@
+---
+name: Compute Public Exposure
+type: resource-linked
+summary: >-
+  Whether a server or virtual machine is directly reachable from the internet
+  with a public IP and open ports. Frameworks expect compute to sit behind
+  controlled entry points.
+updated: 2026-09-04
+cards:
+  - framework: nist
+    plain: >-
+      Directly exposing compute to the internet increases risk. Access should be
+      limited and infrastructure protected.
+    detail: >-
+      NIST CSF 2.0 Access Control (PR.AA) and infrastructure resilience (PR.IR)
+      cover limiting exposure of systems.
+    citations:
+      - label: "NIST CSF 2.0 · PR.AA / PR.IR"
+        url: https://www.nist.gov/cyberframework
+  - framework: soc2
+    plain: >-
+      Systems are expected to be protected from threats originating outside the
+      system boundary.
+    detail: >-
+      Maps to CC6.6 (protecting against threats from outside the system
+      boundary).
+    citations:
+      - label: "SOC 2 TSC · CC6.6"
+        url: https://www.aicpa-cima.com/topic/audit-assurance/audit-and-assurance-greater-than-soc-2
+  - framework: iso27001
+    plain: >-
+      Network access is expected to be controlled and systems securely
+      configured, rather than left openly reachable.
+    detail: >-
+      Annex A controls A.8.20 (networks security) and A.8.9 (configuration
+      management) in ISO/IEC 27001:2022.
+    citations:
+      - label: "ISO/IEC 27001:2022 · A.8.20 / A.8.9"
+        url: https://www.iso.org/standard/27001
+  - framework: pci-dss
+    plain: >-
+      Systems handling cardholder data must sit behind network security controls,
+      not be directly exposed to untrusted networks.
+    detail: >-
+      PCI DSS v4.0 Requirement 1 covers isolating systems behind network security
+      controls.
+    citations:
+      - label: "PCI DSS v4.0 · Requirement 1"
+        url: https://www.pcisecuritystandards.org/
+---
+
+**In practice.** Avoid public IPs where you can. Put instances behind a load
+balancer, VPN, or bastion, and tighten security-group ingress so only required
+sources and ports can reach them.

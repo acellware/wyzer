@@ -1,0 +1,6 @@
+name: SOC 2 (Trust Services Criteria)
+shortName: SOC 2
+badgeColor: "#2F855A"
+sourceUrl: https://www.aicpa-cima.com/topic/audit-assurance/audit-and-assurance-greater-than-soc-2
+blurb: Auditor-attested controls for security, availability, and confidentiality in SaaS and cloud services.
+order: 2

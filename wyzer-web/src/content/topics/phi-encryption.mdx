@@ -1,0 +1,43 @@
+---
+name: PHI Encryption
+type: industry-only
+summary: >-
+  Protecting health information (PHI) with encryption. HIPAA and security
+  standards expect PHI to be encrypted at rest and in transit wherever it is
+  reasonable to do so.
+updated: 2026-09-04
+cards:
+  - framework: nist
+    plain: >-
+      The confidentiality of sensitive data such as health information is expected
+      to be protected, with encryption the standard control.
+    detail: >-
+      NIST CSF 2.0 Data Security (PR.DS) covers protecting data at rest and in
+      transit. NIST SP 800-66 maps these practices to HIPAA.
+    citations:
+      - label: "NIST CSF 2.0 · PR.DS"
+        url: https://www.nist.gov/cyberframework
+  - framework: iso27001
+    plain: >-
+      Cryptography is expected to be used to protect sensitive information based on
+      its classification, which includes health data.
+    detail: >-
+      Annex A control A.8.24 (use of cryptography) in ISO/IEC 27001:2022.
+    citations:
+      - label: "ISO/IEC 27001:2022 · A.8.24"
+        url: https://www.iso.org/standard/27001
+  - framework: hipaa
+    plain: >-
+      Encrypting electronic health information, both stored and transmitted, is an
+      addressable safeguard expected wherever it is reasonable and appropriate.
+    detail: >-
+      HIPAA Security Rule encryption specifications for data at rest
+      (45 CFR 164.312(a)(2)(iv)) and in transit (164.312(e)(2)(ii)).
+    citations:
+      - label: "HIPAA Security Rule · 164.312(a)/(e)"
+        url: https://www.hhs.gov/hipaa/for-professionals/security/index.html
+---
+
+**In practice.** Encrypt the databases, backups, and file stores that hold PHI,
+enforce TLS for PHI moving between systems, and keep control of the encryption
+keys.

@@ -1,0 +1,65 @@
+---
+name: Least-Privilege Access
+type: resource-linked
+summary: >-
+  Whether identities (people and services) are granted only the permissions they
+  actually need. Frameworks consistently expect access to be scoped tightly and
+  broad or standing administrative rights to be avoided.
+updated: 2026-09-04
+cards:
+  - framework: nist
+    plain: >-
+      Expects permissions to be managed on a least-privilege basis and separation
+      of duties to be applied where appropriate.
+    detail: >-
+      NIST CSF 2.0 Identity Management, Authentication and Access Control (PR.AA)
+      calls for access to be granted and enforced according to the principle of
+      least privilege.
+    citations:
+      - label: "NIST CSF 2.0 · PR.AA"
+        url: https://www.nist.gov/cyberframework
+  - framework: soc2
+    plain: >-
+      Access is expected to be assigned based on role and need, and reviewed so
+      that people and services do not accumulate excess permissions.
+    detail: >-
+      Maps to CC6.1 and CC6.3 in the Trust Services Criteria, granting, modifying,
+      and removing access based on roles and least privilege.
+    citations:
+      - label: "SOC 2 TSC · CC6.1 / CC6.3"
+        url: https://www.aicpa-cima.com/topic/audit-assurance/audit-and-assurance-greater-than-soc-2
+  - framework: iso27001
+    plain: >-
+      Expects access rights to follow a defined access-control policy and to be
+      limited to what each role requires.
+    detail: >-
+      Annex A controls A.5.15 (access control), A.5.18 (access rights), and A.8.2
+      (privileged access rights) in ISO/IEC 27001:2022.
+    citations:
+      - label: "ISO/IEC 27001:2022 · A.5.15 / A.8.2"
+        url: https://www.iso.org/standard/27001
+  - framework: hipaa
+    plain: >-
+      Expects access to health information to be limited to the minimum necessary,
+      with each role given only the access its job requires.
+    detail: >-
+      The HIPAA Security Rule access-control standard and the minimum-necessary
+      principle underpin this (45 CFR 164.312(a) and 164.502(b)).
+    citations:
+      - label: "HIPAA Security Rule · 164.312(a)"
+        url: https://www.hhs.gov/hipaa/for-professionals/security/index.html
+  - framework: pci-dss
+    plain: >-
+      Requires access to cardholder data and related systems to be restricted by
+      business need-to-know and default-deny.
+    detail: >-
+      PCI DSS v4.0 Requirement 7 covers restricting access to system components and
+      cardholder data by business need to know, defaulting to deny-all.
+    citations:
+      - label: "PCI DSS v4.0 · Requirement 7"
+        url: https://www.pcisecuritystandards.org/
+---
+
+**In practice.** This means scoping roles narrowly, avoiding shared or blanket
+admin accounts, granting time-bound elevation instead of standing privilege, and
+reviewing access periodically to remove what is no longer needed.

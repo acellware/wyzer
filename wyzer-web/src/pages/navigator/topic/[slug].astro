@@ -1,0 +1,134 @@
+---
+import { getCollection } from 'astro:content';
+import Layout from '@/layouts/Layout.astro';
+import TrailMenu from '@/components/TrailMenu.astro';
+import FrameworkCard from '@/components/FrameworkCard.astro';
+import FrameworkDrawer from '@/components/FrameworkDrawer.tsx';
+import { getFrameworkMap } from '@/lib/content';
+
+export async function getStaticPaths() {
+  const topics = await getCollection('topics');
+  return topics.map((topic) => ({
+    params: { slug: topic.slug },
+    props: { topic, topics },
+  }));
+}
+
+const { topic, topics } = Astro.props;
+const fwMap = await getFrameworkMap();
+const { Content } = await topic.render();
+
+const cards = topic.data.cards.map((card) => {
+  const fw = fwMap.get(card.framework);
+  if (!fw) {
+    throw new Error(`[content] Topic "${topic.slug}" references unknown framework "${card.framework}".`);
+  }
+  return { ...card, fw };
+});
+
+const kindLabel =
+  topic.data.type === 'industry-only' ? 'Industry topic' : 'Resource topic';
+
+// Data for the "Read more" pop-out drawer (only frameworks that have depth).
+const drawerFrameworks = cards
+  .filter((c) => Boolean(c.detail) || (c.citations?.length ?? 0) > 0)
+  .map((c) => ({
+    slug: c.framework,
+    name: c.fw.data.name,
+    shortName: c.fw.data.shortName,
+    tier: c.fw.data.tier ?? null,
+    color: c.fw.data.badgeColor,
+    plain: c.plain,
+    detail: (c.detail ?? '')
+      .split('\n')
+      .map((s) => s.trim())
+      .filter(Boolean),
+    citations: (c.citations ?? []).map((ci) => ({ label: ci.label, url: ci.url ?? null })),
+    href: `/navigator/topic/${topic.slug}/${c.framework}`,
+  }));
+
+// Related topics: those sharing the most frameworks with this one.
+const currentFws = new Set(topic.data.cards.map((c) => c.framework));
+const related = topics
+  .filter((t) => t.slug !== topic.slug)
+  .map((t) => ({ t, shared: t.data.cards.filter((c) => currentFws.has(c.framework)).length }))
+  .filter((x) => x.shared > 0)
+  .sort((a, b) => b.shared - a.shared || a.t.data.name.localeCompare(b.t.data.name))
+  .slice(0, 4)
+  .map((x) => x.t);
+
+const origin = (Astro.site?.toString() ?? 'https://navigator.wyzer.io/').replace(/\/$/, '');
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: `${origin}/` },
+      { '@type': 'ListItem', position: 2, name: topic.data.name, item: `${origin}/navigator/topic/${topic.slug}` },
+    ],
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: topic.data.name,
+    description: topic.data.summary,
+    mainEntityOfPage: `${origin}/navigator/topic/${topic.slug}`,
+    ...(topic.data.updated ? { dateModified: topic.data.updated.toISOString() } : {}),
+  },
+];
+---
+
+<Layout title={topic.data.name} description={topic.data.summary} jsonLd={jsonLd}>
+  <article class="mx-auto max-w-3xl px-4 py-10" data-pagefind-body data-topic-slug={topic.slug}>
+    <TrailMenu current={topic.data.name} />
+
+    <p class="font-mono text-2xs uppercase tracking-wide text-ink-dim">{kindLabel}</p>
+    <h1 class="mt-2 text-3xl font-semibold tracking-tight text-ink-primary sm:text-4xl" data-pagefind-meta="title">
+      {topic.data.name}
+    </h1>
+    <p class="mt-4 text-lg leading-relaxed text-ink-secondary">{topic.data.summary}</p>
+
+    <h2 class="mt-10 font-mono text-2xs uppercase tracking-wide text-ink-dim">
+      What each framework says
+    </h2>
+    <div class="mt-4 grid gap-4 sm:grid-cols-2" data-reveal>
+      {cards.map((card) => (
+        <FrameworkCard
+          name={card.fw.data.shortName}
+          color={card.fw.data.badgeColor}
+          tier={card.fw.data.tier}
+          plain={card.plain}
+          href={`/navigator/topic/${topic.slug}/${card.framework}`}
+          slug={card.framework}
+          hasMore={Boolean(card.detail || card.citations?.length)}
+        />
+      ))}
+    </div>
+
+    <div class="prose-notes mt-10 border-t border-line-subtle pt-6 text-sm leading-relaxed text-ink-secondary">
+      <Content />
+    </div>
+
+    <p class="mt-10 rounded-lg border border-line-subtle bg-surface-raised px-4 py-3 text-2xs text-ink-dim">
+      Informational only, not legal advice. Always confirm against the official framework text.
+    </p>
+
+    {related.length > 0 && (
+      <div class="mt-12 border-t border-line-subtle pt-6" data-pagefind-ignore>
+        <h2 class="font-mono text-2xs uppercase tracking-wide text-ink-dim">Related topics</h2>
+        <div class="mt-4 grid gap-2 sm:grid-cols-2">
+          {related.map((r) => (
+            <a
+              href={`/navigator/topic/${r.slug}`}
+              class="group flex items-center justify-between gap-3 rounded-lg border border-line-subtle bg-surface px-4 py-3 transition-colors hover:border-line"
+            >
+              <span class="text-sm font-medium text-ink-primary group-hover:text-brand">{r.data.name}</span>
+              <span class="text-ink-muted transition-transform group-hover:translate-x-0.5 group-hover:text-brand">→</span>
+            </a>
+          ))}
+        </div>
+      </div>
+    )}
+  </article>
+  <FrameworkDrawer client:load frameworks={drawerFrameworks} topicName={topic.data.name} />
+</Layout>

@@ -1,0 +1,55 @@
+---
+name: Multi-Factor Authentication (MFA)
+type: resource-linked
+summary: >-
+  Whether logins require a second factor beyond a password. Frameworks
+  increasingly expect MFA for administrative and remote access, and some now
+  require it broadly for anything touching sensitive systems.
+updated: 2026-09-04
+cards:
+  - framework: nist
+    plain: >-
+      Expects authentication strength to match risk, with multi-factor
+      authentication for privileged and higher-risk access.
+    detail: >-
+      NIST CSF 2.0 Identity Management, Authentication and Access Control (PR.AA)
+      calls for users, services, and hardware to be authenticated commensurate with
+      the risk of the transaction.
+    citations:
+      - label: "NIST CSF 2.0 · PR.AA"
+        url: https://www.nist.gov/cyberframework
+  - framework: soc2
+    plain: >-
+      MFA is a common control for protecting access to systems and data,
+      particularly for administrative and remote access.
+    detail: >-
+      Supports the logical access criteria CC6.1 and CC6.6 (protecting against
+      threats from outside the system boundary, including strong authentication).
+    citations:
+      - label: "SOC 2 TSC · CC6.1 / CC6.6"
+        url: https://www.aicpa-cima.com/topic/audit-assurance/audit-and-assurance-greater-than-soc-2
+  - framework: iso27001
+    plain: >-
+      Expects authentication to be strong enough for the sensitivity of what is
+      being accessed, which for privileged access commonly means MFA.
+    detail: >-
+      Annex A control A.8.5 (secure authentication) in ISO/IEC 27001:2022 covers
+      authentication techniques appropriate to access-control requirements.
+    citations:
+      - label: "ISO/IEC 27001:2022 · A.8.5"
+        url: https://www.iso.org/standard/27001
+  - framework: pci-dss
+    plain: >-
+      Requires multi-factor authentication for access into the cardholder data
+      environment, including all remote and administrative access.
+    detail: >-
+      PCI DSS v4.0 Requirement 8 covers identifying users and authenticating
+      access, including MFA for access to the cardholder data environment.
+    citations:
+      - label: "PCI DSS v4.0 · Requirement 8"
+        url: https://www.pcisecuritystandards.org/
+---
+
+**In practice.** This usually means enforcing MFA for every administrator and for
+remote access, preferring phishing-resistant methods (hardware keys or
+authenticator apps) over SMS, and closing off legacy sign-in paths that bypass it.

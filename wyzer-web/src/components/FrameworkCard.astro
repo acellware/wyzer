@@ -1,0 +1,31 @@
+---
+import FrameworkBadge from './FrameworkBadge.astro';
+
+interface Props {
+  name: string;
+  color: string;
+  tier?: string;
+  plain: string;
+  href: string;
+  slug?: string;
+  hasMore?: boolean;
+}
+const { name, color, tier, plain, href, slug, hasMore = true } = Astro.props;
+---
+
+<article class="flex flex-col rounded-xl border border-line bg-surface p-5">
+  <FrameworkBadge name={name} color={color} tier={tier} />
+  <p class="mt-3 flex-1 text-sm leading-relaxed text-ink-secondary">{plain}</p>
+  {hasMore && (
+    <a
+      href={href}
+      data-carry-trail
+      data-open-framework={slug}
+      class="group mt-4 inline-flex items-center gap-1 text-xs font-medium text-brand"
+      aria-label={`Read more about ${name} on this topic`}
+    >
+      <span class="group-hover:underline">Read more</span>
+      <span aria-hidden="true" class="transition-transform group-hover:translate-x-0.5">→</span>
+    </a>
+  )}
+</article>

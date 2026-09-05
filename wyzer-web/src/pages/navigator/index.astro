@@ -1,0 +1,103 @@
+---
+import { getCollection } from 'astro:content';
+import Layout from '@/layouts/Layout.astro';
+import Explorer from '@/components/Explorer.tsx';
+import { getFrameworkMap } from '@/lib/content';
+
+const origin = (Astro.site?.toString() ?? 'https://wyzer.acellhq.com/').replace(/\/$/, '');
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: 'Compliance Navigator',
+  url: `${origin}/navigator`,
+  description:
+    'A plain-language reference for what NIST, SOC 2, ISO 27001, GDPR, HIPAA, PCI DSS, and FDA say about cloud resources and industry topics.',
+  potentialAction: {
+    '@type': 'SearchAction',
+    target: { '@type': 'EntryPoint', urlTemplate: `${origin}/navigator/search?q={search_term_string}` },
+    'query-input': 'required name=search_term_string',
+  },
+};
+
+const cloudCol = (await getCollection('cloud')).sort((a, b) => a.data.order - b.data.order);
+const industryCol = (await getCollection('industry')).sort((a, b) => a.data.order - b.data.order);
+const topicsCol = await getCollection('topics');
+const fwMap = await getFrameworkMap();
+
+// Full topic detail (summary + each framework's plain/detail/citations) so the
+// whole flow — including "read more" — happens inside the canvas.
+function topicDetail(slug: string) {
+  const t = topicsCol.find((x) => x.slug === slug);
+  if (!t) return null;
+  return {
+    slug: t.slug,
+    name: t.data.name,
+    summary: t.data.summary,
+    frameworks: t.data.cards
+      .map((c) => {
+        const fw = fwMap.get(c.framework);
+        if (!fw) return null;
+        return {
+          slug: c.framework,
+          shortName: fw.data.shortName,
+          name: fw.data.name,
+          tier: fw.data.tier ?? null,
+          color: fw.data.badgeColor,
+          plain: c.plain,
+          detail: (c.detail ?? '').split('\n').map((s) => s.trim()).filter(Boolean),
+          citations: (c.citations ?? []).map((ci) => ({ label: ci.label, url: ci.url ?? null })),
+          href: `/navigator/topic/${t.slug}/${c.framework}`,
+        };
+      })
+      .filter((f): f is NonNullable<typeof f> => f !== null),
+  };
+}
+
+const cloudNodes = cloudCol.map((p) => ({
+  id: p.id,
+  label: p.data.providerName,
+  kind: 'provider',
+  children: p.data.categories.map((cat) => ({
+    id: cat.slug,
+    label: cat.name,
+    kind: 'category',
+    children: cat.resources.map((r) => ({
+      id: r.slug,
+      label: r.name,
+      kind: 'resource',
+      children: r.configurations.map((cfg) => ({
+        id: cfg.slug,
+        label: cfg.name,
+        kind: 'config',
+        topic: topicDetail(cfg.topic),
+      })),
+    })),
+  })),
+}));
+
+const industryNodes = industryCol.map((i) => ({
+  id: i.id,
+  label: i.data.industryName,
+  kind: 'industry',
+  children: i.data.functions.map((fn) => ({
+    id: fn.slug,
+    label: fn.name,
+    kind: 'function',
+    children: fn.topics.map((tn) => ({
+      id: tn.slug,
+      label: tn.name,
+      kind: 'topic',
+      topic: topicDetail(tn.topic),
+    })),
+  })),
+}));
+
+const tree = [
+  { id: 'cloud', label: 'By Cloud', sublabel: 'AWS · Azure · GCP', kind: 'root', children: cloudNodes },
+  { id: 'industry', label: 'By Industry', sublabel: 'Fintech · Healthcare', kind: 'root', children: industryNodes },
+];
+---
+
+<Layout title="Compliance Navigator" jsonLd={jsonLd} canvas>
+  <Explorer client:load tree={tree} />
+</Layout>

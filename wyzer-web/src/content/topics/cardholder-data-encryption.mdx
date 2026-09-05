@@ -1,0 +1,25 @@
+---
+name: Cardholder Data Encryption
+type: industry-only
+summary: >-
+  How stored card numbers must be protected. PCI DSS expects the primary account
+  number (PAN) to be rendered unreadable wherever it is stored.
+updated: 2026-09-04
+cards:
+  - framework: pci-dss
+    plain: >-
+      Wherever it is stored, the primary account number must be made unreadable,
+      for example through strong encryption, truncation, tokenization, or hashing,
+      and it must be masked when displayed.
+    detail: >-
+      PCI DSS v4.0 Requirement 3.4-3.5 covers rendering the PAN unreadable and
+      masking it on display; Requirement 3.6-3.7 covers protecting and managing
+      the cryptographic keys.
+    citations:
+      - label: "PCI DSS v4.0 · Req. 3.4-3.7"
+        url: https://www.pcisecuritystandards.org/
+---
+
+**In practice.** Tokenize or strongly encrypt the card number, show only a masked
+version (such as the last four digits), and keep encryption keys managed
+separately from the data they protect.

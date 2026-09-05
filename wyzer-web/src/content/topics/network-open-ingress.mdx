@@ -1,0 +1,54 @@
+---
+name: Open Network Ingress
+type: resource-linked
+summary: >-
+  Whether firewall or security-group rules allow inbound traffic from anywhere
+  (0.0.0.0/0). Frameworks expect inbound access to be restricted to only what is
+  necessary.
+updated: 2026-09-04
+cards:
+  - framework: nist
+    plain: >-
+      Network access is expected to follow least privilege. Allowing inbound
+      traffic from any source runs against that.
+    detail: >-
+      NIST CSF 2.0 Access Control (PR.AA) and infrastructure resilience (PR.IR)
+      cover restricting network connections.
+    citations:
+      - label: "NIST CSF 2.0 · PR.AA / PR.IR"
+        url: https://www.nist.gov/cyberframework
+  - framework: soc2
+    plain: >-
+      The system boundary is expected to be protected from external threats,
+      which means not leaving broad inbound access open.
+    detail: >-
+      Maps to CC6.6 (protecting against threats from outside the system
+      boundary).
+    citations:
+      - label: "SOC 2 TSC · CC6.6"
+        url: https://www.aicpa-cima.com/topic/audit-assurance/audit-and-assurance-greater-than-soc-2
+  - framework: iso27001
+    plain: >-
+      Networks are expected to be secured and segregated so that only required
+      traffic is allowed in.
+    detail: >-
+      Annex A controls A.8.20 (networks security) and A.8.22 (segregation of
+      networks) in ISO/IEC 27001:2022.
+    citations:
+      - label: "ISO/IEC 27001:2022 · A.8.20 / A.8.22"
+        url: https://www.iso.org/standard/27001
+  - framework: pci-dss
+    plain: >-
+      Inbound and outbound traffic must be restricted to only what is necessary
+      for the cardholder data environment.
+    detail: >-
+      PCI DSS v4.0 Requirement 1 covers network security controls and restricting
+      traffic to that which is necessary.
+    citations:
+      - label: "PCI DSS v4.0 · Requirement 1"
+        url: https://www.pcisecuritystandards.org/
+---
+
+**In practice.** Replace any-source (0.0.0.0/0) rules with specific IP ranges or
+private connectivity, and open only the ports a service actually needs, rather
+than leaving broad ranges exposed.

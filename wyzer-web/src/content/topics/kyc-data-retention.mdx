@@ -1,0 +1,36 @@
+---
+name: KYC Data Retention
+type: industry-only
+summary: >-
+  How long identity-verification (KYC) records collected during onboarding are
+  kept. Financial rules often require retaining them, while privacy law expects
+  you not to keep them longer than necessary.
+updated: 2026-09-04
+cards:
+  - framework: soc2
+    plain: >-
+      Personal and confidential onboarding information is expected to be handled,
+      retained, and disposed of in line with your stated commitments and policies.
+    detail: >-
+      Relates to CC6.1 (protecting the data) and the Privacy criteria covering
+      retention and disposal of personal information.
+    citations:
+      - label: "SOC 2 TSC · CC6.1 / Privacy"
+        url: https://www.aicpa-cima.com/topic/audit-assurance/audit-and-assurance-greater-than-soc-2
+  - framework: gdpr
+    plain: >-
+      Identity data should be kept only as long as necessary and then deleted,
+      balanced against any legal obligation to retain it, and secured throughout.
+    detail: >-
+      GDPR Article 5(1)(e) (storage limitation) and Article 32 (security of
+      processing). Retention often interacts with financial-sector obligations
+      outside these frameworks.
+    citations:
+      - label: "GDPR · Art. 5(1)(e) / 32"
+        url: https://eur-lex.europa.eu/eli/reg/2016/679/oj
+---
+
+**In practice.** Set a retention schedule that reflects your regulatory
+obligations, restrict who can access KYC records, and delete or archive them once
+the required period ends. Note that sector-specific anti-money-laundering rules,
+which sit outside these frameworks, often set their own minimum retention.

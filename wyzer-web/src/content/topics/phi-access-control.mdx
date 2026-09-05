@@ -1,0 +1,44 @@
+---
+name: Access to Patient Records
+type: industry-only
+summary: >-
+  Restricting who can view patient records. HIPAA expects access to health
+  information to be limited to the minimum necessary and tied to each person's
+  role.
+updated: 2026-09-04
+cards:
+  - framework: nist
+    plain: >-
+      Access to sensitive data is expected to follow least privilege, granted only
+      to those who need it for their role.
+    detail: >-
+      NIST CSF 2.0 Access Control (PR.AA) covers enforcing least-privilege access
+      to protected data.
+    citations:
+      - label: "NIST CSF 2.0 · PR.AA"
+        url: https://www.nist.gov/cyberframework
+  - framework: soc2
+    plain: >-
+      Access to records is expected to be granted based on role and business need,
+      and reviewed over time.
+    detail: >-
+      Maps to CC6.1 and CC6.3 (granting access based on roles and least
+      privilege).
+    citations:
+      - label: "SOC 2 TSC · CC6.1 / CC6.3"
+        url: https://www.aicpa-cima.com/topic/audit-assurance/audit-and-assurance-greater-than-soc-2
+  - framework: hipaa
+    plain: >-
+      Access to health information must be controlled and limited to the minimum
+      necessary for each person's job.
+    detail: >-
+      HIPAA Security Rule access-control standard (45 CFR 164.312(a)) together with
+      the minimum-necessary standard (164.502(b)).
+    citations:
+      - label: "HIPAA Security Rule · 164.312(a)"
+        url: https://www.hhs.gov/hipaa/for-professionals/security/index.html
+---
+
+**In practice.** Use role-based access to records, give each person a unique user
+ID, apply automatic logoff on shared devices, and keep an audit trail of who
+viewed which record.

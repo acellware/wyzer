@@ -1,0 +1,27 @@
+---
+interface Props {
+  index: string;
+  kicker?: string;
+  title: string;
+  intro?: string;
+  align?: 'left' | 'center';
+  class?: string;
+}
+const { index, kicker, title, intro, align = 'left', class: className = '' } = Astro.props;
+---
+
+<header class:list={[className, align === 'center' && 'text-center mx-auto', 'max-w-[640px]']}>
+  <div class:list={['flex items-center gap-3 mb-6', align === 'center' && 'justify-center']}>
+    <span aria-hidden class="h-px w-8" style="background: var(--color-accent)"></span>
+    <span class="font-mono text-[12px] tracking-tight lowercase" style="color: var(--color-muted)">
+      <span style="color: var(--color-accent-ink)">{index}</span>
+      {kicker && <span>{' / '}{kicker}</span>}
+    </span>
+  </div>
+  <h2 class="text-display-3 balance" style="color: var(--color-ink)">{title}</h2>
+  {intro && (
+    <p class="mt-5 text-[17px] leading-[1.6] pretty max-w-[560px]" style="color: var(--color-muted)">
+      {intro}
+    </p>
+  )}
+</header>

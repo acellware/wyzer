@@ -1,0 +1,7 @@
+name: ISO/IEC 27001
+shortName: ISO 27001
+tier: "2022"
+badgeColor: "#2B6CB0"
+sourceUrl: https://www.iso.org/standard/27001
+blurb: International standard for running an information security management system (ISMS).
+order: 3

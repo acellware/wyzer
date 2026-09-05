@@ -415,3 +415,57 @@ model AuditLog {
  @@index([createdAt])
  @@map("audit_logs")
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Guest reports (T-050) — public, unauthenticated scans
+// ─────────────────────────────────────────────────────────────────────────────
+// Decoupled from User/Organisation/Stack on purpose:
+// - High volume + drive-by traffic
+// - Disposable (auto-purged after 90 days)
+// - Lead-capture / funnel attribution surface
+// The compliance engine (ComplianceService.assess) is shared with authed reports.
+
+model GuestReport {
+ id              String   @id @default(cuid())
+ /// Random share token used as the public URL slug (no auth required)
+ shareToken      String   @unique
+
+ /// Lead capture
+ companyName     String
+ email           String
+ role            String?
+
+ /// Optional friendly name for the stack the visitor entered
+ stackName       String?
+ /// Data type scopes selected (e.g. ["pii", "phi"])
+ dataScopes      String[]
+ /// Denormalised assessment input.
+ /// JSON: Array<{ technologyId: string, deploymentMode: DeploymentMode, configAnswers: Record<string,string> }>
+ selections      Json
+
+ /// Output from ComplianceService.assess()
+ result          Json
+ /// Aggregate score across all evaluated frameworks (0–100)
+ score           Int?
+
+ /// Funnel / abuse signals
+ ipHash          String?
+ userAgent       String?
+ referrer        String?
+ utmSource       String?
+ utmMedium       String?
+ utmCampaign     String?
+
+ /// Set when a visitor later signs up — perfect attribution
+ convertedUserId String?
+
+ createdAt       DateTime @default(now())
+ /// Auto-purged after this date by the daily cleanup job
+ expiresAt       DateTime
+
+ @@index([email])
+ @@index([createdAt])
+ @@index([expiresAt])
+ @@index([convertedUserId])
+ @@map("guest_reports")
+}

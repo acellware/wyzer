@@ -1,0 +1,148 @@
+---
+import '@/styles/global.css';
+import { ViewTransitions } from 'astro:transitions';
+import Header from '@/components/Header.astro';
+import LegalStrip from '@/components/LegalStrip.astro';
+import SearchModal from '@/components/SearchModal.astro';
+import Analytics from '@/components/Analytics.astro';
+
+interface Props {
+  title: string;
+  description?: string;
+  image?: string;
+  jsonLd?: Record<string, unknown> | Record<string, unknown>[];
+  canvas?: boolean;
+}
+
+const {
+  title,
+  description = 'Understand what NIST, SOC 2, ISO 27001, GDPR, HIPAA, PCI DSS, and FDA require, in plain English, in one view.',
+  image = '/og.png',
+  jsonLd,
+  canvas = false,
+} = Astro.props;
+
+const siteName = 'Compliance Navigator';
+const fullTitle = title === siteName ? title : `${title} · ${siteName}`;
+const canonicalURL = new URL(Astro.url.pathname, Astro.site).toString();
+const ogImage = new URL(image, Astro.site).toString();
+const jsonLdItems = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script is:inline>
+      // Apply the saved Navigator theme before paint (no flash), and wire the
+      // toggle via event delegation so it survives View Transitions swaps. Uses a
+      // Navigator-scoped attribute so it never affects the (always-light) marketing
+      // pages, which react to data-theme.
+      (function () {
+        var KEY = 'wyzer-nav-theme';
+        function isNav() {
+          var p = location.pathname;
+          return p === '/navigator' || p.indexOf('/navigator/') === 0;
+        }
+        function saved() {
+          try {
+            var s = localStorage.getItem(KEY);
+            if (s === 'light' || s === 'dark') return s;
+          } catch (e) {}
+          return 'dark';
+        }
+        function apply(t) {
+          if (!isNav()) return;
+          document.documentElement.setAttribute('data-nav-theme', t);
+          var btns = document.querySelectorAll('[data-theme-toggle]');
+          for (var i = 0; i < btns.length; i++) {
+            btns[i].setAttribute('aria-label', t === 'light' ? 'Switch to dark theme' : 'Switch to light theme');
+            btns[i].setAttribute('aria-pressed', t === 'light' ? 'true' : 'false');
+          }
+        }
+        apply(saved());
+        if (!window.__wyzerThemeBound) {
+          window.__wyzerThemeBound = true;
+          document.addEventListener('click', function (e) {
+            var btn = e.target.closest ? e.target.closest('[data-theme-toggle]') : null;
+            if (!btn) return;
+            var next = document.documentElement.getAttribute('data-nav-theme') === 'light' ? 'dark' : 'light';
+            try { localStorage.setItem(KEY, next); } catch (e2) {}
+            apply(next);
+          });
+          document.addEventListener('astro:after-swap', function () { apply(saved()); });
+        }
+      })();
+    </script>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalURL} />
+    <meta name="generator" content={Astro.generator} />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={siteName} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalURL} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300..700;1,14..32,300..400&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    {jsonLdItems.map((item) => (
+      <script type="application/ld+json" is:inline set:html={JSON.stringify(item)} />
+    ))}
+    <ViewTransitions />
+  </head>
+  <body class="flex min-h-screen flex-col">
+    <a
+      href="#main-content"
+      class="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-[80] focus:rounded-md focus:border focus:border-line focus:bg-surface focus:px-3 focus:py-2 focus:text-sm focus:font-medium focus:text-ink-primary"
+    >
+      Skip to content
+    </a>
+    <Header />
+    <main
+      id="main-content"
+      class={canvas ? 'relative overflow-hidden' : 'flex-1'}
+      style={canvas ? 'height: calc(100dvh - 3.5rem)' : undefined}
+    >
+      <slot />
+    </main>
+    {!canvas && <LegalStrip />}
+    <SearchModal />
+    <Analytics />
+    <script>
+      // Locally record explored topics (no analytics, consent-free).
+      function recordExplored() {
+        try {
+          const el = document.querySelector('[data-topic-slug]');
+          const slug = el?.getAttribute('data-topic-slug');
+          if (!slug) return;
+          const key = 'wyzer-explored';
+          const arr = JSON.parse(localStorage.getItem(key) || '[]');
+          if (Array.isArray(arr) && !arr.includes(slug)) {
+            arr.push(slug);
+            localStorage.setItem(key, JSON.stringify(arr));
+          }
+        } catch (e) {
+          /* ignore */
+        }
+      }
+      recordExplored();
+      document.addEventListener('astro:page-load', recordExplored);
+    </script>
+  </body>
+</html>

@@ -21,63 +21,69 @@ import { InvitationsModule } from './modules/invitations/invitations.module';
 import { AuditLogModule } from './modules/audit-log/audit-log.module';
 import { BillingModule } from './modules/billing/billing.module';
 import { WaitlistModule } from './modules/waitlist/waitlist.module';
+import { PublicModule } from './modules/public/public.module';
 import { RateLimitGuard } from './common/guards/rate-limit.guard';
 
 @Module({
-  imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
-      validate: validateEnv,
-      envFilePath: '.env',
-    }),
-    LoggerModule.forRootAsync({
-      useFactory: (configService: ConfigService<Env, true>) => {
-        const isProduction = configService.get('NODE_ENV', { infer: true }) === 'production';
-        return {
-          pinoHttp: {
-            level: isProduction ? 'info' : 'debug',
-            transport: isProduction
-              ? undefined // native JSON output in production
-              : { target: 'pino-pretty', options: { colorize: true, singleLine: false } },
-          },
-        };
-      },
-      inject: [ConfigService],
-    }),
-    BullModule.forRootAsync({
-      useFactory: (configService: ConfigService<Env, true>) => {
-        const redisUrl =
-          configService.get('REDIS_URL', { infer: true }) ?? 'redis://localhost:6379';
-        const connection = new Redis(redisUrl, {
-          maxRetriesPerRequest: null,
-          enableReadyCheck: false,
-          lazyConnect: true,
-        });
-        connection.on('error', () => {
-          // Suppress unhandled rejection — BullMQ workers handle retry logic
-        });
-        return { connection };
-      },
-      inject: [ConfigService],
-    }),
-    PrismaModule,
-    RedisModule,
-    StorageModule,
-    HealthModule,
-    DisposableEmailModule,
-    AuthModule,
-    TechnologiesModule,
-    StacksModule,
-    StackTemplatesModule,
-    DataScopesModule,
-    ReportsModule,
-    PdfModule,
-    InvitationsModule,
-    AuditLogModule,
-    BillingModule,
-    WaitlistModule,
-  ],
-  providers: [RateLimitGuard],
+ imports: [
+  ConfigModule.forRoot({
+   isGlobal: true,
+   validate: validateEnv,
+   envFilePath: '.env',
+  }),
+  LoggerModule.forRootAsync({
+   useFactory: (configService: ConfigService<Env, true>) => {
+    const isProduction =
+     configService.get('NODE_ENV', { infer: true }) === 'production';
+    return {
+     pinoHttp: {
+      level: isProduction ? 'info' : 'debug',
+      transport: isProduction
+       ? undefined // native JSON output in production
+       : {
+          target: 'pino-pretty',
+          options: { colorize: true, singleLine: false },
+         },
+     },
+    };
+   },
+   inject: [ConfigService],
+  }),
+  BullModule.forRootAsync({
+   useFactory: (configService: ConfigService<Env, true>) => {
+    const redisUrl =
+     configService.get('REDIS_URL', { infer: true }) ??
+     'redis://localhost:6379';
+    const connection = new Redis(redisUrl, {
+     maxRetriesPerRequest: null,
+     enableReadyCheck: false,
+     lazyConnect: true,
+    });
+    connection.on('error', () => {
+     // Suppress unhandled rejection — BullMQ workers handle retry logic
+    });
+    return { connection };
+   },
+   inject: [ConfigService],
+  }),
+  PrismaModule,
+  RedisModule,
+  StorageModule,
+  HealthModule,
+  DisposableEmailModule,
+  AuthModule,
+  TechnologiesModule,
+  StacksModule,
+  StackTemplatesModule,
+  DataScopesModule,
+  ReportsModule,
+  PdfModule,
+  InvitationsModule,
+  AuditLogModule,
+  BillingModule,
+  WaitlistModule,
+  PublicModule,
+ ],
+ providers: [RateLimitGuard],
 })
 export class AppModule {}
-

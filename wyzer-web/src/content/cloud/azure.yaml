@@ -1,0 +1,120 @@
+providerName: Microsoft Azure
+blurb: Microsoft's cloud platform.
+order: 2
+categories:
+  - slug: storage
+    name: Storage
+    blurb: Blob and disk storage services.
+    resources:
+      - slug: blob-storage
+        name: Blob Storage
+        blurb: Object storage containers.
+        configurations:
+          - slug: public-access
+            name: Public Access
+            topic: object-storage-public-access
+            providerNote: Controlled by the "Allow Blob public access" account setting.
+          - slug: encryption-at-rest
+            name: Encryption at Rest
+            topic: encryption-at-rest
+            providerNote: Storage Service Encryption (on by default).
+          - slug: backup-retention
+            name: Backup & Retention
+            topic: backup-and-retention
+            providerNote: Soft delete and blob versioning.
+  - slug: compute
+    name: Compute
+    blurb: Virtual machines and disks.
+    resources:
+      - slug: virtual-machines
+        name: Virtual Machines
+        blurb: Azure VMs.
+        configurations:
+          - slug: public-exposure
+            name: Public Exposure
+            topic: compute-public-exposure
+            providerNote: Public IP plus network security group rules.
+          - slug: disk-encryption
+            name: Disk Encryption
+            topic: encryption-at-rest
+            providerNote: Azure Disk Encryption.
+  - slug: database
+    name: Database
+    blurb: Managed databases.
+    resources:
+      - slug: azure-sql
+        name: Azure SQL
+        blurb: Managed relational database.
+        configurations:
+          - slug: public-endpoint
+            name: Public Endpoint
+            topic: database-public-access
+            providerNote: Public network access setting.
+          - slug: encryption-at-rest
+            name: Encryption at Rest
+            topic: encryption-at-rest
+            providerNote: Transparent Data Encryption.
+          - slug: tls-in-transit
+            name: TLS in Transit
+            topic: data-in-transit-encryption
+            providerNote: Minimum TLS version setting.
+          - slug: backups-retention
+            name: Backups & Retention
+            topic: backup-and-retention
+            providerNote: Point-in-time and long-term retention.
+  - slug: networking
+    name: Networking
+    blurb: Network access rules.
+    resources:
+      - slug: nsg
+        name: Network Security Groups
+        blurb: Inbound and outbound rules.
+        configurations:
+          - slug: open-ingress
+            name: Open Ingress
+            topic: network-open-ingress
+            providerNote: Rules allowing any source inbound.
+  - slug: identity
+    name: Identity & Access
+    blurb: Directory and access management.
+    resources:
+      - slug: entra-id
+        name: Microsoft Entra ID
+        blurb: Identity provider (formerly Azure AD).
+        configurations:
+          - slug: least-privilege
+            name: Least Privilege (RBAC)
+            topic: iam-least-privilege
+            providerNote: Assign narrow built-in or custom roles.
+          - slug: mfa
+            name: MFA
+            topic: mfa-enforcement
+            providerNote: Enforce with Conditional Access policies.
+  - slug: logging
+    name: Logging & Monitoring
+    blurb: Recording and retaining activity.
+    resources:
+      - slug: azure-monitor
+        name: Azure Monitor
+        blurb: Activity and diagnostic logs.
+        configurations:
+          - slug: audit-logging
+            name: Audit Logging
+            topic: audit-logging
+            providerNote: Activity logs and diagnostic settings.
+          - slug: log-retention
+            name: Log Retention
+            topic: log-retention
+            providerNote: Log Analytics workspace retention.
+  - slug: secrets
+    name: Secrets
+    blurb: Storing credentials and keys.
+    resources:
+      - slug: key-vault
+        name: Key Vault
+        blurb: Managed secret and key storage.
+        configurations:
+          - slug: centralized-secrets
+            name: Centralized Secrets
+            topic: secrets-management
+            providerNote: Vault storage with rotation.

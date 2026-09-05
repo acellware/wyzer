@@ -1,0 +1,70 @@
+---
+import { getCollection } from 'astro:content';
+import Layout from '@/layouts/Layout.astro';
+import Breadcrumbs from '@/components/Breadcrumbs.astro';
+import NavCard from '@/components/NavCard.astro';
+import { getTopicMap, requireTopic } from '@/lib/content';
+
+export async function getStaticPaths() {
+  const providers = await getCollection('cloud');
+  return providers.flatMap((provider) =>
+    provider.data.categories.flatMap((category) =>
+      category.resources.map((resource) => ({
+        params: {
+          provider: provider.id,
+          category: category.slug,
+          resource: resource.slug,
+        },
+        props: { provider, category, resource },
+      })),
+    ),
+  );
+}
+
+const { provider, category, resource } = Astro.props;
+const topicMap = await getTopicMap();
+
+const configs = resource.configurations.map((config) => {
+  const topic = requireTopic(
+    topicMap,
+    config.topic,
+    `cloud/${provider.id}.yaml → ${resource.slug} → ${config.slug}`,
+  );
+  return { config, topic };
+});
+---
+
+<Layout
+  title={`${resource.name} · ${provider.data.providerName}`}
+  description={`Compliance topics for ${resource.name} on ${provider.data.providerName}.`}
+>
+  <div class="mx-auto max-w-content px-4 py-10">
+    <Breadcrumbs
+      items={[
+        { label: 'Home', href: '/navigator' },
+        { label: 'Cloud', href: '/navigator/cloud' },
+        { label: provider.data.providerName, href: `/navigator/cloud/${provider.id}` },
+        { label: category.name, href: `/navigator/cloud/${provider.id}/${category.slug}` },
+        { label: resource.name },
+      ]}
+    />
+    <h1 class="text-3xl font-semibold tracking-tight text-ink-primary">
+      {resource.name}
+      <span class="text-ink-muted"> · {provider.data.providerName}</span>
+    </h1>
+    <p class="mt-3 max-w-2xl text-ink-muted">
+      Pick a configuration to see what each framework says about it.
+    </p>
+
+    <div class="mt-8 grid gap-4 sm:grid-cols-2" data-reveal>
+      {configs.map(({ config, topic }) => (
+        <NavCard
+          href={`/navigator/topic/${topic.slug}`}
+          title={config.name}
+          blurb={topic.data.summary}
+          note={config.providerNote}
+        />
+      ))}
+    </div>
+  </div>
+</Layout>

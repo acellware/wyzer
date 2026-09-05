@@ -1,41 +1,56 @@
-# Wyzer — Compliance Intelligence Platform
+# Wyzer — Continuous compliance for engineering teams
 
-Wyzer helps engineering teams understand their compliance posture across SOC 2, ISO 27001, GDPR, PCI-DSS, HIPAA, and NDPR — without a consultant. You describe your tech stack; Wyzer scores your gaps, generates a shareable report, and tells you exactly what to fix.
+Wyzer helps engineering teams stay audit-ready across SOC 2, ISO 27001, GDPR, PCI-DSS, HIPAA, and NDPR. The Wyzer agent inspects your real infrastructure and ships continuous evidence, so compliance keeps up with your stack instead of becoming a once-a-year scramble.
+
+This repository holds Wyzer's web presence and its backend API.
 
 ---
 
-## Repo Structure
+## Repo structure
 
 ```
 wyzer/
-├── wyzer-api/        # NestJS 10 backend (TypeScript, Prisma, PostgreSQL, Redis)
-├── wyzer-web/        # React 18 frontend (Vite, TypeScript, Tailwind, React Query)
+├── wyzer-web/        # Astro 4 site — marketing landing + the Compliance Navigator
+├── wyzer-api/        # NestJS 10 backend (Prisma, PostgreSQL, Redis/BullMQ)
 ├── docker-compose.yml
-└── .github/
-    └── workflows/
-        └── deploy-api.yml   # Fly.io CI/CD
+└── .github/workflows/deploy-api.yml   # Fly.io CI/CD for the API
 ```
 
 ---
 
-## Tech Stack
+## wyzer-web — marketing site + Compliance Navigator
 
-| Layer         | Technology                                      |
-| ------------- | ----------------------------------------------- |
-| API           | NestJS 10, TypeScript strict, Prisma 5          |
-| Database      | PostgreSQL 16                                   |
-| Cache / Queue | Redis 7, BullMQ                                 |
-| Auth          | JWT RS256 (asymmetric), HttpOnly refresh cookie |
-| Email         | Resend (prod) / Mailhog (local dev)             |
-| Storage       | Cloudflare R2 (S3-compatible, PDF reports)      |
-| Billing       | Stripe Checkout + webhooks                      |
-| Frontend      | React 18, Vite 5, Tailwind CSS, React Query     |
-| Logging       | nestjs-pino (JSON in prod, pino-pretty in dev)  |
-| Deploy        | Fly.io (`wyzer-api-prod` / `wyzer-api-staging`) |
+A single Astro app served on one domain (`wyzer.acellhq.com`):
+
+- **`/`** — marketing landing, legal pages, and the waitlist. Built from React islands, server-rendered for SEO.
+- **`/navigator`** — the **Compliance Navigator**, an interactive, educational explorer. Pick a slice of your stack (by cloud or by industry) and it shows, in plain English, what each framework expects for that topic, with citations. Full-text search via Pagefind, a pannable canvas view, and a light/dark theme.
+
+**Tech:** Astro 4, React islands, Tailwind CSS, MDX, Pagefind. Deploys to Cloudflare Pages.
+
+```bash
+cd wyzer-web
+npm install
+npm run dev        # http://localhost:4321
+npm run build      # static build + Pagefind index
+npm run preview    # serve the production build (port 4321)
+npm run check      # astro check (type + template diagnostics)
+```
+
+Environment — `cp .env.example .env`:
+
+| Variable                 | Purpose                                        | Default                          |
+| ------------------------ | ---------------------------------------------- | -------------------------------- |
+| `PUBLIC_API_URL`         | Backend base URL for the waitlist form         | `http://localhost:3001/api/v1`   |
+| `PUBLIC_GA_ID`           | GA4 measurement ID (consent-gated)             | shared property                  |
+| `PUBLIC_ANALYTICS_DEBUG` | Log analytics events to the console            | off                              |
+
+The public origin is set in `astro.config.mjs` (`site: https://wyzer.acellhq.com`).
 
 ---
 
-## Local Development
+## wyzer-api — backend API
+
+NestJS 10 (TypeScript strict, Prisma 5) with PostgreSQL, Redis/BullMQ, JWT auth, and Swagger docs. It backs the site (for example, the waitlist endpoint).
 
 ### Prerequisites
 
@@ -56,37 +71,20 @@ openssl rsa -in private.pem -pubout -out public.pem
 cp wyzer-api/.env.example wyzer-api/.env
 ```
 
-Open `wyzer-api/.env` and fill in the JWT keys (paste the PEM content with literal `\n` line breaks):
-
-```bash
-# Quick way to format keys for .env
-JWT_PRIVATE_KEY=$(awk 'NF {sub(/\r/, ""); printf "%s\\n",$0;}' wyzer-api/private.pem)
-JWT_PUBLIC_KEY=$(awk 'NF {sub(/\r/, ""); printf "%s\\n",$0;}' wyzer-api/public.pem)
-```
-
-**For local dev**, only the JWT keys are required. Everything else has a working default:
-
-| Variable         | Local default                                              | Notes                               |
-| ---------------- | ---------------------------------------------------------- | ----------------------------------- |
-| `DATABASE_URL`   | `postgresql://wyzer:wyzer_secret@localhost:5432/wyzer_dev` | Docker postgres                     |
-| `REDIS_URL`      | `redis://localhost:6379`                                   | Docker redis                        |
-| `RESEND_API_KEY` | any string                                                 | Mailhog intercepts all mail locally |
-| `R2_*`           | empty                                                      | Only needed to test PDF export      |
-| `STRIPE_*`       | `sk_test_...`                                              | Only needed to test billing         |
+For local dev only the JWT keys are required; everything else defaults to the Docker services below.
 
 ### 3. Start infrastructure
 
 ```bash
 docker compose up db redis mailhog -d
+# Mailhog web UI (view local mail): http://localhost:8025
 ```
 
-Mailhog web UI (view emails): **http://localhost:8025**
-
-### 4. Database setup
+### 4. Database
 
 ```bash
 cd wyzer-api
-npx prisma migrate deploy   # run all migrations
+npx prisma migrate deploy   # run migrations
 npx prisma db seed          # seed frameworks, technologies, templates
 ```
 
@@ -99,77 +97,32 @@ npm run start:dev
 # Swagger: http://localhost:3001/api/docs
 ```
 
-### 6. Run the frontend
-
-```bash
-cd wyzer-web
-npm run dev
-# App: http://localhost:3000
-```
-
----
-
-## Running with Docker Compose (full stack)
-
-```bash
-docker compose --profile web up --build
-# OR if using custom docker-compose file
-docker compose -f docker-compose.local.yaml --profile web up --build
-```
-
-Services: db → redis → mailhog → api (waits for healthy) → web.
-
----
-
-## Testing
-
-### API unit + integration tests
+### Tests
 
 ```bash
 cd wyzer-api
-npm test                  # 54 unit tests
-npm run test:e2e          # 26 integration tests (requires running postgres + redis)
-```
-
-### Frontend Playwright E2E
-
-```bash
-cd wyzer-web
-npx playwright test       # 16 tests (spins up Vite dev server automatically)
+npm test            # unit tests
+npm run test:e2e    # integration tests (needs postgres + redis)
 ```
 
 ---
 
-## Frameworks Covered
+## Frameworks covered
 
-| Framework     | Version                            |
-| ------------- | ---------------------------------- |
-| SOC 2 Type II | Trust Service Criteria             |
-| ISO 27001     | 2022                               |
-| GDPR          | EU 2016/679                        |
-| PCI-DSS       | v4.0                               |
-| HIPAA         | Security Rule                      |
-| NDPR          | Nigeria Data Protection Regulation |
-
-44 technology integrations including PostgreSQL, Redis, Docker, Terraform, AWS EC2/S3/ECS/EKS/Lambda, Kubernetes, GitHub Actions, Cloudflare, Nginx, MongoDB, MySQL, Kafka, HashiCorp Vault, GCP, Azure, DigitalOcean, Vercel, Fly.io, and more.
+| Framework | Version                            |
+| --------- | ---------------------------------- |
+| SOC 2     | Trust Service Criteria             |
+| ISO 27001 | 2022                               |
+| GDPR      | EU 2016/679                        |
+| PCI-DSS   | v4.0                               |
+| HIPAA     | Security Rule                      |
+| NDPR      | Nigeria Data Protection Regulation |
 
 ---
 
 ## Deployment
 
-The API auto-deploys to Fly.io on push via `.github/workflows/deploy-api.yml`:
-
-- `main` branch → `wyzer-api-prod`
-- `staging` branch → `wyzer-api-staging`
-
-Required GitHub secret: `FLY_API_TOKEN`
-
----
-
-## Plans
-
-| Plan | Stacks    | Reports   | PDF Export | Team seats |
-| ---- | --------- | --------- | ---------- | ---------- |
-| Free | 1         | 3 / month | —          | 1          |
-| Pro  | 5         | Unlimited | ✓          | 1          |
-| Team | Unlimited | Unlimited | ✓          | Up to 20   |
+- **wyzer-web** → Cloudflare Pages (static build; `wyzer.acellhq.com`).
+- **wyzer-api** → Fly.io via `.github/workflows/deploy-api.yml` (`main` → prod, `staging` → staging). Requires the `FLY_API_TOKEN` GitHub secret.
+</content>
+</invoke>

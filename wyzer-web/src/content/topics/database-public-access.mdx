@@ -1,0 +1,64 @@
+---
+name: Database Public Access
+type: resource-linked
+summary: >-
+  Whether a managed database can be reached directly from the public internet.
+  Frameworks expect databases holding sensitive data to sit on a private network
+  rather than expose a public endpoint.
+updated: 2026-09-04
+cards:
+  - framework: nist
+    plain: >-
+      A database open to the internet widens the attack surface. Network access
+      should be limited to the systems that genuinely need it.
+    detail: >-
+      NIST CSF 2.0 Access Control (PR.AA) and infrastructure resilience (PR.IR)
+      call for restricting access on a least-privilege basis.
+    citations:
+      - label: "NIST CSF 2.0 · PR.AA / PR.IR"
+        url: https://www.nist.gov/cyberframework
+  - framework: soc2
+    plain: >-
+      Logical and network access to databases is expected to be restricted to
+      authorized systems, not exposed to the open internet.
+    detail: >-
+      Maps to CC6.1 (logical access) and CC6.6 (protecting the system boundary
+      from external threats).
+    citations:
+      - label: "SOC 2 TSC · CC6.1 / CC6.6"
+        url: https://www.aicpa-cima.com/topic/audit-assurance/audit-and-assurance-greater-than-soc-2
+  - framework: iso27001
+    plain: >-
+      Networks and access to information are expected to be controlled, which
+      means databases are not reachable from untrusted networks by default.
+    detail: >-
+      Annex A controls A.8.20 (networks security) and A.5.15 (access control) in
+      ISO/IEC 27001:2022.
+    citations:
+      - label: "ISO/IEC 27001:2022 · A.8.20 / A.5.15"
+        url: https://www.iso.org/standard/27001
+  - framework: gdpr
+    plain: >-
+      A publicly reachable database holding personal data is a security-of-
+      processing risk that appropriate measures are expected to prevent.
+    detail: >-
+      Article 32 requires security appropriate to the risk; exposing a personal-
+      data store publicly would generally fall short.
+    citations:
+      - label: "GDPR · Article 32"
+        url: https://eur-lex.europa.eu/eli/reg/2016/679/oj
+  - framework: pci-dss
+    plain: >-
+      Systems that store cardholder data must not be directly accessible from
+      untrusted, public networks.
+    detail: >-
+      PCI DSS v4.0 Requirement 1 covers network security controls that isolate
+      systems handling cardholder data.
+    citations:
+      - label: "PCI DSS v4.0 · Requirement 1"
+        url: https://www.pcisecuritystandards.org/
+---
+
+**In practice.** Keep managed databases on private subnets, turn off "publicly
+accessible" options, and reach them through a bastion host, VPN, or private
+endpoint instead of exposing them to the internet.

@@ -1,0 +1,45 @@
+---
+import { getCollection } from 'astro:content';
+import Layout from '@/layouts/Layout.astro';
+import Breadcrumbs from '@/components/Breadcrumbs.astro';
+import NavCard from '@/components/NavCard.astro';
+
+export async function getStaticPaths() {
+  const providers = await getCollection('cloud');
+  return providers.map((provider) => ({
+    params: { provider: provider.id },
+    props: { provider },
+  }));
+}
+
+const { provider } = Astro.props;
+const categories = provider.data.categories;
+---
+
+<Layout
+  title={`${provider.data.providerName} · Compliance by Category`}
+  description={`Browse ${provider.data.providerName} service categories and see what compliance frameworks say about each.`}
+>
+  <div class="mx-auto max-w-content px-4 py-10">
+    <Breadcrumbs
+      items={[
+        { label: 'Home', href: '/navigator' },
+        { label: 'Cloud', href: '/navigator/cloud' },
+        { label: provider.data.providerName },
+      ]}
+    />
+    <h1 class="text-3xl font-semibold tracking-tight text-ink-primary">{provider.data.providerName}</h1>
+    <p class="mt-3 max-w-2xl text-ink-muted">Pick a category to see its services.</p>
+
+    <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3" data-reveal>
+      {categories.map((c) => (
+        <NavCard
+          href={`/navigator/cloud/${provider.id}/${c.slug}`}
+          title={c.name}
+          blurb={c.blurb}
+          meta={`${c.resources.length} services`}
+        />
+      ))}
+    </div>
+  </div>
+</Layout>

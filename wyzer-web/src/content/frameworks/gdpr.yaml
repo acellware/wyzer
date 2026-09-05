@@ -1,0 +1,7 @@
+name: General Data Protection Regulation
+shortName: GDPR
+tier: EU 2016/679
+badgeColor: "#5A67D8"
+sourceUrl: https://eur-lex.europa.eu/eli/reg/2016/679/oj
+blurb: EU regulation governing how the personal data of EU residents is collected, stored, and protected.
+order: 4

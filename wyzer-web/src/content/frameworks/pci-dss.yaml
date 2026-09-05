@@ -1,0 +1,7 @@
+name: Payment Card Industry Data Security Standard
+shortName: PCI DSS
+tier: v4.0
+badgeColor: "#B7791F"
+sourceUrl: https://www.pcisecuritystandards.org/
+blurb: Security standard for any organization that stores, processes, or transmits payment-card data.
+order: 6

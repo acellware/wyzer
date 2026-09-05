@@ -1,0 +1,81 @@
+---
+name: Encryption at Rest
+type: resource-linked
+summary: >-
+  Whether stored data is encrypted on disk so it stays unreadable if the
+  underlying storage is lost, stolen, or accessed directly. Most frameworks
+  expect encryption at rest for sensitive data, and several make it effectively
+  mandatory.
+updated: 2026-09-04
+cards:
+  - framework: nist
+    plain: >-
+      Recommends protecting the confidentiality of data at rest as a core data-
+      security outcome, typically through encryption of stored data.
+    detail: >-
+      NIST CSF 2.0 Data Security (PR.DS) calls for the confidentiality, integrity,
+      and availability of data-at-rest to be protected, encryption being the
+      standard technical control.
+    citations:
+      - label: "NIST CSF 2.0 · PR.DS"
+        url: https://www.nist.gov/cyberframework
+  - framework: soc2
+    plain: >-
+      Encryption at rest is a common control auditors look for as part of
+      protecting confidential information, especially for regulated or customer
+      data.
+    detail: >-
+      Relates to CC6.1 (security measures over stored data) and the Confidentiality
+      criteria (C1.1 / C1.2) where the entity commits to protecting confidential
+      information throughout its lifecycle.
+    citations:
+      - label: "SOC 2 TSC · CC6.1 / C1"
+        url: https://www.aicpa-cima.com/topic/audit-assurance/audit-and-assurance-greater-than-soc-2
+  - framework: iso27001
+    plain: >-
+      Expects cryptography to be used to protect information based on its
+      sensitivity, which for stored data means encryption at rest.
+    detail: >-
+      Annex A control A.8.24 (use of cryptography) in ISO/IEC 27001:2022 covers
+      the policy on when and how encryption is applied, including data at rest.
+    citations:
+      - label: "ISO/IEC 27001:2022 · A.8.24"
+        url: https://www.iso.org/standard/27001
+  - framework: gdpr
+    plain: >-
+      Names encryption explicitly as an example of an appropriate measure for
+      securing personal data.
+    detail: >-
+      Article 32(1)(a) cites encryption of personal data as an example measure for
+      ensuring a level of security appropriate to the risk.
+    citations:
+      - label: "GDPR · Article 32(1)(a)"
+        url: https://eur-lex.europa.eu/eli/reg/2016/679/oj
+  - framework: hipaa
+    plain: >-
+      Treats encryption of stored health information as an addressable
+      safeguard, expected wherever it is a reasonable and appropriate way to
+      protect the data.
+    detail: >-
+      The HIPAA Security Rule lists encryption at rest as an addressable
+      implementation specification under the technical safeguards
+      (45 CFR 164.312(a)(2)(iv)).
+    citations:
+      - label: "HIPAA Security Rule · 164.312(a)(2)(iv)"
+        url: https://www.hhs.gov/hipaa/for-professionals/security/index.html
+  - framework: pci-dss
+    plain: >-
+      Requires stored cardholder data to be rendered unreadable, with strong
+      cryptography being the primary method.
+    detail: >-
+      PCI DSS v4.0 Requirement 3 covers protecting stored account data, including
+      making the primary account number unreadable using strong cryptography.
+    citations:
+      - label: "PCI DSS v4.0 · Requirement 3"
+        url: https://www.pcisecuritystandards.org/
+---
+
+**In practice.** Most managed storage, database, and disk services offer
+encryption at rest as a one-time setting, often on by default. The important
+choices are turning it on for every store that holds sensitive data and deciding
+who controls the keys.

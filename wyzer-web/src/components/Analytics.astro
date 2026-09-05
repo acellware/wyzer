@@ -1,0 +1,151 @@
+---
+// Google Analytics 4 with a prior-consent gate, adapted for Astro View
+// Transitions (all wiring is one-time + delegated + astro lifecycle events).
+// GA does NOT load until the visitor accepts. Custom events map to the PRD
+// metrics: topic_reached, topic_view, topic_scroll.
+const GA_ID = import.meta.env.PUBLIC_GA_ID ?? 'G-QQKWMXNVSH';
+const debug = import.meta.env.PUBLIC_ANALYTICS_DEBUG === 'true';
+---
+
+<!-- Cookie consent banner -->
+<div
+  id="consent-banner"
+  class="hidden fixed inset-x-0 bottom-0 z-[75] border-t"
+  style="background: var(--color-surface); border-color: var(--color-border); box-shadow: 0 -8px 30px rgba(0,0,0,0.06)"
+  role="region"
+  aria-label="Cookie consent"
+>
+  <div class="mx-auto max-w-[1240px] px-6 py-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <p class="text-[13.5px] leading-[1.5] max-w-2xl" style="color: var(--color-body)">
+      We use Google Analytics to understand, in aggregate, how this site is used.
+      No advertising or cross-site tracking. See our
+      <a href="/cookies" class="underline" style="color: var(--color-accent-ink)">Cookie Policy</a>.
+    </p>
+    <div class="flex gap-2 shrink-0">
+      <button
+        id="consent-decline"
+        type="button"
+        class="h-9 px-4 inline-flex items-center text-[13px] rounded-lg border transition-colors hover:[background-color:var(--color-raised)]"
+        style="color: var(--color-ink); border-color: var(--color-border)"
+      >
+        Decline
+      </button>
+      <button
+        id="consent-accept"
+        type="button"
+        class="h-9 px-4 inline-flex items-center text-[13px] font-medium rounded-lg text-white transition-colors hover:[background-color:var(--color-accent-ink)]"
+        style="background-color: var(--color-accent)"
+      >
+        Accept
+      </button>
+    </div>
+  </div>
+</div>
+
+<script is:inline define:vars={{ GA_ID, debug }}>
+  (function () {
+    if (window.__navAnalytics) return;
+    window.__navAnalytics = true;
+
+    var KEY = 'wyzer-consent';
+    var isLocal = ['localhost', '127.0.0.1', '0.0.0.0'].indexOf(location.hostname) !== -1;
+    var gaLoaded = false;
+
+    function getConsent() { try { return localStorage.getItem(KEY); } catch (e) { return null; } }
+    function setConsent(v) { try { localStorage.setItem(KEY, v); } catch (e) {} }
+
+    function loadGA() {
+      if (gaLoaded || !GA_ID) return;
+      gaLoaded = true;
+      window.dataLayer = window.dataLayer || [];
+      window.gtag = function () { window.dataLayer.push(arguments); };
+      var s = document.createElement('script');
+      s.async = true;
+      s.src = 'https://www.googletagmanager.com/gtag/js?id=' + GA_ID;
+      document.head.appendChild(s);
+      window.gtag('js', new Date());
+      if (!isLocal) window.gtag('config', GA_ID); // GA4 enhanced measurement tracks soft-nav page_views
+    }
+
+    function track(name, params) {
+      if (debug) console.log('[analytics]', name, params || {});
+      if (gaLoaded && window.gtag) window.gtag('event', name, params || {});
+    }
+
+    function bucketSeconds(x) { return x < 10 ? '0-10s' : x < 30 ? '10-30s' : x < 60 ? '30-60s' : x < 180 ? '1-3m' : '3m+'; }
+    function bucketCount(n) { return n <= 1 ? '1' : n === 2 ? '2' : n === 3 ? '3' : n <= 5 ? '4-5' : '6+'; }
+    function bucketDepth(p) { return p < 25 ? '0-25' : p < 50 ? '25-50' : p < 75 ? '50-75' : p < 95 ? '75-95' : '95-100'; }
+
+    function banner() { return document.getElementById('consent-banner'); }
+    function showBanner() { var b = banner(); if (b) b.classList.remove('hidden'); }
+    function hideBanner() { var b = banner(); if (b) b.classList.add('hidden'); }
+    function syncBanner() { if (getConsent()) hideBanner(); else showBanner(); }
+    window.__wyzerConsent = { open: showBanner };
+    // Let islands (e.g. the waitlist form) report conversions; respects consent.
+    window.__wyzerTrack = track;
+
+    function isTopic() { return /^\/navigator\/topic\/[^/]+\/?$/.test(location.pathname); }
+
+    // ---- Scroll depth (single listener; per-topic max, reported on leave) ----
+    var maxDepth = 0, scrollTopicActive = false, scrollReported = false;
+    window.addEventListener('scroll', function () {
+      if (!scrollTopicActive) return;
+      var scrollable = document.documentElement.scrollHeight - window.innerHeight;
+      var pct = scrollable > 0 ? Math.round((window.scrollY / scrollable) * 100) : 100;
+      if (pct > maxDepth) maxDepth = Math.min(100, pct);
+    }, { passive: true });
+    function reportScroll() {
+      if (scrollReported || !scrollTopicActive) return;
+      scrollReported = true;
+      track('topic_scroll', { depth_bucket: bucketDepth(maxDepth) });
+    }
+    document.addEventListener('astro:before-swap', reportScroll);
+    window.addEventListener('pagehide', reportScroll);
+
+    function trackTopic() {
+      if (!isTopic()) { scrollTopicActive = false; return; }
+      scrollTopicActive = true; maxDepth = 0; scrollReported = false;
+      try {
+        var ts = sessionStorage.getItem('nav_landing_ts');
+        if (ts && !sessionStorage.getItem('nav_topic_timed')) {
+          track('topic_reached', { time_bucket: bucketSeconds(Math.round((Date.now() - Number(ts)) / 1000)) });
+          sessionStorage.setItem('nav_topic_timed', '1');
+        }
+      } catch (e) {}
+      var n = 1;
+      try { n = Number(sessionStorage.getItem('nav_topic_views') || '0') + 1; sessionStorage.setItem('nav_topic_views', String(n)); } catch (e) {}
+      track('topic_view', { session_index: bucketCount(n) });
+    }
+
+    function markLanding() {
+      try { if (location.pathname === '/navigator' && !sessionStorage.getItem('nav_landing_ts')) sessionStorage.setItem('nav_landing_ts', String(Date.now())); } catch (e) {}
+    }
+
+    // ---- Delegated clicks (survive DOM swaps) ----
+    document.addEventListener('click', function (e) {
+      var t = e.target;
+      if (!t || !t.closest) return;
+      if (t.closest('#consent-accept')) { setConsent('granted'); hideBanner(); loadGA(); if (getConsent() === 'granted') trackTopic(); return; }
+      if (t.closest('#consent-decline')) { setConsent('denied'); hideBanner(); return; }
+      var s = t.closest('#surprise');
+      if (s) {
+        e.preventDefault();
+        try {
+          var slugs = JSON.parse(s.getAttribute('data-slugs') || '[]');
+          if (slugs.length) window.location.href = '/navigator/topic/' + slugs[Math.floor(Math.random() * slugs.length)];
+        } catch (err) {}
+      }
+    });
+
+    // ---- Astro lifecycle ----
+    // Set banner + landing ASAP (first load) and before each paint (no flash).
+    markLanding();
+    syncBanner();
+    document.addEventListener('astro:after-swap', function () { markLanding(); syncBanner(); });
+    // Tracking runs once per page via page-load (fires on initial load + each nav).
+    document.addEventListener('astro:page-load', function () {
+      if (getConsent() === 'granted') { loadGA(); trackTopic(); }
+      else { scrollTopicActive = false; }
+    });
+  })();
+</script>
