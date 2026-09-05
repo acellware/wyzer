@@ -1,10 +1,13 @@
 import { Link } from 'react-router-dom';
 import { ThemeToggle } from '@components/ui/ThemeToggle';
+import { Seo } from '@components/Seo';
 
 interface LegalLayoutProps {
  kicker: string;
  title: string;
  lastUpdated: string;
+ path: string;
+ description?: string;
  children: React.ReactNode;
 }
 
@@ -12,10 +15,13 @@ export function LegalLayout({
  kicker,
  title,
  lastUpdated,
+ path,
+ description,
  children,
 }: LegalLayoutProps) {
  return (
   <div style={{ background: 'var(--color-page)', minHeight: '100vh' }}>
+   <Seo title={title} description={description} path={path} />
    {/* Minimal nav */}
    <header
     className='sticky top-0 z-40 border-b'
@@ -66,7 +72,7 @@ export function LegalLayout({
    </div>
 
    {/* Body */}
-   <main className='max-w-[860px] mx-auto px-6 py-14'>
+   <main id='main-content' className='max-w-[860px] mx-auto px-6 py-14'>
     <div className='prose-legal'>{children}</div>
    </main>
 

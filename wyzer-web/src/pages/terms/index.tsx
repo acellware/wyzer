@@ -6,6 +6,8 @@ export default function TermsPage() {
    kicker='legal'
    title='Terms of Service'
    lastUpdated='1 January 2026'
+   path='/terms'
+   description='The terms that govern your use of the Wyzer platform.'
   >
    <h2>Acceptance</h2>
    <p>

@@ -6,6 +6,8 @@ export default function PrivacyPage() {
    kicker='legal'
    title='Privacy Policy'
    lastUpdated='1 January 2026'
+   path='/privacy'
+   description='How Wyzer collects, uses, and protects your personal data.'
   >
    <h2>Introduction</h2>
    <p>

@@ -6,6 +6,8 @@ export default function CookiesPage() {
    kicker='legal'
    title='Cookie Policy'
    lastUpdated='1 January 2026'
+   path='/cookies'
+   description='Which cookies Wyzer uses and how to control them.'
   >
    <h2>What are cookies?</h2>
    <p>

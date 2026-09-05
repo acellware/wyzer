@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { useLogout } from '../../api/auth';
 import { authStore } from '../../store/auth';
+import { Seo } from '@components/Seo';
 
 // ── Nav structure ──────────────────────────────────────────────────────────────
 
@@ -169,6 +170,7 @@ export function DashboardLayout() {
    className='flex min-h-screen'
    style={{ background: 'var(--color-page)' }}
   >
+   <Seo noindex />
    {/* ── Desktop sidebar ────────────────────────────── */}
    <aside
     className='hidden lg:flex flex-col w-[220px] shrink-0 border-r h-screen sticky top-0'
@@ -218,6 +220,8 @@ export function DashboardLayout() {
       onClick={() => setMobileOpen((v) => !v)}
       className='w-8 h-8 flex items-center justify-center rounded-lg transition-colors'
       style={{ color: 'var(--color-body)' }}
+      aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
+      aria-expanded={mobileOpen}
      >
       {mobileOpen ? <X size={18} /> : <Menu size={18} />}
      </button>
@@ -238,7 +242,7 @@ export function DashboardLayout() {
     </header>
 
     {/* Page content */}
-    <main className='flex-1 overflow-y-auto'>
+    <main id='main-content' className='flex-1 overflow-y-auto'>
      <Outlet />
     </main>
    </div>

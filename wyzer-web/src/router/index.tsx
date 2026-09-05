@@ -1,5 +1,6 @@
 import { createBrowserRouter } from 'react-router-dom';
 import { DashboardLayout } from '../components/layout/DashboardLayout';
+import { Seo } from '@components/Seo';
 import HomePage from '@pages/home';
 import LoginPage from '@pages/auth/login';
 import RegisterPage from '@pages/auth/register';
@@ -24,24 +25,87 @@ import ProfilePage from '@pages/profile';
 import CheckPage from '@pages/check';
 import GuestReportResultPage from '@pages/check/result';
 
+type SeoProps = Parameters<typeof Seo>[0];
+/** Prefix a route element with page-level SEO tags (rendered into <head>). */
+const withSeo = (node: React.ReactNode, seo: SeoProps) => (
+ <>
+  <Seo {...seo} />
+  {node}
+ </>
+);
+
 export const router = createBrowserRouter([
  // ── Public routes ──────────────────────────────────────────────────────────
  { path: '/', element: <HomePage /> },
- { path: '/login', element: <LoginPage /> },
- { path: '/register', element: <RegisterPage /> },
- { path: '/auth/verify-email', element: <VerifyEmailPage /> },
- { path: '/auth/verify', element: <VerifyPage /> },
+ {
+  path: '/login',
+  element: withSeo(<LoginPage />, {
+   title: 'Sign in',
+   path: '/login',
+   noindex: true,
+  }),
+ },
+ {
+  path: '/register',
+  element: withSeo(<RegisterPage />, {
+   title: 'Create your account',
+   path: '/register',
+   noindex: true,
+  }),
+ },
+ {
+  path: '/auth/verify-email',
+  element: withSeo(<VerifyEmailPage />, { title: 'Verify email', noindex: true }),
+ },
+ {
+  path: '/auth/verify',
+  element: withSeo(<VerifyPage />, { title: 'Verify email', noindex: true }),
+ },
  { path: '/privacy', element: <PrivacyPage /> },
  { path: '/terms', element: <TermsPage /> },
  { path: '/cookies', element: <CookiesPage /> },
- { path: '/pricing', element: <PricingPage /> },
+ {
+  path: '/pricing',
+  element: withSeo(<PricingPage />, {
+   title: 'Pricing',
+   path: '/pricing',
+   description:
+    'Simple, transparent pricing. Score one stack free forever, upgrade when your team grows.',
+  }),
+ },
  // T-042 — public shareable report (no sidebar)
- { path: '/share/:token', element: <SharedReportPage /> },
+ {
+  path: '/share/:token',
+  element: withSeo(<SharedReportPage />, {
+   title: 'Shared compliance report',
+   noindex: true,
+  }),
+ },
  // T-043 — accept org invite via email link (no sidebar)
- { path: '/invitations/accept', element: <AcceptInvitePage /> },
+ {
+  path: '/invitations/accept',
+  element: withSeo(<AcceptInvitePage />, {
+   title: 'Accept invitation',
+   noindex: true,
+  }),
+ },
  // T-050 — free public stack check (guest flow, no auth)
- { path: '/check', element: <CheckPage /> },
- { path: '/check/:token', element: <GuestReportResultPage /> },
+ {
+  path: '/check',
+  element: withSeo(<CheckPage />, {
+   title: 'Free compliance check',
+   path: '/check',
+   description:
+    'Describe your stack and get a free plain-language compliance score in seconds. No signup required.',
+  }),
+ },
+ {
+  path: '/check/:token',
+  element: withSeo(<GuestReportResultPage />, {
+   title: 'Your compliance report',
+   noindex: true,
+  }),
+ },
 
  // ── Authenticated app (sidebar layout) ────────────────────────────────────
  {
