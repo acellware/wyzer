@@ -2,9 +2,13 @@
 .DS_Store
 Thumbs.db
 
-# ── Internal planning docs ───────────────────────────────────────────────────
+# ── Internal planning docs (kept local, never committed) ─────────────────────
 *.docx
 wyzer-copilot-handoff.md
+compliance-navigator-plan.md
+compliance-navigator-prd.pdf
+content-architecture.md
+implementation-plan.md
 
 # ── Node ─────────────────────────────────────────────────────────────────────
 node_modules/
