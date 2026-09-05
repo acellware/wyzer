@@ -1,29 +1,20 @@
-# ── Dependencies ─────────────────────────────────────────────────────────────
+# build output
+dist/
+.output/
+
+# deps
 node_modules/
 
-# ── Build output ─────────────────────────────────────────────────────────────
-dist/
+# astro
+.astro/
 
-# ── Environment ──────────────────────────────────────────────────────────────
+# env
 .env
-.env.local
-.env.*.local
+.env.production
 
-# ── Test artifacts ───────────────────────────────────────────────────────────
-test-results/
-playwright-report/
-blob-report/
-
-# ── Coverage ─────────────────────────────────────────────────────────────────
-coverage/
-
-# ── OS ───────────────────────────────────────────────────────────────────────
+# os / editor
 .DS_Store
-
-# ── Editor ───────────────────────────────────────────────────────────────────
-.vscode/
-.idea/
-
-# ── Logs ─────────────────────────────────────────────────────────────────────
 *.log
-npm-debug.log*
+
+# pagefind (generated in Phase 2)
+public/pagefind/

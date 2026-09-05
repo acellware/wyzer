@@ -1,17 +1,4 @@
 User-agent: *
 Allow: /
-Disallow: /dashboard
-Disallow: /stacks
-Disallow: /reports
-Disallow: /settings
-Disallow: /billing
-Disallow: /teams
-Disallow: /profile
-Disallow: /login
-Disallow: /register
-Disallow: /auth/
-Disallow: /check/
-Disallow: /share/
-Disallow: /invitations/
 
 Sitemap: https://wyzer.acellhq.com/sitemap.xml

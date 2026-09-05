@@ -1,30 +1,13 @@
 {
- "compilerOptions": {
-  "target": "ES2020",
-  "useDefineForClassFields": true,
-  "lib": ["ES2020", "DOM", "DOM.Iterable"],
-  "types": ["vite/client"],
-  "module": "ESNext",
-  "skipLibCheck": true,
-  "moduleResolution": "bundler",
-  "allowImportingTsExtensions": true,
-  "resolveJsonModule": true,
-  "isolatedModules": true,
-  "noEmit": true,
-  "jsx": "react-jsx",
-  "strict": true,
-  "noUnusedLocals": true,
-  "noUnusedParameters": true,
-  "noFallthroughCasesInSwitch": true,
-  "baseUrl": ".",
-  "paths": {
-   "@/*": ["src/*"],
-   "@components/*": ["src/components/*"],
-   "@pages/*": ["src/pages/*"],
-   "@hooks/*": ["src/hooks/*"],
-   "@api/*": ["src/api/*"]
-  }
- },
- "include": ["src"],
- "references": [{ "path": "./tsconfig.node.json" }]
+  "extends": "astro/tsconfigs/strict",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "jsxImportSource": "react",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    }
+  },
+  "include": [".astro/types.d.ts", "**/*"],
+  "exclude": ["dist"]
 }

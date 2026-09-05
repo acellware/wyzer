@@ -3,7 +3,7 @@ import { getCollection } from 'astro:content';
 import Layout from '@/layouts/Layout.astro';
 import Explorer from '@/components/Explorer.tsx';
 
-const origin = (Astro.site?.toString() ?? 'https://wyzernavigator.acellhq.com/').replace(/\/$/, '');
+const origin = (Astro.site?.toString() ?? 'https://wyzer.acellhq.com/').replace(/\/$/, '');
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'WebSite',
