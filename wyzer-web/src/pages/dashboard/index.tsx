@@ -91,14 +91,12 @@ export default function DashboardPage() {
      label='Stacks'
      value={stacksLoading ? '—' : String(stacks?.length ?? 0)}
      href='/stacks'
-     action='View all'
     />
     <StatCard
      icon={<FileText size={18} style={{ color: 'var(--color-accent-ink)' }} />}
      label='Reports'
      value={reportsLoading ? '—' : String(reports?.length ?? 0)}
      href='/reports'
-     action='View all'
     />
    </div>
 
@@ -261,13 +259,11 @@ function StatCard({
  label,
  value,
  href,
- action,
 }: {
  icon: React.ReactNode;
  label: string;
  value: string;
  href: string;
- action: string;
 }) {
  return (
   <Link

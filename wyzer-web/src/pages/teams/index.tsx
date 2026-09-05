@@ -1,4 +1,4 @@
-import { Users, UserPlus, Loader2, X } from 'lucide-react';
+import { UserPlus, Loader2, X } from 'lucide-react';
 import { useState } from 'react';
 import {
  useOrgMembers,
@@ -168,7 +168,7 @@ export default function TeamsPage() {
      <ul>
       {(members ?? []).map((m) => (
        <li
-        key={m.userId}
+        key={m.user.id}
         className='flex items-center justify-between px-5 py-3 border-b last:border-0'
         style={{ borderColor: 'var(--color-border-subtle)' }}
        >
@@ -192,10 +192,10 @@ export default function TeamsPage() {
          >
           {ROLE_LABEL[m.role]}
          </span>
-         {m.userId !== currentUserId && m.role !== 'OWNER' && (
+         {m.user.id !== currentUserId && m.role !== 'OWNER' && (
           <button
            type='button'
-           onClick={() => removeMember.mutate(m.userId)}
+           onClick={() => removeMember.mutate(m.user.id)}
            disabled={removeMember.isPending}
            className='w-6 h-6 flex items-center justify-center rounded-md transition-colors disabled:opacity-40'
            style={{ color: 'var(--color-muted)' }}
