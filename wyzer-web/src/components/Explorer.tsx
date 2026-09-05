@@ -182,22 +182,57 @@ export default function Explorer({ tree }: { tree: ExplorerNode[] }) {
     [path, navigate],
   );
 
-  // Fit the whole graph into view while keeping Start (world origin) centered.
+  // Frame the view. Prefer showing the whole graph centered; but once the graph
+  // grows tall/sparse enough that fitting all of it would shrink the content past
+  // readability, zoom into the current focus (active node + where you came from +
+  // its options) and let the far trail recede (the PATH breadcrumb keeps context).
   const fitView = useCallback(() => {
-    const pad = 64;
-    let maxX = 90;
-    let maxY = 90;
-    const consider = (p: Pt, d: { w: number; h: number }) => {
-      maxX = Math.max(maxX, Math.abs(p.x) + d.w);
-      maxY = Math.max(maxY, Math.abs(p.y) + d.h);
+    type Item = { pos: Pt; d: { w: number; h: number } };
+    const box = (items: Item[]) => {
+      let minX = Infinity;
+      let minY = Infinity;
+      let maxX = -Infinity;
+      let maxY = -Infinity;
+      for (const it of items) {
+        minX = Math.min(minX, it.pos.x - it.d.w);
+        maxX = Math.max(maxX, it.pos.x + it.d.w);
+        minY = Math.min(minY, it.pos.y - it.d.h);
+        maxY = Math.max(maxY, it.pos.y + it.d.h);
+      }
+      return { w: Math.max(1, maxX - minX), h: Math.max(1, maxY - minY), cx: (minX + maxX) / 2, cy: (minY + maxY) / 2 };
     };
-    layout.placed.forEach((pl, i) =>
-      consider(pl.pos, halfDims(pl.node, i === 0 ? 'core' : pl.node.id === layout.active.id ? 'active' : 'trail')),
-    );
-    layout.options.forEach((o) => consider(o.pos, halfDims(o.node, 'option')));
-    const s = clamp(Math.min((size.w / 2 - pad) / maxX, (size.h / 2 - pad) / maxY), 0.4, 1.45);
+    const PAD = 120;
+    const MIN_READABLE = 0.72;
+    const MAX = 1.4;
+    const fit = (b: { w: number; h: number }) => Math.min((size.w - PAD * 2) / b.w, (size.h - PAD * 2) / b.h);
+
+    const roleAt = (i: number, id: string) => (i === 0 ? 'core' : id === layout.active.id ? 'active' : 'trail') as Role;
+    const allItems: Item[] = [
+      ...layout.placed.map((pl, i) => ({ pos: pl.pos, d: halfDims(pl.node, roleAt(i, pl.node.id)) })),
+      ...layout.options.map((o) => ({ pos: o.pos, d: halfDims(o.node, 'option') })),
+    ];
+    const full = box(allItems);
+    const sFull = fit(full);
+
+    let s: number;
+    let cx: number;
+    let cy: number;
+    if (sFull >= MIN_READABLE) {
+      s = clamp(sFull, MIN_READABLE, MAX);
+      cx = full.cx;
+      cy = full.cy;
+    } else {
+      const n = layout.placed.length;
+      const focusItems: Item[] = layout.options.map((o) => ({ pos: o.pos, d: halfDims(o.node, 'option') }));
+      focusItems.push({ pos: layout.placed[n - 1].pos, d: halfDims(layout.placed[n - 1].node, 'active') });
+      if (n >= 2) focusItems.push({ pos: layout.placed[n - 2].pos, d: halfDims(layout.placed[n - 2].node, n - 2 === 0 ? 'core' : 'trail') });
+      const focus = box(focusItems);
+      s = clamp(fit(focus), MIN_READABLE, MAX);
+      cx = focus.cx;
+      cy = focus.cy;
+    }
     setScale(s);
-    setPan({ x: size.w / 2, y: size.h / 2 });
+    setPan({ x: size.w / 2 - cx * s, y: size.h / 2 - cy * s });
   }, [layout, size.w, size.h]);
 
   // Re-fit whenever the drilled path or the viewport changes.
