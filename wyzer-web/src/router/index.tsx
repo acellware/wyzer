@@ -1,5 +1,7 @@
 import { createBrowserRouter } from 'react-router-dom';
 import { DashboardLayout } from '../components/layout/DashboardLayout';
+import { RootLayout } from '../components/layout/RootLayout';
+import { NotFoundPage, RouteErrorPage } from '@pages/error';
 import { Seo } from '@components/Seo';
 import HomePage from '@pages/home';
 import LoginPage from '@pages/auth/login';
@@ -35,14 +37,18 @@ const withSeo = (node: React.ReactNode, seo: SeoProps) => (
 );
 
 export const router = createBrowserRouter([
- // ── Public routes ──────────────────────────────────────────────────────────
- { path: '/', element: <HomePage /> },
  {
-  path: '/login',
-  element: withSeo(<LoginPage />, {
-   title: 'Sign in',
-   path: '/login',
-   noindex: true,
+  element: <RootLayout />,
+  errorElement: <RouteErrorPage />,
+  children: [
+   // ── Public routes ─────────────────────────────────────────────────────────
+   { path: '/', element: <HomePage /> },
+   {
+    path: '/login',
+    element: withSeo(<LoginPage />, {
+     title: 'Sign in',
+     path: '/login',
+     noindex: true,
   }),
  },
  {
@@ -107,20 +113,25 @@ export const router = createBrowserRouter([
   }),
  },
 
- // ── Authenticated app (sidebar layout) ────────────────────────────────────
- {
-  element: <DashboardLayout />,
-  children: [
-   { path: '/dashboard', element: <DashboardPage /> },
-   { path: '/stacks', element: <StacksPage /> },
-   { path: '/stacks/new', element: <NewStackPage /> },
-   { path: '/stacks/:id', element: <StackDetailPage /> },
-   { path: '/reports', element: <ReportsListPage /> },
-   { path: '/reports/:id', element: <ReportPage /> },
-   { path: '/settings', element: <SettingsPage /> },
-   { path: '/billing', element: <BillingPage /> },
-   { path: '/teams', element: <TeamsPage /> },
-   { path: '/profile', element: <ProfilePage /> },
+  // ── Authenticated app (sidebar layout) ────────────────────────────────────
+  {
+   element: <DashboardLayout />,
+   children: [
+    { path: '/dashboard', element: <DashboardPage /> },
+    { path: '/stacks', element: <StacksPage /> },
+    { path: '/stacks/new', element: <NewStackPage /> },
+    { path: '/stacks/:id', element: <StackDetailPage /> },
+    { path: '/reports', element: <ReportsListPage /> },
+    { path: '/reports/:id', element: <ReportPage /> },
+    { path: '/settings', element: <SettingsPage /> },
+    { path: '/billing', element: <BillingPage /> },
+    { path: '/teams', element: <TeamsPage /> },
+    { path: '/profile', element: <ProfilePage /> },
+   ],
+  },
+
+  // ── 404 ────────────────────────────────────────────────────────────────────
+  { path: '*', element: <NotFoundPage /> },
   ],
  },
 ]);

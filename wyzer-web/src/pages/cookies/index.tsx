@@ -1,4 +1,5 @@
 import { LegalLayout } from '@components/legal/LegalLayout';
+import { analyticsConfigured, openConsentBanner } from '../../lib/analytics';
 
 export default function CookiesPage() {
  return (
@@ -46,13 +47,55 @@ export default function CookiesPage() {
      Stored in <code>localStorage</code>, not a cookie, so it is not transmitted
      to our servers.
     </li>
+    <li>
+     <strong>wyzer-consent</strong> — Remembers whether you accepted or declined
+     analytics, so we do not ask again. Stored in <code>localStorage</code>.
+    </li>
    </ul>
+
+   <h2>Analytics cookies</h2>
+   <p>
+    With your consent, we use Google Analytics 4 to understand, in aggregate,
+    how the site is used, such as which pages are most visited. These are set
+    only after you accept, and are used for product analytics only. We do not
+    run advertising or cross-site tracking.
+   </p>
+   <ul>
+    <li>
+     <strong>_ga, _ga_&lt;id&gt;</strong> — Set by Google Analytics to
+     distinguish visitors and sessions. These typically expire after up to two
+     years.
+    </li>
+   </ul>
+   <p>
+    Analytics stays off until you choose &ldquo;Accept&rdquo;. You can change
+    your choice at any time.
+   </p>
+   {analyticsConfigured() && (
+    <p>
+     <button
+      type='button'
+      onClick={() => openConsentBanner()}
+      style={{
+       color: 'var(--color-accent-ink)',
+       textDecoration: 'underline',
+       cursor: 'pointer',
+       background: 'none',
+       border: 'none',
+       padding: 0,
+       font: 'inherit',
+      }}
+     >
+      Manage analytics consent
+     </button>
+    </p>
+   )}
 
    <h2>Third-party cookies</h2>
    <p>
-    Wyzer does not use third-party advertising or analytics cookies. We do not
-    embed social media widgets on the main application that would set
-    third-party cookies.
+    Beyond the analytics described above, Wyzer does not use third-party
+    advertising cookies, and we do not embed social media widgets on the main
+    application that would set third-party cookies.
    </p>
 
    <h2>Managing cookies</h2>
