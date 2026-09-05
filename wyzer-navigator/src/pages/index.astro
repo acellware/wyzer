@@ -75,7 +75,7 @@ const FRAMEWORKS = ['NIST', 'SOC 2', 'ISO 27001', 'GDPR', 'HIPAA', 'PCI DSS', 'F
 ---
 
 <Layout title="Compliance Navigator" jsonLd={jsonLd}>
-  <section class="mx-auto max-w-[820px] px-6 pt-14 pb-10 text-center sm:pt-20">
+  <section class="mx-auto max-w-[1060px] px-6 pt-14 pb-10 text-center sm:pt-20">
     <p class="font-mono text-[12px] uppercase tracking-[0.2em]" style="color: var(--color-accent-ink)">
       plain-language compliance
     </p>
@@ -87,7 +87,7 @@ const FRAMEWORKS = ['NIST', 'SOC 2', 'ISO 27001', 'GDPR', 'HIPAA', 'PCI DSS', 'F
       framework says.
     </p>
 
-    <div class="mt-10">
+    <div class="mt-10 text-left">
       <Explorer client:load tree={tree} />
     </div>
 
