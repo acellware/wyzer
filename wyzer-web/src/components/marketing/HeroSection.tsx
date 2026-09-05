@@ -1,5 +1,4 @@
 import { ArrowRight } from 'lucide-react';
-import { AgentRunMockup } from './AgentRunMockup';
 
 const FRAMEWORKS = ['SOC 2', 'ISO 27001', 'GDPR', 'PCI-DSS', 'HIPAA', 'NDPR'];
 
@@ -87,11 +86,6 @@ export function HeroSection() {
        {f}
       </span>
      ))}
-    </div>
-
-    {/* Agent run, beneath the copy */}
-    <div className='mt-16 mx-auto' style={{ maxWidth: '900px' }}>
-     <AgentRunMockup />
     </div>
    </div>
   </section>
