@@ -2,7 +2,7 @@ import { WaitlistForm } from './WaitlistForm';
 
 export function CtaSection() {
  return (
-  <section id='waitlist' className='py-20 sm:py-24 bg-dots'>
+  <section id='waitlist' className='py-20 sm:py-24'>
    <div className='max-w-[1240px] mx-auto px-6 text-center'>
     <h2
      className='text-display-3 balance mx-auto'
