@@ -342,14 +342,14 @@ export default function Explorer({ tree }: { tree: ExplorerNode[] }) {
         <svg style={{ position: 'absolute', left: 0, top: 0, width: 1, height: 1, overflow: 'visible', pointerEvents: 'none' }} aria-hidden="true">
           <defs>
             <linearGradient id="cx-line" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stopColor="rgba(120,150,255,0.5)" />
-              <stop offset="100%" stopColor="rgba(120,150,255,0.16)" />
+              <stop offset="0%" style={{ stopColor: 'var(--cx-grad-0)' }} />
+              <stop offset="100%" style={{ stopColor: 'var(--cx-grad-1)' }} />
             </linearGradient>
             <marker id="cx-arrow" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="8" markerHeight="8" orient="auto" markerUnits="userSpaceOnUse">
-              <path d="M0.5 1 L9 5 L0.5 9 Z" fill="rgba(150,172,236,0.62)" />
+              <path d="M0.5 1 L9 5 L0.5 9 Z" style={{ fill: 'var(--cx-arrow)' }} />
             </marker>
             <marker id="cx-arrow-lit" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="8.5" markerHeight="8.5" orient="auto" markerUnits="userSpaceOnUse">
-              <path d="M0.5 1 L9 5 L0.5 9 Z" fill="rgba(140,175,255,0.85)" />
+              <path d="M0.5 1 L9 5 L0.5 9 Z" style={{ fill: 'var(--cx-arrow-lit)' }} />
             </marker>
           </defs>
           {layout.placed.slice(1).map((pl, i) => {
@@ -359,7 +359,7 @@ export default function Explorer({ tree }: { tree: ExplorerNode[] }) {
               { pos: pl.pos, d: dimFor(pl.node, pl.node.id === layout.active.id ? 'active' : 'trail') },
             );
             return (
-              <line key={`t${i}`} x1={seg.a.x} y1={seg.a.y} x2={seg.b.x} y2={seg.b.y} stroke="rgba(140,160,220,0.4)" strokeWidth={1.5} markerEnd="url(#cx-arrow)" />
+              <line key={`t${i}`} x1={seg.a.x} y1={seg.a.y} x2={seg.b.x} y2={seg.b.y} style={{ stroke: 'var(--cx-line)' }} strokeWidth={1.5} markerEnd="url(#cx-arrow)" />
             );
           })}
           {layout.options.map((o, i) => {

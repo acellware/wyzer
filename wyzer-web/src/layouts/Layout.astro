@@ -34,6 +34,47 @@ const jsonLdItems = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script is:inline>
+      // Apply the saved Navigator theme before paint (no flash), and wire the
+      // toggle via event delegation so it survives View Transitions swaps. Uses a
+      // Navigator-scoped attribute so it never affects the (always-light) marketing
+      // pages, which react to data-theme.
+      (function () {
+        var KEY = 'wyzer-nav-theme';
+        function isNav() {
+          var p = location.pathname;
+          return p === '/navigator' || p.indexOf('/navigator/') === 0;
+        }
+        function saved() {
+          try {
+            var s = localStorage.getItem(KEY);
+            if (s === 'light' || s === 'dark') return s;
+          } catch (e) {}
+          return 'dark';
+        }
+        function apply(t) {
+          if (!isNav()) return;
+          document.documentElement.setAttribute('data-nav-theme', t);
+          var btns = document.querySelectorAll('[data-theme-toggle]');
+          for (var i = 0; i < btns.length; i++) {
+            btns[i].setAttribute('aria-label', t === 'light' ? 'Switch to dark theme' : 'Switch to light theme');
+            btns[i].setAttribute('aria-pressed', t === 'light' ? 'true' : 'false');
+          }
+        }
+        apply(saved());
+        if (!window.__wyzerThemeBound) {
+          window.__wyzerThemeBound = true;
+          document.addEventListener('click', function (e) {
+            var btn = e.target.closest ? e.target.closest('[data-theme-toggle]') : null;
+            if (!btn) return;
+            var next = document.documentElement.getAttribute('data-nav-theme') === 'light' ? 'dark' : 'light';
+            try { localStorage.setItem(KEY, next); } catch (e2) {}
+            apply(next);
+          });
+          document.addEventListener('astro:after-swap', function () { apply(saved()); });
+        }
+      })();
+    </script>
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <title>{fullTitle}</title>
     <meta name="description" content={description} />

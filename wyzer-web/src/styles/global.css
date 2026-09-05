@@ -49,7 +49,106 @@
 
   /* Layout */
   --section-gap: clamp(5rem, 10vw, 8rem);
+
+  /* Canvas (JARVIS surface) — themeable so the toggle can switch light/dark */
+  --cx-glow: rgba(40, 60, 130, 0.22);
+  --cx-vignette: rgba(0, 0, 0, 0.55);
+  --cx-line: rgba(140, 160, 220, 0.4);
+  --cx-grad-0: rgba(120, 150, 255, 0.5);
+  --cx-grad-1: rgba(120, 150, 255, 0.16);
+  --cx-arrow: rgba(150, 172, 236, 0.62);
+  --cx-arrow-lit: rgba(140, 175, 255, 0.85);
+  --cx-oncanvas-accent: #7cc7ff;
+  --cx-kicker: #7cc7ff;
+  --cx-core-text: hsl(40 30% 97%);
+  --cx-option-bg: linear-gradient(180deg, rgba(38, 52, 96, 0.5), rgba(22, 30, 58, 0.55));
+  --cx-option-border: rgba(120, 150, 255, 0.26);
+  --cx-option-border-hover: rgba(130, 175, 255, 0.7);
+  --cx-option-glow-hover: rgba(130, 175, 255, 0.22);
+  --cx-option-shadow: 0 6px 22px rgba(0, 0, 0, 0.35);
+  --cx-terminal-border: rgba(90, 210, 255, 0.42);
+  --cx-terminal-glow: rgba(90, 210, 255, 0.32);
+  --cx-core-bg: radial-gradient(120% 120% at 50% 30%, rgba(58, 88, 178, 0.92), rgba(20, 30, 60, 0.92));
+  --cx-core-border: rgba(130, 160, 255, 0.5);
+  --cx-core-glow: 0 0 0 1px rgba(130, 160, 255, 0.12), 0 0 44px rgba(120, 170, 255, 0.22), inset 0 0 26px rgba(120, 170, 255, 0.12);
+  --cx-trail-bg: rgba(28, 36, 58, 0.55);
+  --cx-trail-border: rgba(120, 150, 255, 0.16);
+  --cx-trail-border-hover: rgba(130, 160, 255, 0.45);
+  --cx-ctrl-bg: rgba(28, 36, 58, 0.7);
+  --cx-ctrl-bg-hover: rgba(36, 46, 72, 0.8);
+  --cx-ctrl-border: rgba(120, 150, 255, 0.2);
+  --cx-ctrl-border-hover: rgba(120, 150, 255, 0.5);
+  --cx-reveal-backdrop: rgba(2, 4, 10, 0.66);
 }
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   Light theme (opt-in via the Navigator toggle: html[data-nav-theme='light'])
+───────────────────────────────────────────────────────────────────────────── */
+:root[data-nav-theme='light'] {
+  color-scheme: light;
+
+  --color-page: hsl(216 33% 97%);
+  --color-surface: hsl(0 0% 100%);
+  --color-raised: hsl(216 24% 93%);
+
+  --color-ink: hsl(222 34% 13%);
+  --color-body: hsl(222 18% 28%);
+  --color-muted: hsl(222 12% 44%);
+
+  --color-border: hsl(218 20% 80%);
+  --color-border-subtle: hsl(218 24% 88%);
+
+  --color-accent: hsl(234 80% 56%);
+  --color-accent-soft: hsl(234 76% 93%);
+  --color-accent-ink: hsl(234 68% 44%);
+
+  --color-positive: hsl(145 55% 32%);
+  --color-danger: hsl(358 66% 48%);
+  --color-warn: hsl(33 88% 40%);
+
+  --ch-page: 216 33% 97%;
+  --ch-surface: 0 0% 100%;
+  --ch-raised: 216 24% 93%;
+  --ch-ink: 222 34% 13%;
+  --ch-body: 222 18% 28%;
+  --ch-muted: 222 12% 44%;
+  --ch-border: 218 20% 80%;
+  --ch-border-subtle: 218 24% 88%;
+  --ch-accent: 234 80% 56%;
+  --ch-accent-ink: 234 68% 44%;
+
+  /* Canvas — cool, clean light surface that keeps the blue-tech nodes crisp */
+  --cx-glow: rgba(70, 110, 220, 0.1);
+  --cx-vignette: rgba(30, 50, 110, 0.05);
+  --cx-line: rgba(70, 100, 180, 0.5);
+  --cx-grad-0: rgba(55, 95, 210, 0.6);
+  --cx-grad-1: rgba(55, 95, 210, 0.16);
+  --cx-arrow: rgba(70, 105, 190, 0.72);
+  --cx-arrow-lit: rgba(50, 95, 220, 0.92);
+  --cx-oncanvas-accent: hsl(212 76% 42%);
+  /* core stays a vivid blue disc with light text in both themes */
+  --cx-option-bg: linear-gradient(180deg, #ffffff, hsl(216 42% 97%));
+  --cx-option-border: rgba(55, 95, 210, 0.28);
+  --cx-option-border-hover: rgba(45, 90, 215, 0.6);
+  --cx-option-glow-hover: rgba(55, 95, 210, 0.18);
+  --cx-option-shadow: 0 6px 20px rgba(30, 50, 110, 0.12);
+  --cx-terminal-border: rgba(20, 140, 200, 0.5);
+  --cx-terminal-glow: rgba(20, 140, 200, 0.3);
+  --cx-core-glow: 0 0 0 1px rgba(50, 90, 200, 0.16), 0 12px 34px rgba(50, 90, 200, 0.24);
+  --cx-trail-bg: rgba(255, 255, 255, 0.82);
+  --cx-trail-border: rgba(55, 95, 210, 0.22);
+  --cx-trail-border-hover: rgba(45, 90, 215, 0.5);
+  --cx-ctrl-bg: rgba(255, 255, 255, 0.82);
+  --cx-ctrl-bg-hover: rgba(255, 255, 255, 0.96);
+  --cx-ctrl-border: rgba(55, 95, 210, 0.28);
+  --cx-ctrl-border-hover: rgba(45, 90, 215, 0.55);
+  --cx-reveal-backdrop: rgba(20, 30, 60, 0.4);
+}
+
+/* Theme toggle: show the icon of the theme you'll switch TO */
+.theme-icon-moon { display: none; }
+:root[data-nav-theme='light'] .theme-icon-sun { display: none; }
+:root[data-nav-theme='light'] .theme-icon-moon { display: inline-flex; }
 
 @layer base {
   :root {
@@ -509,14 +608,14 @@
 ───────────────────────────────────────────────────────────────────────────── */
 .canvas-root {
   background:
-    radial-gradient(120% 90% at 50% 42%, rgba(40, 60, 130, 0.22), transparent 68%),
+    radial-gradient(120% 90% at 50% 42%, var(--cx-glow), transparent 68%),
     var(--color-page);
   user-select: none;
 }
 .canvas-vignette {
   position: absolute;
   inset: 0;
-  box-shadow: inset 0 0 170px rgba(0, 0, 0, 0.55);
+  box-shadow: inset 0 0 170px var(--cx-vignette);
   pointer-events: none;
 }
 
@@ -533,14 +632,14 @@
   padding: 10px 14px;
   border-radius: 12px;
   text-align: left;
-  background: linear-gradient(180deg, rgba(38, 52, 96, 0.5), rgba(22, 30, 58, 0.55));
-  border: 1px solid rgba(120, 150, 255, 0.26);
-  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.35);
+  background: var(--cx-option-bg);
+  border: 1px solid var(--cx-option-border);
+  box-shadow: var(--cx-option-shadow);
   transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
 }
-.cx-option:hover { border-color: rgba(130, 175, 255, 0.7); box-shadow: 0 0 22px rgba(130, 175, 255, 0.22); }
-.cx-option.is-terminal { border-color: rgba(90, 210, 255, 0.42); }
-.cx-option.is-terminal:hover { box-shadow: 0 0 24px rgba(90, 210, 255, 0.32); }
+.cx-option:hover { border-color: var(--cx-option-border-hover); box-shadow: 0 0 22px var(--cx-option-glow-hover); }
+.cx-option.is-terminal { border-color: var(--cx-terminal-border); }
+.cx-option.is-terminal:hover { box-shadow: 0 0 24px var(--cx-terminal-glow); }
 .cx-core {
   width: 132px;
   height: 132px;
@@ -549,27 +648,27 @@
   align-items: center;
   justify-content: center;
   text-align: center;
-  background: radial-gradient(120% 120% at 50% 30%, rgba(58, 88, 178, 0.92), rgba(20, 30, 60, 0.92));
-  border: 1px solid rgba(130, 160, 255, 0.5);
-  box-shadow: 0 0 0 1px rgba(130, 160, 255, 0.12), 0 0 44px rgba(120, 170, 255, 0.22), inset 0 0 26px rgba(120, 170, 255, 0.12);
+  background: var(--cx-core-bg);
+  border: 1px solid var(--cx-core-border);
+  box-shadow: var(--cx-core-glow);
 }
 .cx-trail {
   padding: 7px 13px;
   border-radius: 10px;
   white-space: nowrap;
-  background: rgba(28, 36, 58, 0.55);
-  border: 1px solid rgba(120, 150, 255, 0.16);
+  background: var(--cx-trail-bg);
+  border: 1px solid var(--cx-trail-border);
   transition: color 0.2s ease, border-color 0.2s ease;
 }
-.cx-trail:hover { border-color: rgba(130, 160, 255, 0.45); }
+.cx-trail:hover { border-color: var(--cx-trail-border-hover); }
 .cx-core-inner { display: flex; flex-direction: column; align-items: center; padding: 0 12px; }
-.cx-kicker { font-family: var(--font-mono); font-size: 9px; text-transform: uppercase; letter-spacing: 0.14em; color: #7cc7ff; }
-.cx-core-label { margin-top: 3px; font-size: 15px; font-weight: 600; line-height: 1.15; color: var(--color-ink); }
+.cx-kicker { font-family: var(--font-mono); font-size: 9px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--cx-kicker); }
+.cx-core-label { margin-top: 3px; font-size: 15px; font-weight: 600; line-height: 1.15; color: var(--cx-core-text); }
 .cx-node-label { font-size: 13.5px; font-weight: 500; color: var(--color-ink); }
 .cx-trail .cx-node-label { font-size: 13px; color: var(--color-muted); }
 .cx-node-sub { font-family: var(--font-mono); font-size: 10px; color: var(--color-muted); }
 .cx-node-caret { flex-shrink: 0; color: var(--color-muted); }
-.cx-option.is-terminal .cx-node-caret { color: #7cc7ff; }
+.cx-option.is-terminal .cx-node-caret { color: var(--cx-oncanvas-accent); }
 
 .canvas-path {
   position: absolute;
@@ -584,7 +683,7 @@
   font-size: 11px;
   max-width: calc(100% - 44px);
 }
-.cx-path-key { color: #7cc7ff; font-weight: 500; margin-right: 4px; }
+.cx-path-key { color: var(--cx-oncanvas-accent); font-weight: 500; margin-right: 4px; }
 .cx-crumb { color: var(--color-muted); transition: color 0.15s ease; }
 .cx-crumb:hover, .cx-crumb.active { color: var(--color-ink); }
 .cx-sep { color: var(--color-border); }
@@ -621,7 +720,7 @@
 
 /* Topic reveal */
 .cx-reveal-wrap { position: fixed; inset: 0; z-index: 80; display: flex; align-items: center; justify-content: center; padding: 24px; }
-.cx-reveal-backdrop { position: absolute; inset: 0; background: rgba(2, 4, 10, 0.66); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); animation: drawerFade 200ms ease both; }
+.cx-reveal-backdrop { position: absolute; inset: 0; background: var(--cx-reveal-backdrop); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); animation: drawerFade 200ms ease both; }
 .cx-reveal-card {
   position: relative;
   width: min(760px, 100%);
@@ -670,8 +769,8 @@
   border-radius: 9px;
   font-size: 18px;
   line-height: 1;
-  background: rgba(28, 36, 58, 0.7);
-  border: 1px solid rgba(120, 150, 255, 0.2);
+  background: var(--cx-ctrl-bg);
+  border: 1px solid var(--cx-ctrl-border);
   color: var(--color-muted);
   transition: color 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
   -webkit-backdrop-filter: blur(6px);
@@ -679,6 +778,6 @@
 }
 .canvas-controls button:hover {
   color: var(--color-ink);
-  border-color: rgba(120, 150, 255, 0.5);
-  background: rgba(36, 46, 72, 0.8);
+  border-color: var(--cx-ctrl-border-hover);
+  background: var(--cx-ctrl-bg-hover);
 }
