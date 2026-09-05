@@ -60,7 +60,7 @@ const jsonLd = [
 ---
 
 <Layout title={topic.data.name} description={topic.data.summary} jsonLd={jsonLd}>
-  <article class="mx-auto max-w-3xl px-4 py-10" data-pagefind-body>
+  <article class="mx-auto max-w-3xl px-4 py-10" data-pagefind-body data-topic-slug={topic.slug}>
     <TrailMenu current={topic.data.name} />
 
     <p class="font-mono text-2xs uppercase tracking-wide text-ink-dim">{kindLabel}</p>

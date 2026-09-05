@@ -37,12 +37,19 @@ const kindLabel = (parent?: ExplorerNode) => {
   }
 };
 
-const H = 520;
-const CORE = { x: 156, y: H / 2 };
+// Angles (degrees, 0 = east, 90 = south) so branches radiate like a compass.
+function anglesFor(n: number): number[] {
+  if (n <= 1) return [0];
+  if (n === 2) return [180, 0]; // west, east
+  const start = -90; // first branch points north
+  return Array.from({ length: n }, (_, i) => start + (360 / n) * i);
+}
+
+const H = 560;
 
 export default function Explorer({ tree }: { tree: ExplorerNode[] }) {
   const [ids, setIds] = useState<string[]>([]);
-  const [w, setW] = useState(880);
+  const [w, setW] = useState(1012);
   const [par, setPar] = useState({ x: 0, y: 0 });
   const wrapRef = useRef<HTMLDivElement>(null);
 
@@ -73,7 +80,7 @@ export default function Explorer({ tree }: { tree: ExplorerNode[] }) {
       const r = el.getBoundingClientRect();
       const dx = (e.clientX - (r.left + r.width / 2)) / r.width;
       const dy = (e.clientY - (r.top + r.height / 2)) / r.height;
-      setPar({ x: dx * 16, y: dy * 14 });
+      setPar({ x: dx * 18, y: dy * 15 });
     };
     const onLeave = () => setPar({ x: 0, y: 0 });
     el.addEventListener('mousemove', onMove);
@@ -123,14 +130,17 @@ export default function Explorer({ tree }: { tree: ExplorerNode[] }) {
   const coreSub = core ? core.kind : 'compliance';
   const levelId = ids.join('/');
 
-  // Desktop node positions
-  const childCx = Math.min(Math.max(w * 0.6, 400), w - 150);
-  const yTop = 64;
-  const yBot = H - 64;
-  const positions = options.map((_, i) => {
-    const y = options.length === 1 ? H / 2 : yTop + ((yBot - yTop) / options.length) * (i + 0.5);
-    return { x: childCx, y };
+  // Centered radial-burst layout (elliptical to fit the wide, short console)
+  const cx = w / 2;
+  const cy = H / 2;
+  const rx = Math.min(Math.max(w * 0.3, 250), 360);
+  const ry = Math.min(Math.max(H * 0.34, 150), 205);
+  const angles = anglesFor(options.length);
+  const positions = angles.map((a) => {
+    const r = (a * Math.PI) / 180;
+    return { x: cx + rx * Math.cos(r), y: cy + ry * Math.sin(r) };
   });
+  const gradR = Math.max(rx, ry);
 
   return (
     <div
@@ -153,7 +163,7 @@ export default function Explorer({ tree }: { tree: ExplorerNode[] }) {
           <button type="button" className={`hud-crumb ${path.length ? '' : 'active'}`} onClick={() => goTo(0)}>start</button>
           {path.map((n, i) => (
             <span key={n.id + i} className="flex items-center gap-1.5">
-              <span aria-hidden="true" className="hud-dim" style={{ color: 'var(--hud-dim)' }}>▸</span>
+              <span aria-hidden="true" style={{ color: 'var(--hud-dim)' }}>▸</span>
               <button
                 type="button"
                 className={`hud-crumb ${i === path.length - 1 ? 'active' : ''}`}
@@ -188,7 +198,7 @@ export default function Explorer({ tree }: { tree: ExplorerNode[] }) {
                   type="button"
                   onClick={() => pick(n, path.length)}
                   className={`hud-node hud-node-anim stacked flex items-center justify-between gap-2 rounded-lg px-3.5 py-3 text-left ${terminal ? 'is-terminal' : ''}`}
-                  style={{ animationDelay: `${i * 45}ms` }}
+                  style={{ animationDelay: `${i * 70}ms` }}
                 >
                   <span className="min-w-0">
                     <span className="block truncate text-[14px] font-medium">{n.label}</span>
@@ -201,32 +211,37 @@ export default function Explorer({ tree }: { tree: ExplorerNode[] }) {
           </div>
         </div>
       ) : (
-        // Desktop: hub-and-spokes graph
+        // Desktop: centered compass burst
         <div className="relative" style={{ height: H }}>
-          <div className="absolute inset-0" style={{ transform: `translate3d(${par.x}px, ${par.y}px, 0)`, transition: 'transform 220ms ease-out' }}>
-            {/* connective lines */}
-            <svg key={'l' + levelId} className="hud-lines absolute inset-0" width={w} height={H} aria-hidden="true" style={{ pointerEvents: 'none' }}>
+          <div className="absolute inset-0" style={{ transform: `translate3d(${par.x}px, ${par.y}px, 0)`, transition: 'transform 260ms ease-out' }}>
+            {/* radial spokes */}
+            <svg key={'l' + levelId} className="absolute inset-0" width={w} height={H} aria-hidden="true" style={{ pointerEvents: 'none' }}>
               <defs>
-                <linearGradient id="hudLineGrad" x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0%" stopColor="rgba(87,214,255,0.55)" />
-                  <stop offset="100%" stopColor="rgba(106,160,255,0.15)" />
-                </linearGradient>
+                <radialGradient id="hudSpoke" cx={cx} cy={cy} r={gradR} gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stopColor="rgba(120,200,255,0.7)" />
+                  <stop offset="100%" stopColor="rgba(106,160,255,0.12)" />
+                </radialGradient>
               </defs>
               {positions.map((p, i) => (
-                <path
+                <line
                   key={i}
-                  d={`M ${CORE.x} ${CORE.y} C ${CORE.x + 130} ${CORE.y} ${p.x - 150} ${p.y} ${p.x} ${p.y}`}
-                  fill="none"
-                  stroke="url(#hudLineGrad)"
+                  x1={cx}
+                  y1={cy}
+                  x2={p.x}
+                  y2={p.y}
+                  pathLength={1}
+                  className="hud-line-draw"
+                  stroke="url(#hudSpoke)"
                   strokeWidth={1.5}
+                  style={{ animationDelay: `${i * 80}ms` }}
                 />
               ))}
             </svg>
 
-            {/* core */}
+            {/* core (centered) */}
             <div
               className="hud-core absolute flex flex-col items-center justify-center rounded-full text-center"
-              style={{ left: CORE.x, top: CORE.y, width: 132, height: 132, transform: 'translate(-50%, -50%)' }}
+              style={{ left: cx, top: cy, width: 138, height: 138, transform: 'translate(-50%, -50%)' }}
             >
               <span className="hud-ring" aria-hidden="true"></span>
               <span className="font-mono text-[9px] uppercase tracking-widest" style={{ color: 'var(--hud-cyan)' }}>{coreSub}</span>
@@ -247,12 +262,11 @@ export default function Explorer({ tree }: { tree: ExplorerNode[] }) {
                     style={{
                       left: p.x,
                       top: p.y,
-                      width: 216,
+                      width: 210,
                       transform: 'translate(-50%, -50%)',
-                      // where it flies in from (the core)
-                      ['--fx' as any]: `${CORE.x - p.x}px`,
-                      ['--fy' as any]: `${CORE.y - p.y}px`,
-                      animationDelay: `${i * 55}ms`,
+                      ['--fx' as any]: `${cx - p.x}px`,
+                      ['--fy' as any]: `${cy - p.y}px`,
+                      animationDelay: `${i * 80}ms`,
                     }}
                   >
                     <span className="min-w-0">

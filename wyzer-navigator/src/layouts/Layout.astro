@@ -77,5 +77,25 @@ const jsonLdItems = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
     <LegalStrip />
     <SearchModal />
     <Analytics />
+    <script>
+      // Locally record explored topics (no analytics, consent-free).
+      function recordExplored() {
+        try {
+          const el = document.querySelector('[data-topic-slug]');
+          const slug = el?.getAttribute('data-topic-slug');
+          if (!slug) return;
+          const key = 'wyzer-explored';
+          const arr = JSON.parse(localStorage.getItem(key) || '[]');
+          if (Array.isArray(arr) && !arr.includes(slug)) {
+            arr.push(slug);
+            localStorage.setItem(key, JSON.stringify(arr));
+          }
+        } catch (e) {
+          /* ignore */
+        }
+      }
+      recordExplored();
+      document.addEventListener('astro:page-load', recordExplored);
+    </script>
   </body>
 </html>
