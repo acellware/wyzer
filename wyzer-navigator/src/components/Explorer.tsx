@@ -149,7 +149,6 @@ export default function Explorer({ tree }: { tree: ExplorerNode[] }) {
       style={{ minHeight: mobile ? 'auto' : H }}
       aria-label="Compliance explorer console"
     >
-      <div className="hud-grid" aria-hidden="true"></div>
       <div className="hud-vignette" aria-hidden="true"></div>
       <span className="hud-bracket tl" aria-hidden="true"></span>
       <span className="hud-bracket tr" aria-hidden="true"></span>
@@ -233,7 +232,7 @@ export default function Explorer({ tree }: { tree: ExplorerNode[] }) {
                   className="hud-line-draw"
                   stroke="url(#hudSpoke)"
                   strokeWidth={1.5}
-                  style={{ animationDelay: `${i * 130}ms` }}
+                  style={{ animationDelay: `${i * 165}ms` }}
                 />
               ))}
             </svg>
@@ -266,7 +265,7 @@ export default function Explorer({ tree }: { tree: ExplorerNode[] }) {
                       transform: 'translate(-50%, -50%)',
                       ['--fx' as any]: `${cx - p.x}px`,
                       ['--fy' as any]: `${cy - p.y}px`,
-                      animationDelay: `${i * 130}ms`,
+                      animationDelay: `${i * 165}ms`,
                     }}
                   >
                     <span className="min-w-0">

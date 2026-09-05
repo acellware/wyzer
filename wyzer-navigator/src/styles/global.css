@@ -336,17 +336,6 @@
   box-shadow: 0 30px 90px rgba(4, 10, 30, 0.35), inset 0 0 80px rgba(24, 46, 100, 0.22);
   isolation: isolate;
 }
-.hud-grid {
-  position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(rgba(106, 160, 255, 0.07) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(106, 160, 255, 0.07) 1px, transparent 1px);
-  background-size: 42px 42px;
-  -webkit-mask-image: radial-gradient(120% 95% at 28% 45%, #000 25%, transparent 78%);
-  mask-image: radial-gradient(120% 95% at 28% 45%, #000 25%, transparent 78%);
-  pointer-events: none;
-}
 .hud-vignette {
   position: absolute;
   inset: 0;
@@ -411,7 +400,7 @@
 
 @media (prefers-reduced-motion: no-preference) {
   .hud-node-anim {
-    animation: hudFan 1150ms cubic-bezier(0.16, 0.84, 0.24, 1) both;
+    animation: hudFan 1450ms cubic-bezier(0.16, 0.84, 0.24, 1) both;
     transform-origin: center;
   }
   @keyframes hudFan {
@@ -435,7 +424,7 @@
   .hud-line-draw {
     stroke-dasharray: 1;
     stroke-dashoffset: 1;
-    animation: hudDraw 1350ms cubic-bezier(0.22, 0.8, 0.3, 1) forwards;
+    animation: hudDraw 1750ms cubic-bezier(0.22, 0.8, 0.3, 1) forwards;
   }
   @keyframes hudDraw {
     to { stroke-dashoffset: 0; }
