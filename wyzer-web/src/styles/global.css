@@ -223,31 +223,37 @@
     }
   }
 
-  /* Staggered element reveal on arrival (transform only) */
+  /* Staggered element reveal on arrival (transform only), one after the other */
   [data-reveal] > * {
-    animation: revealUp 460ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+    animation: revealUp 500ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
   }
   [data-reveal] > *:nth-child(2) {
-    animation-delay: 55ms;
+    animation-delay: 100ms;
   }
   [data-reveal] > *:nth-child(3) {
-    animation-delay: 110ms;
+    animation-delay: 200ms;
   }
   [data-reveal] > *:nth-child(4) {
-    animation-delay: 165ms;
+    animation-delay: 300ms;
   }
   [data-reveal] > *:nth-child(5) {
-    animation-delay: 220ms;
+    animation-delay: 400ms;
   }
   [data-reveal] > *:nth-child(6) {
-    animation-delay: 275ms;
+    animation-delay: 500ms;
   }
-  [data-reveal] > *:nth-child(n + 7) {
-    animation-delay: 320ms;
+  [data-reveal] > *:nth-child(7) {
+    animation-delay: 600ms;
+  }
+  [data-reveal] > *:nth-child(8) {
+    animation-delay: 700ms;
+  }
+  [data-reveal] > *:nth-child(n + 9) {
+    animation-delay: 780ms;
   }
   @keyframes revealUp {
     from {
-      transform: translateY(14px) scale(0.98);
+      transform: translateY(18px) scale(0.98);
     }
     to {
       transform: none;
@@ -401,7 +407,7 @@
 
 @media (prefers-reduced-motion: no-preference) {
   .hud-node-anim {
-    animation: hudFan 1450ms cubic-bezier(0.16, 0.84, 0.24, 1) both;
+    animation: hudFan 440ms cubic-bezier(0.16, 0.84, 0.24, 1) both;
     transform-origin: center;
   }
   @keyframes hudFan {
@@ -425,7 +431,7 @@
   .hud-line-draw {
     stroke-dasharray: 1;
     stroke-dashoffset: 1;
-    animation: hudDraw 1750ms cubic-bezier(0.22, 0.8, 0.3, 1) forwards;
+    animation: hudDraw 380ms cubic-bezier(0.22, 0.8, 0.3, 1) forwards;
   }
   @keyframes hudDraw {
     to { stroke-dashoffset: 0; }
