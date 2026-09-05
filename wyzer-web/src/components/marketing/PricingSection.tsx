@@ -17,7 +17,7 @@ const PLANS: PlanTier[] = [
   name: 'Preview',
   price: '$0',
   period: 'free',
-  description: 'Try the engine in 60 seconds. No signup required.',
+   description: 'See what every framework requires, free. No signup.',
   highlighted: false,
   cta: 'Explore the Navigator',
   href: '/navigator',
@@ -74,7 +74,7 @@ export function PricingSection() {
      index='05'
      kicker='pricing'
      title='Simple, honest pricing.'
-     intro='Start with a free preview. Join the waitlist for the tier that fits your team. Founding-cohort pricing locked in for life.'
+     intro='Explore the frameworks free, then join the waitlist for the tier that fits your team. Founding-cohort pricing locked in for life.'
      className='mb-16'
     />
     <div className='grid grid-cols-1 md:grid-cols-3 gap-5 items-start'>

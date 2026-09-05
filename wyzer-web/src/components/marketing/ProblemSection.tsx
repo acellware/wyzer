@@ -1,24 +1,23 @@
-import { DollarSign, RefreshCw, Layers } from 'lucide-react';
 import { SectionHeader } from './SectionHeader';
 
 const PAINS = [
  {
-  icon: DollarSign,
-  title: 'Consultants cost $30k–80k',
+  figure: '$30–80k',
+  label: 'in consultants, per audit',
   body:
-   "Compliance audits take months and require expensive external consultants. They still deliver a stale spreadsheet you can't maintain yourself.",
+   "Audits take months and expensive external consultants, and still hand you a stale spreadsheet you can't maintain yourself.",
  },
  {
-  icon: RefreshCw,
-  title: "Evidence is stale the moment it's collected",
+  figure: 'Day one',
+  label: 'evidence is already stale',
   body:
-   'Audit screenshots capture a single point in time. Deploy a service or rotate a key, and the evidence is instantly out of date.',
+   'A screenshot captures a single moment. Deploy a service or rotate a key and the evidence is instantly out of date.',
  },
  {
-  icon: Layers,
-  title: 'Six frameworks, six interpretations',
+  figure: '6×',
+  label: 'frameworks to reconcile',
   body:
-   'SOC 2, ISO 27001, GDPR. Each framework has hundreds of controls. Cross-mapping them manually is a dedicated full-time job.',
+   'SOC 2, ISO 27001, GDPR and more, each with hundreds of controls. Cross-mapping them by hand is a full-time job.',
  },
 ];
 
@@ -31,28 +30,32 @@ export function ProblemSection() {
      kicker='the problem'
      title='Compliance used to take 6 months and $50,000.'
      intro='The same three problems kill compliance programs at every stage, from seed-stage startup to public company.'
-     className='mb-16'
+     className='mb-14'
     />
-    <div className='grid grid-cols-1 md:grid-cols-3 gap-x-12 gap-y-10'>
-     {PAINS.map(({ icon: Icon, title, body }) => (
-      <div key={title}>
-       <div
-        className='w-9 h-9 rounded-md flex items-center justify-center mb-5'
-        style={{ background: 'var(--color-accent-soft)' }}
-       >
-        <Icon size={16} style={{ color: 'var(--color-accent-ink)' }} />
-       </div>
-       <h3
-        className='text-[16px] font-semibold mb-2.5'
+    <div className='flex flex-col sm:flex-row'>
+     {PAINS.map((p) => (
+      <div
+       key={p.figure}
+       className='flex-1 py-7 sm:py-1 sm:px-9 sm:first:pl-0 sm:last:pr-0 border-t first:border-t-0 sm:border-t-0 sm:border-l sm:first:border-l-0'
+       style={{ borderColor: 'var(--color-border-subtle)' }}
+      >
+       <p
+        className='text-[42px] leading-none font-semibold tracking-tight'
         style={{ color: 'var(--color-ink)' }}
        >
-        {title}
-       </h3>
+        {p.figure}
+       </p>
        <p
-        className='text-[14.5px] leading-[1.65]'
+        className='mt-3 text-[14px] font-medium'
+        style={{ color: 'var(--color-accent-ink)' }}
+       >
+        {p.label}
+       </p>
+       <p
+        className='mt-2 text-[14px] leading-[1.6]'
         style={{ color: 'var(--color-body)' }}
        >
-        {body}
+        {p.body}
        </p>
       </div>
      ))}

@@ -34,7 +34,7 @@ const SCORES = [
 function scoreColor(score: number) {
  if (score >= 80) return '#22c55e';
  if (score >= 65) return '#f59e0b';
- return '#ef4444';
+ return '#f87171';
 }
 
 function lineColor(kind: Line['kind']) {
@@ -179,7 +179,7 @@ export function AgentRunMockup() {
         );
        })}
       </div>
-      <div style={{ color: '#ef4444' }}>! 14 gaps · 3 critical · 7 major</div>
+      <div style={{ color: '#f87171' }}>! 14 gaps · 3 critical · 7 major</div>
       <div style={{ color: 'var(--color-app-muted)' }}>
        evidence stored · auditor link generated →
       </div>

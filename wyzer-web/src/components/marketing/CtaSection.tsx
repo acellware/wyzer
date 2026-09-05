@@ -20,18 +20,11 @@ export function CtaSection() {
      className='text-[18px] leading-[1.6] mb-10 mx-auto'
      style={{ color: 'var(--color-body)', maxWidth: '520px' }}
     >
-     Join the waitlist for the Wyzer agent and dashboard, or run a free
-     60-second preview to see how it works.
+     Join the waitlist for early access to the Wyzer agent. We're onboarding a
+     small founding cohort.
     </p>
     <div className='flex flex-col items-center gap-4'>
      <WaitlistForm />
-     <a
-      href='/navigator'
-      className='text-[14px] transition-colors'
-      style={{ color: 'var(--color-muted)' }}
-     >
-      Or run a free preview →
-     </a>
     </div>
     <p
      className='mt-8 font-mono text-[11px]'

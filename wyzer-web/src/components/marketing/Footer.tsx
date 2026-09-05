@@ -46,67 +46,8 @@ export function Footer() {
     borderColor: 'var(--color-border-subtle)',
    }}
   >
-   {/* Final CTA */}
-   <div className='max-w-[1240px] mx-auto px-6 py-24'>
-    <div className='grid grid-cols-1 lg:grid-cols-12 gap-10 items-end'>
-     <div className='lg:col-span-8'>
-      <p
-       className='font-mono text-[12px] mb-5'
-       style={{ color: 'var(--color-muted)' }}
-      >
-       ready when you are
-      </p>
-      <h2
-       className='text-display-2 balance'
-       style={{ color: 'var(--color-ink)' }}
-      >
-       Know your compliance score.
-       <br />
-       Start for free.
-      </h2>
-     </div>
-     <div className='lg:col-span-4 flex flex-wrap gap-3 lg:justify-end'>
-      <a
-       href='#waitlist'
-       className='h-12 px-5 inline-flex items-center text-[15px] font-medium rounded-[10px] text-white transition-colors'
-       style={{ backgroundColor: 'var(--color-accent)' }}
-       onMouseEnter={(e) =>
-        ((e.currentTarget as HTMLAnchorElement).style.backgroundColor =
-         'var(--color-accent-ink)')
-       }
-       onMouseLeave={(e) =>
-        ((e.currentTarget as HTMLAnchorElement).style.backgroundColor =
-         'var(--color-accent)')
-       }
-      >
-       Join waitlist
-      </a>
-      <a
-       href='/navigator'
-       className='h-12 px-5 inline-flex items-center text-[15px] rounded-[10px] border transition-colors'
-       style={{ color: 'var(--color-ink)', borderColor: 'var(--color-border)' }}
-       onMouseEnter={(e) => {
-        (e.currentTarget as HTMLAnchorElement).style.backgroundColor =
-         'var(--color-raised)';
-        (e.currentTarget as HTMLAnchorElement).style.borderColor =
-         'var(--color-ink)';
-       }}
-       onMouseLeave={(e) => {
-        (e.currentTarget as HTMLAnchorElement).style.backgroundColor =
-         'transparent';
-        (e.currentTarget as HTMLAnchorElement).style.borderColor =
-         'var(--color-border)';
-       }}
-      >
-       Explore the Navigator
-      </a>
-     </div>
-    </div>
-   </div>
-
    {/* Link grid */}
    <div
-    className='border-t'
     style={{ borderColor: 'var(--color-border-subtle)' }}
    >
     <div className='max-w-[1240px] mx-auto px-6 py-14'>

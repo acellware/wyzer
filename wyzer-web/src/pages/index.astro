@@ -6,6 +6,7 @@ import { HowItWorksSection } from '@/components/marketing/HowItWorksSection';
 import { FrameworksSection } from '@/components/marketing/FrameworksSection';
 import { FeaturesSection } from '@/components/marketing/FeaturesSection';
 import { PricingSection } from '@/components/marketing/PricingSection';
+import { NavigatorCtaSection } from '@/components/marketing/NavigatorCtaSection';
 import { CtaSection } from '@/components/marketing/CtaSection';
 
 const origin = (Astro.site?.toString() ?? 'https://wyzer.acellhq.com/').replace(/\/$/, '');
@@ -35,5 +36,6 @@ const jsonLd = [
   <FrameworksSection client:visible />
   <FeaturesSection client:visible />
   <PricingSection client:visible />
+  <NavigatorCtaSection client:visible />
   <CtaSection client:visible />
 </MarketingLayout>
