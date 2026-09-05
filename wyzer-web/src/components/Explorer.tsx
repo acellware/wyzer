@@ -12,12 +12,14 @@ export type ExplorerNode = {
 };
 
 const CORE: ExplorerNode = { id: '__core__', label: 'Start', kind: 'core' };
-const R = 300;
+const R = 260;
+// Options sit closer to the active node so the cluster reads as one focused group.
+const OPT_MIN = 208;
 // Telescoping trail: the hop into the active node is full length; older hops back
 // toward Start compress geometrically (with a floor that clears the Start circle),
 // so the whole path stays compact and on-screen no matter how deep you drill.
 const TELE = 0.62;
-const HOP_MIN = 152;
+const HOP_MIN = 140;
 const DEG = Math.PI / 180;
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 
@@ -41,14 +43,15 @@ function fanAngles(n: number, baseDeg: number, isCore: boolean): number[] {
 const isTerminal = (n: ExplorerNode) => Boolean(n.topic) && (!n.children || n.children.length === 0);
 
 type Role = 'core' | 'active' | 'trail' | 'option';
-function halfDims(node: ExplorerNode, role: Role) {
+type Dim = { w: number; h: number; circle: boolean };
+// Fallback size estimate used only until a node has been measured in the DOM.
+function halfDims(node: ExplorerNode, role: Role): Dim {
   if (role === 'core' || role === 'active') return { w: 66, h: 66, circle: true };
   if (role === 'option') return { w: 107, h: 27, circle: false };
   return { w: Math.min(110, node.label.length * 3.6 + 16), h: 16, circle: false };
 }
-// Point on a node's edge in the direction `dir` (a unit vector) from its center.
-function edgePoint(node: ExplorerNode, role: Role, center: Pt, dir: Pt): Pt {
-  const d = halfDims(node, role);
+// Point on a node's edge (circle or axis-aligned box) in the direction `dir`.
+function edgePoint(center: Pt, d: Dim, dir: Pt): Pt {
   if (d.circle) return { x: center.x + dir.x * d.w, y: center.y + dir.y * d.h };
   const tx = dir.x !== 0 ? d.w / Math.abs(dir.x) : Infinity;
   const ty = dir.y !== 0 ? d.h / Math.abs(dir.y) : Infinity;
@@ -56,10 +59,10 @@ function edgePoint(node: ExplorerNode, role: Role, center: Pt, dir: Pt): Pt {
   return { x: center.x + dir.x * t, y: center.y + dir.y * t };
 }
 // Edge-to-edge segment between two nodes, leaving a small gap before the target.
-function segment(from: { node: ExplorerNode; role: Role; pos: Pt }, to: { node: ExplorerNode; role: Role; pos: Pt }, gap = 8) {
+function segment(from: { pos: Pt; d: Dim }, to: { pos: Pt; d: Dim }, gap = 3) {
   const dir = unit({ x: to.pos.x - from.pos.x, y: to.pos.y - from.pos.y });
-  const a = edgePoint(from.node, from.role, from.pos, dir);
-  const b0 = edgePoint(to.node, to.role, to.pos, { x: -dir.x, y: -dir.y });
+  const a = edgePoint(from.pos, from.d, dir);
+  const b0 = edgePoint(to.pos, to.d, { x: -dir.x, y: -dir.y });
   return { a, b: { x: b0.x - dir.x * gap, y: b0.y - dir.y * gap } };
 }
 
@@ -72,12 +75,35 @@ export default function Explorer({ tree }: { tree: ExplorerNode[] }) {
   const [animatePan, setAnimatePan] = useState(true);
   const [revealed, setRevealed] = useState<TopicDetail | null>(null);
   const [drawerSlug, setDrawerSlug] = useState<string | null>(null);
+  // Measured half-sizes per node (world units); connectors use these so arrows
+  // always touch the real node edge regardless of label length or wrapping.
+  const [dims, setDims] = useState<Record<string, { w: number; h: number }>>({});
   const wrapRef = useRef<HTMLDivElement>(null);
   const drag = useRef({ active: false, sx: 0, sy: 0, px: 0, py: 0, moved: false });
   const panRef = useRef(pan);
   panRef.current = pan;
   const scaleRef = useRef(scale);
   scaleRef.current = scale;
+
+  const measure = useCallback((id: string, el: HTMLElement | null) => {
+    if (!el) return;
+    const w = el.offsetWidth / 2;
+    const h = el.offsetHeight / 2;
+    if (w === 0 && h === 0) return;
+    setDims((prev) => {
+      const cur = prev[id];
+      if (cur && Math.abs(cur.w - w) < 0.5 && Math.abs(cur.h - h) < 0.5) return prev;
+      return { ...prev, [id]: { w, h } };
+    });
+  }, []);
+  const dimFor = useCallback(
+    (node: ExplorerNode, role: Role): Dim => {
+      const m = dims[node.id];
+      if (m) return { w: m.w, h: m.h, circle: role === 'core' || role === 'active' };
+      return halfDims(node, role);
+    },
+    [dims],
+  );
 
   useEffect(() => {
     const el = wrapRef.current;
@@ -109,10 +135,10 @@ export default function Explorer({ tree }: { tree: ExplorerNode[] }) {
     const options = active.children ?? [];
     const baseDeg = parentDir ? Math.atan2(parentDir.y, parentDir.x) / DEG : 0;
     const optAngles = fanAngles(options.length, baseDeg, path.length === 0);
-    // Widen the option ring when there are many children so pills never collide;
-    // fitView zooms out to keep the wider fan in frame.
+    // Options sit at a compact base distance; the ring only widens when there are
+    // enough children that pills would otherwise collide (fitView refits to suit).
     const stepDeg = optAngles.length > 1 ? Math.abs(optAngles[1] - optAngles[0]) : 0;
-    const optR = stepDeg > 0 ? clamp(232 / (stepDeg * DEG), R, 660) : R;
+    const optR = clamp(stepDeg > 0 ? 232 / (stepDeg * DEG) : 0, OPT_MIN, 660);
     const optPositions = options.map((node, i) => {
       const ang = (optAngles[i] ?? 0) * DEG;
       return { node, pos: { x: activePos.x + optR * Math.cos(ang), y: activePos.y + optR * Math.sin(ang) } };
@@ -203,9 +229,9 @@ export default function Explorer({ tree }: { tree: ExplorerNode[] }) {
       maxY = Math.max(maxY, p.y + d.h);
     };
     layout.placed.forEach((pl, i) =>
-      consider(pl.pos, halfDims(pl.node, i === 0 ? 'core' : pl.node.id === layout.active.id ? 'active' : 'trail')),
+      consider(pl.pos, dimFor(pl.node, i === 0 ? 'core' : pl.node.id === layout.active.id ? 'active' : 'trail')),
     );
-    layout.options.forEach((o) => consider(o.pos, halfDims(o.node, 'option')));
+    layout.options.forEach((o) => consider(o.pos, dimFor(o.node, 'option')));
     const PAD = 116;
     const w = Math.max(1, maxX - minX);
     const h = Math.max(1, maxY - minY);
@@ -214,7 +240,7 @@ export default function Explorer({ tree }: { tree: ExplorerNode[] }) {
     const cy = (minY + maxY) / 2;
     setScale(s);
     setPan({ x: size.w / 2 - cx * s, y: size.h / 2 - cy * s });
-  }, [layout, size.w, size.h]);
+  }, [layout, size.w, size.h, dimFor]);
 
   // Re-fit whenever the drilled path or the viewport changes.
   useEffect(() => {
@@ -329,8 +355,8 @@ export default function Explorer({ tree }: { tree: ExplorerNode[] }) {
           {layout.placed.slice(1).map((pl, i) => {
             const fromPl = layout.placed[i];
             const seg = segment(
-              { node: fromPl.node, role: i === 0 ? 'core' : 'trail', pos: fromPl.pos },
-              { node: pl.node, role: pl.node.id === layout.active.id ? 'active' : 'trail', pos: pl.pos },
+              { pos: fromPl.pos, d: dimFor(fromPl.node, i === 0 ? 'core' : 'trail') },
+              { pos: pl.pos, d: dimFor(pl.node, pl.node.id === layout.active.id ? 'active' : 'trail') },
             );
             return (
               <line key={`t${i}`} x1={seg.a.x} y1={seg.a.y} x2={seg.b.x} y2={seg.b.y} stroke="rgba(140,160,220,0.4)" strokeWidth={1.5} markerEnd="url(#cx-arrow)" />
@@ -338,8 +364,8 @@ export default function Explorer({ tree }: { tree: ExplorerNode[] }) {
           })}
           {layout.options.map((o, i) => {
             const seg = segment(
-              { node: layout.active, role: 'active', pos: layout.activePos },
-              { node: o.node, role: 'option', pos: o.pos },
+              { pos: layout.activePos, d: dimFor(layout.active, 'active') },
+              { pos: o.pos, d: dimFor(o.node, 'option') },
             );
             return (
               <line
@@ -366,6 +392,7 @@ export default function Explorer({ tree }: { tree: ExplorerNode[] }) {
             <button
               key={node.id}
               type="button"
+              ref={(el) => measure(node.id, el)}
               onClick={() => (isCoreNode ? goTo(0) : goTo(i))}
               className={`cx-node cx-glide absolute ${isCoreNode || isActive ? 'cx-core' : 'cx-trail'}`}
               style={{ left: 0, top: 0, transform: `translate3d(${pos.x}px, ${pos.y}px, 0) translate(-50%, -50%)` }}
@@ -389,6 +416,7 @@ export default function Explorer({ tree }: { tree: ExplorerNode[] }) {
             <button
               key={o.node.id}
               type="button"
+              ref={(el) => measure(o.node.id, el)}
               onClick={() => pick(o.node)}
               className={`cx-node cx-option cx-anim absolute ${terminal ? 'is-terminal' : ''}`}
               style={{
