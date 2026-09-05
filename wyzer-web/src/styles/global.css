@@ -521,6 +521,9 @@
 }
 
 .cx-node { outline: none; }
+@media (prefers-reduced-motion: no-preference) {
+  .cx-glide { transition: transform 520ms cubic-bezier(0.22, 0.8, 0.2, 1); }
+}
 .cx-option {
   display: inline-flex;
   align-items: center;

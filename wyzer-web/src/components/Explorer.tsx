@@ -13,6 +13,11 @@ export type ExplorerNode = {
 
 const CORE: ExplorerNode = { id: '__core__', label: 'Start', kind: 'core' };
 const R = 300;
+// Telescoping trail: the hop into the active node is full length; older hops back
+// toward Start compress geometrically (with a floor that clears the Start circle),
+// so the whole path stays compact and on-screen no matter how deep you drill.
+const TELE = 0.62;
+const HOP_MIN = 152;
 const DEG = Math.PI / 180;
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 
@@ -92,7 +97,8 @@ export default function Explorer({ tree }: { tree: ExplorerNode[] }) {
       const idx = sibs.findIndex((s) => s.id === node.id);
       const baseDeg = parentDir ? Math.atan2(parentDir.y, parentDir.x) / DEG : 0;
       const ang = (fanAngles(sibs.length, baseDeg, i === 0)[Math.max(0, idx)] ?? 0) * DEG;
-      const p = { x: parentPos.x + R * Math.cos(ang), y: parentPos.y + R * Math.sin(ang) };
+      const hopR = Math.max(HOP_MIN, R * Math.pow(TELE, path.length - 1 - i));
+      const p = { x: parentPos.x + hopR * Math.cos(ang), y: parentPos.y + hopR * Math.sin(ang) };
       pos[node.id] = p;
       parentDir = unit({ x: p.x - parentPos.x, y: p.y - parentPos.y });
       parentPos = p;
@@ -182,55 +188,30 @@ export default function Explorer({ tree }: { tree: ExplorerNode[] }) {
     [path, navigate],
   );
 
-  // Frame the view. Prefer showing the whole graph centered; but once the graph
-  // grows tall/sparse enough that fitting all of it would shrink the content past
-  // readability, zoom into the current focus (active node + where you came from +
-  // its options) and let the far trail recede (the PATH breadcrumb keeps context).
+  // Fit the whole graph (trail + active + options) into view, centered on its
+  // bounding box. The telescoping trail keeps the footprint compact, so the full
+  // path stays visible and readable at every depth.
   const fitView = useCallback(() => {
-    type Item = { pos: Pt; d: { w: number; h: number } };
-    const box = (items: Item[]) => {
-      let minX = Infinity;
-      let minY = Infinity;
-      let maxX = -Infinity;
-      let maxY = -Infinity;
-      for (const it of items) {
-        minX = Math.min(minX, it.pos.x - it.d.w);
-        maxX = Math.max(maxX, it.pos.x + it.d.w);
-        minY = Math.min(minY, it.pos.y - it.d.h);
-        maxY = Math.max(maxY, it.pos.y + it.d.h);
-      }
-      return { w: Math.max(1, maxX - minX), h: Math.max(1, maxY - minY), cx: (minX + maxX) / 2, cy: (minY + maxY) / 2 };
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
+    const consider = (p: Pt, d: { w: number; h: number }) => {
+      minX = Math.min(minX, p.x - d.w);
+      maxX = Math.max(maxX, p.x + d.w);
+      minY = Math.min(minY, p.y - d.h);
+      maxY = Math.max(maxY, p.y + d.h);
     };
-    const PAD = 120;
-    const MIN_READABLE = 0.72;
-    const MAX = 1.4;
-    const fit = (b: { w: number; h: number }) => Math.min((size.w - PAD * 2) / b.w, (size.h - PAD * 2) / b.h);
-
-    const roleAt = (i: number, id: string) => (i === 0 ? 'core' : id === layout.active.id ? 'active' : 'trail') as Role;
-    const allItems: Item[] = [
-      ...layout.placed.map((pl, i) => ({ pos: pl.pos, d: halfDims(pl.node, roleAt(i, pl.node.id)) })),
-      ...layout.options.map((o) => ({ pos: o.pos, d: halfDims(o.node, 'option') })),
-    ];
-    const full = box(allItems);
-    const sFull = fit(full);
-
-    let s: number;
-    let cx: number;
-    let cy: number;
-    if (sFull >= MIN_READABLE) {
-      s = clamp(sFull, MIN_READABLE, MAX);
-      cx = full.cx;
-      cy = full.cy;
-    } else {
-      const n = layout.placed.length;
-      const focusItems: Item[] = layout.options.map((o) => ({ pos: o.pos, d: halfDims(o.node, 'option') }));
-      focusItems.push({ pos: layout.placed[n - 1].pos, d: halfDims(layout.placed[n - 1].node, 'active') });
-      if (n >= 2) focusItems.push({ pos: layout.placed[n - 2].pos, d: halfDims(layout.placed[n - 2].node, n - 2 === 0 ? 'core' : 'trail') });
-      const focus = box(focusItems);
-      s = clamp(fit(focus), MIN_READABLE, MAX);
-      cx = focus.cx;
-      cy = focus.cy;
-    }
+    layout.placed.forEach((pl, i) =>
+      consider(pl.pos, halfDims(pl.node, i === 0 ? 'core' : pl.node.id === layout.active.id ? 'active' : 'trail')),
+    );
+    layout.options.forEach((o) => consider(o.pos, halfDims(o.node, 'option')));
+    const PAD = 116;
+    const w = Math.max(1, maxX - minX);
+    const h = Math.max(1, maxY - minY);
+    const s = clamp(Math.min((size.w - PAD * 2) / w, (size.h - PAD * 2) / h), 0.4, 1.4);
+    const cx = (minX + maxX) / 2;
+    const cy = (minY + maxY) / 2;
     setScale(s);
     setPan({ x: size.w / 2 - cx * s, y: size.h / 2 - cy * s });
   }, [layout, size.w, size.h]);
@@ -386,8 +367,8 @@ export default function Explorer({ tree }: { tree: ExplorerNode[] }) {
               key={node.id}
               type="button"
               onClick={() => (isCoreNode ? goTo(0) : goTo(i))}
-              className={`cx-node absolute ${isCoreNode || isActive ? 'cx-core' : 'cx-trail'}`}
-              style={{ left: pos.x, top: pos.y, transform: 'translate(-50%, -50%)' }}
+              className={`cx-node cx-glide absolute ${isCoreNode || isActive ? 'cx-core' : 'cx-trail'}`}
+              style={{ left: 0, top: 0, transform: `translate3d(${pos.x}px, ${pos.y}px, 0) translate(-50%, -50%)` }}
               aria-current={isActive ? 'true' : undefined}
             >
               {isCoreNode || isActive ? (
