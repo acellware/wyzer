@@ -214,12 +214,22 @@ The Pagefind search index (⌘K) is built automatically by `npm run build`
 
 ```bash
 npm install            # one-time, repo root (wires the pre-push husky hook)
-git checkout v2
+git checkout develop
+git pull origin develop
+git checkout -b <your-branch>
 # ...edit content files...
 cd wyzer-web && npm run content:check   # or just push; the hook runs it
 git add <files> && git commit -m "Content: ..."
-git push origin v2     # runs the content check; aborts with errors if it fails
+git push origin <your-branch>
+# Open a PR into develop; review it, then merge develop into staging.
 ```
+
+Branches:
+
+- **`main`** — production state, mergeable only from develop via PRs.
+- **`develop`** — the integration branch everyone works against; PRs target it.
+- **`staging`** — pre-production; develop merges into it for release checks.
+- Feature branches — checkout from develop, PR into develop.
 
 Deploy is manual: `wyzer-web` builds to static and ships to Cloudflare Pages.
 No build config changes are needed for content-only edits.

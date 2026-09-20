@@ -2,6 +2,11 @@ import { SectionHeader } from './SectionHeader';
 
 const FRAMEWORKS = [
  {
+  name: 'NIST CSF 2.0',
+  controls: 22,
+  categories: ['Govern', 'Identify', 'Protect', 'Detect'],
+ },
+ {
   name: 'SOC 2 Type II',
   controls: 84,
   categories: ['Availability', 'Confidentiality', 'Processing Integrity', 'Privacy'],
@@ -17,19 +22,19 @@ const FRAMEWORKS = [
   categories: ['Data Subject Rights', 'Consent', 'Breach Notification', 'DPO'],
  },
  {
-  name: 'PCI-DSS 4.0',
-  controls: 263,
-  categories: ['Network Security', 'Cardholder Data', 'Cryptography', 'Audit'],
- },
- {
   name: 'HIPAA',
   controls: 78,
   categories: ['Administrative', 'Physical Safeguards', 'Technical', 'PHI Protection'],
  },
  {
-  name: 'NDPR',
-  controls: 31,
-  categories: ['Data Subject Rights', 'Accountability', 'Security', 'Consent'],
+  name: 'PCI DSS 4.0',
+  controls: 263,
+  categories: ['Network Security', 'Cardholder Data', 'Cryptography', 'Audit'],
+ },
+ {
+  name: 'FDA 21 CFR Part 11',
+  controls: 11,
+  categories: ['Electronic Records', 'Electronic Signatures', 'Audit Trails', 'Validation'],
  },
 ];
 
@@ -107,12 +112,12 @@ export function FrameworksSection() {
       background: 'var(--color-surface)',
      }}
     >
-     {[
-      { value: '6', label: 'frameworks covered' },
-      { value: '596', label: 'total controls' },
-      { value: '60+', label: 'technologies mapped' },
-      { value: '< 3s', label: 'to generate a report' },
-     ].map((stat) => (
+      {[
+       { value: '7', label: 'frameworks covered' },
+       { value: '598', label: 'total controls' },
+       { value: '60+', label: 'technologies mapped' },
+       { value: '< 3s', label: 'to generate a report' },
+      ].map((stat) => (
       <div key={stat.label} className='text-center'>
        <div
         className='text-[24px] font-semibold font-mono tabular-nums'

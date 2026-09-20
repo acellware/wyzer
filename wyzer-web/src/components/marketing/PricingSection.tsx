@@ -23,7 +23,7 @@ const PLANS: PlanTier[] = [
   href: '/navigator',
   features: [
    { text: '1 self-reported snapshot', included: true },
-   { text: 'All 6 frameworks', included: true },
+   { text: 'All 7 frameworks', included: true },
    { text: 'Summary report', included: true },
    { text: 'Continuous drift detection', included: false },
    { text: 'Auditor-ready evidence export', included: false },
@@ -40,7 +40,7 @@ const PLANS: PlanTier[] = [
   href: '#waitlist',
   features: [
    { text: '1 project · 1 environment', included: true },
-   { text: 'All 6 frameworks', included: true },
+   { text: 'All 7 frameworks', included: true },
    { text: 'Agent on any surface (CI, laptop, server)', included: true },
    { text: 'Continuous drift detection', included: true },
    { text: 'Auditor-ready evidence export', included: true },
@@ -57,7 +57,7 @@ const PLANS: PlanTier[] = [
   href: '#waitlist',
   features: [
    { text: 'Unlimited projects & environments', included: true },
-   { text: 'All 6 frameworks', included: true },
+   { text: 'All 7 frameworks', included: true },
    { text: 'Agent on any surface', included: true },
    { text: 'Drift detection + Slack / PagerDuty alerts', included: true },
    { text: 'Team seats (up to 20) · SSO / SAML', included: true },
