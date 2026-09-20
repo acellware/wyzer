@@ -24,6 +24,8 @@ A single Astro app served on one domain (`wyzer.acellhq.com`):
 - **`/`** — marketing landing, legal pages, and the waitlist. Built from React islands, server-rendered for SEO.
 - **`/navigator`** — the **Compliance Navigator**, an interactive, educational explorer. Pick a slice of your stack (by cloud or by industry) and it shows, in plain English, what each framework expects for that topic, with citations. Full-text search via Pagefind, a pannable canvas view, and a light/dark theme.
 
+> Adding or editing Navigator content? See [**`wyzer-web/CONTENT-GUIDE.md`**](wyzer-web/CONTENT-GUIDE.md).
+
 **Tech:** Astro 4, React islands, Tailwind CSS, MDX, Pagefind. Deploys to Cloudflare Pages.
 
 ```bash
