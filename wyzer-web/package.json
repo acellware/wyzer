@@ -8,7 +8,8 @@
     "build": "astro build",
     "postbuild": "pagefind --site dist",
     "preview": "astro preview",
-    "check": "astro check"
+    "check": "astro check",
+    "content:check": "node scripts/content-check.mjs"
   },
   "dependencies": {
     "@astrojs/mdx": "^3.1.9",
