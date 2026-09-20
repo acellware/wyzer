@@ -44,8 +44,8 @@ function StageGraphic({ index }: { index: number }) {
      <Dot c='#28c840' />
     </div>
     <div style={{ color: 'var(--color-app-muted)' }}>$ wyzer scan --project prod</div>
-    <div style={{ color: '#4ade80' }}>✓ 24 resources inspected</div>
-    <div style={{ color: '#4ade80' }}>✓ 7 frameworks mapped</div>
+    <div style={{ color: '#4ade80' }}>24 resources inspected</div>
+    <div style={{ color: '#4ade80' }}>7 frameworks mapped</div>
    </div>
   );
  }
@@ -76,16 +76,15 @@ function StageGraphic({ index }: { index: number }) {
    <div className='font-mono text-[11px] mb-0.5' style={{ color: 'var(--color-app-muted)' }}>
     evidence.pdf
    </div>
-   {['SOC 2 · passed', 'ISO 27001 · passed', 'GDPR · passed'].map((t) => (
-    <div
-     key={t}
-     className='flex items-center gap-2 text-[12px]'
-     style={{ color: 'var(--color-app-body)' }}
-    >
-     <span style={{ color: '#4ade80' }}>✓</span>
-     {t}
-    </div>
-   ))}
+    {['SOC 2 · passed', 'ISO 27001 · passed', 'GDPR · passed'].map((t) => (
+     <div
+      key={t}
+      className='flex items-center gap-2 text-[12px]'
+      style={{ color: 'var(--color-app-body)' }}
+     >
+      {t}
+     </div>
+    ))}
   </div>
  );
 }
