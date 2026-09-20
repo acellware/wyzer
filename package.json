@@ -1,0 +1,12 @@
+{
+  "name": "wyzer",
+  "private": true,
+  "description": "Repo-level scripts and git hooks (see wyzer-web/CONTENT-GUIDE.md)",
+  "scripts": {
+    "check:content": "npm --prefix wyzer-web run content:check",
+    "prepare": "husky"
+  },
+  "devDependencies": {
+    "husky": "^9.1.7"
+  }
+}

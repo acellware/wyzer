@@ -1,6 +1,6 @@
 # Wyzer — Continuous compliance for engineering teams
 
-Wyzer helps engineering teams stay audit-ready across SOC 2, ISO 27001, GDPR, PCI-DSS, HIPAA, and NDPR. The Wyzer agent inspects your real infrastructure and ships continuous evidence, so compliance keeps up with your stack instead of becoming a once-a-year scramble.
+Wyzer helps engineering teams stay audit-ready across NIST, SOC 2, ISO 27001, GDPR, HIPAA, PCI DSS, and FDA. The Wyzer agent inspects your real infrastructure and ships continuous evidence, so compliance keeps up with your stack instead of becoming a once-a-year scramble.
 
 This repository holds Wyzer's web presence and its backend API.
 
@@ -24,15 +24,18 @@ A single Astro app served on one domain (`wyzer.acellhq.com`):
 - **`/`** — marketing landing, legal pages, and the waitlist. Built from React islands, server-rendered for SEO.
 - **`/navigator`** — the **Compliance Navigator**, an interactive, educational explorer. Pick a slice of your stack (by cloud or by industry) and it shows, in plain English, what each framework expects for that topic, with citations. Full-text search via Pagefind, a pannable canvas view, and a light/dark theme.
 
+> Adding or editing Navigator content? See [**`wyzer-web/CONTENT-GUIDE.md`**](wyzer-web/CONTENT-GUIDE.md).
+
 **Tech:** Astro 4, React islands, Tailwind CSS, MDX, Pagefind. Deploys to Cloudflare Pages.
 
 ```bash
 cd wyzer-web
 npm install
-npm run dev        # http://localhost:4321
-npm run build      # static build + Pagefind index
-npm run preview    # serve the production build (port 4321)
-npm run check      # astro check (type + template diagnostics)
+npm run dev           # http://localhost:4321
+npm run build         # static build + Pagefind index
+npm run preview       # serve the production build (port 4321)
+npm run check         # astro check (type + template diagnostics)
+npm run content:check # Navigator content checklist (frameworks/topics/trees/style)
 ```
 
 Environment — `cp .env.example .env`:
@@ -53,7 +56,7 @@ NestJS 10 (TypeScript strict, Prisma 5) with PostgreSQL, Redis/BullMQ, JWT auth,
 
 ### Prerequisites
 
-- Node.js 20+
+- Node.js 18.17+ (Astro 4 requirement; we develop on Node 22)
 - Docker + Docker Compose
 
 ### 1. Generate JWT keys
@@ -93,7 +96,7 @@ npx prisma db seed          # seed frameworks, technologies, templates
 cd wyzer-api
 npm run start:dev
 # API:     http://localhost:3001/api/v1
-# Swagger: http://localhost:3001/api/docs
+# Swagger: http://localhost:3001/docs
 ```
 
 ### Tests
@@ -108,14 +111,17 @@ npm run test:e2e    # integration tests (needs postgres + redis)
 
 ## Frameworks covered
 
-| Framework | Version                            |
-| --------- | ---------------------------------- |
-| SOC 2     | Trust Service Criteria             |
-| ISO 27001 | 2022                               |
-| GDPR      | EU 2016/679                        |
-| PCI-DSS   | v4.0                               |
-| HIPAA     | Security Rule                      |
-| NDPR      | Nigeria Data Protection Regulation |
+The Navigator's framework set (mirrors `wyzer-web/src/content/config.ts`):
+
+| Framework        | Version                            |
+| ---------------- | ---------------------------------- |
+| NIST             | Cybersecurity Framework, CSF 2.0   |
+| SOC 2            | Trust Services Criteria            |
+| ISO/IEC 27001    | 2022                               |
+| GDPR             | EU 2016/679                        |
+| HIPAA            | Security Rule                      |
+| PCI DSS          | v4.0                               |
+| FDA              | 21 CFR Part 11 (electronic records) |
 
 ---
 
