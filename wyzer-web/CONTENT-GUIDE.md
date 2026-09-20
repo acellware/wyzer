@@ -119,13 +119,37 @@ orphaned (still fine as an SSG page, but invisible in the canvas).
 
 ```bash
 cd wyzer-web
-npx astro check     # type/template diagnostics, 0 errors
-npm run build       # validates schemas + topic slug references; fails on bad refs
-npm run preview     # serve the production build to eyeball it
+npm run content:check  # fast checklist: frameworks/topics/trees/style (see below)
+npx astro check        # type/template diagnostics, 0 errors
+npm run build          # validates schemas + topic slug references; fails on bad refs
+npm run preview        # serve the production build to eyeball it
 ```
 
 The build **fails** if a `topic:` slug does not exist (`requireTopic`). Fix
 typos, rerun, done.
+
+### The pre-push gate
+
+A husky hook at the repo root runs `npm run check:content` **before every
+`git push`** and aborts the push with a full error list if anything is wrong.
+To use it, install once after cloning:
+
+```bash
+# repo root
+npm install   # installs husky and wires the hooks (prepare script)
+```
+
+The checklist (also runnable anytime via `npm run check:content` from the root,
+or `npm run content:check` from `wyzer-web/`):
+
+- **Frameworks:** every `frameworks/*.yaml` matches the `FRAMEWORK` enum in
+  `config.ts`, all required fields present, slug is lowercase-hyphenated.
+- **Topics:** every `topics/*.mdx` has valid frontmatter, `summary` ≤ 320 chars,
+  at least one card, each card's `framework` is known and `plain` is present;
+  citations carry a label.
+- **Trees:** every `topic:` reference in `cloud/` + `industry/` resolves to an
+  existing topic, and **no topic is orphaned** (unreachable from any tree).
+- **Style:** no em-dashes anywhere in content.
 
 ---
 
@@ -189,11 +213,12 @@ The Pagefind search index (⌘K) is built automatically by `npm run build`
 ## Workflow
 
 ```bash
+npm install            # one-time, repo root (wires the pre-push husky hook)
 git checkout v2
 # ...edit content files...
-cd wyzer-web && npx astro check && npm run build
+cd wyzer-web && npm run content:check   # or just push; the hook runs it
 git add <files> && git commit -m "Content: ..."
-git push origin v2
+git push origin v2     # runs the content check; aborts with errors if it fails
 ```
 
 Deploy is manual: `wyzer-web` builds to static and ships to Cloudflare Pages.
