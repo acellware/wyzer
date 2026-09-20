@@ -13,8 +13,8 @@ const STEPS = [
   num: '02',
   title: 'Wyzer maps and scores',
   body:
-   "Every signal is cross-referenced against all six frameworks at once. Wyzer pre-computes the overlaps between controls so you don't double-work.",
-  detail: 'All 6 frameworks',
+   "Every signal is cross-referenced against all seven frameworks at once. Wyzer pre-computes the overlaps between controls so you don't double-work.",
+  detail: 'All 7 frameworks',
  },
  {
   num: '03',
@@ -45,7 +45,7 @@ function StageGraphic({ index }: { index: number }) {
     </div>
     <div style={{ color: 'var(--color-app-muted)' }}>$ wyzer scan --project prod</div>
     <div style={{ color: '#4ade80' }}>✓ 24 resources inspected</div>
-    <div style={{ color: '#4ade80' }}>✓ 6 frameworks mapped</div>
+    <div style={{ color: '#4ade80' }}>✓ 7 frameworks mapped</div>
    </div>
   );
  }

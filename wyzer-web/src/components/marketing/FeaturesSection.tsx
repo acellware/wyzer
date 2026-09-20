@@ -4,7 +4,7 @@ const FEATURES = [
  {
   title: 'Multi-framework mapping',
   body:
-   "One run maps to SOC 2, ISO 27001, GDPR, PCI-DSS, HIPAA and NDPR simultaneously. Wyzer pre-computes the overlap between controls so you don't double-work.",
+   "One run maps to NIST, SOC 2, ISO 27001, GDPR, HIPAA, PCI DSS and FDA simultaneously. Wyzer pre-computes the overlap between controls so you don't double-work.",
  },
  {
   title: 'Runs anywhere',

@@ -1,6 +1,6 @@
 import { ArrowRight } from 'lucide-react';
 
-const FRAMEWORKS = ['SOC 2', 'ISO 27001', 'GDPR', 'PCI-DSS', 'HIPAA', 'NDPR'];
+const FRAMEWORKS = ['NIST', 'SOC 2', 'ISO 27001', 'GDPR', 'HIPAA', 'PCI DSS', 'FDA'];
 
 export function HeroSection() {
  return (
@@ -27,9 +27,9 @@ export function HeroSection() {
      className='text-[18px] leading-[1.65] mb-10 mx-auto'
      style={{ color: 'var(--color-body)', maxWidth: '600px' }}
     >
-     The Wyzer agent runs in your CI, on a laptop, or as a scheduled job. It
-     inspects your real infrastructure and ships continuous evidence for
-     SOC&nbsp;2, ISO&nbsp;27001, GDPR, PCI&#8209;DSS, HIPAA, and NDPR.
+      The Wyzer agent runs in your CI, on a laptop, or as a scheduled job. It
+      inspects your real infrastructure and ships continuous evidence for
+      NIST, SOC&nbsp;2, ISO&nbsp;27001, GDPR, HIPAA, PCI&nbsp;DSS, and FDA.
     </p>
     <div className='flex flex-wrap gap-3 justify-center mb-10'>
      <a
@@ -70,7 +70,7 @@ export function HeroSection() {
      className='font-mono text-[11px] mb-2.5'
      style={{ color: 'var(--color-muted)' }}
     >
-     6 frameworks covered
+      7 frameworks covered
     </p>
     <div className='flex flex-wrap gap-2 justify-center'>
      {FRAMEWORKS.map((f) => (
