@@ -228,7 +228,6 @@ Branches:
 
 - **`main`** — production state, mergeable only from develop via PRs.
 - **`develop`** — the integration branch everyone works against; PRs target it.
-- **`staging`** — pre-production; develop merges into it for release checks.
 - Feature branches — checkout from develop, PR into develop.
 
 Deploy is manual: `wyzer-web` builds to static and ships to Cloudflare Pages.
